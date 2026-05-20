@@ -21,6 +21,7 @@ tracing.workspace = true
 eyre.workspace = true
 dirs.workspace = true
 has-nerd-font.workspace = true
+unicode-width.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
