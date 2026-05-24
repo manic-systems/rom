@@ -1,5 +1,7 @@
 /target
 /result*
 
+.direnv
+
 # For reference
 nix-output-monitor
