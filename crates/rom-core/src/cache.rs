@@ -1,4 +1,5 @@
 use std::{
+  cmp::Reverse,
   collections::HashMap,
   fs::{self, File, OpenOptions},
   io::{BufReader, BufWriter},
@@ -96,7 +97,7 @@ impl BuildReportCache {
 
     // Sort each entry by timestamp (newest first) and limit to HISTORY_LIMIT
     for entries in reports.values_mut() {
-      entries.sort_by(|a, b| b.completed_at.cmp(&a.completed_at));
+      entries.sort_by_key(|entry| Reverse(entry.completed_at));
       entries.truncate(HISTORY_LIMIT);
     }
 
@@ -127,7 +128,7 @@ impl BuildReportCache {
       existing.extend(new_reports.iter().cloned());
 
       // Sort by timestamp (newest first)
-      existing.sort_by(|a, b| b.completed_at.cmp(&a.completed_at));
+      existing.sort_by_key(|entry| Reverse(entry.completed_at));
 
       // Keep only most recent HISTORY_LIMIT entries
       existing.truncate(HISTORY_LIMIT);

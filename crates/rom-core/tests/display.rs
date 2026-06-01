@@ -24,21 +24,22 @@ fn make_drv_info(
 
   use rom_core::state::{DependencySummary, Derivation, DerivationInfo};
   DerivationInfo {
-    name:               Derivation {
+    name:                   Derivation {
       path: PathBuf::from(format!(
         "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-{name}.drv"
       )),
       name: name.to_string(),
     },
-    outputs:            HashMap::new(),
-    input_derivations:  Vec::new(),
-    input_sources:      HashSet::new(),
-    build_status:       status,
-    dependency_summary: DependencySummary::default(),
-    cached:             false,
-    derivation_parents: HashSet::new(),
-    pname:              None,
-    platform:           None,
+    outputs:                HashMap::new(),
+    input_derivations:      Vec::new(),
+    input_sources:          HashSet::new(),
+    build_status:           status,
+    dependency_summary:     DependencySummary::default(),
+    dependencies_populated: true,
+    cached:                 false,
+    derivation_parents:     HashSet::new(),
+    pname:                  None,
+    platform:               None,
   }
 }
 
@@ -585,21 +586,22 @@ fn tree_unknown_root_with_summary_visible() {
   });
 
   let parent_info = DerivationInfo {
-    name:               Derivation {
+    name:                   Derivation {
       path: PathBuf::from(
         "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-meta-pkg.drv",
       ),
       name: "meta-pkg".to_string(),
     },
-    outputs:            HashMap::new(),
-    input_derivations:  Vec::new(),
-    input_sources:      HashSet::new(),
-    build_status:       BuildStatus::Unknown,
-    dependency_summary: summary,
-    cached:             false,
-    derivation_parents: HashSet::new(),
-    pname:              None,
-    platform:           None,
+    outputs:                HashMap::new(),
+    input_derivations:      Vec::new(),
+    input_sources:          HashSet::new(),
+    build_status:           BuildStatus::Unknown,
+    dependency_summary:     summary,
+    dependencies_populated: true,
+    cached:                 false,
+    derivation_parents:     HashSet::new(),
+    pname:                  None,
+    platform:               None,
   };
   state.derivation_infos.insert(parent_id, parent_info);
   state.forest_roots.push(parent_id);
@@ -856,21 +858,22 @@ fn tree_planned_leaf_shows_waiting_annotation() {
   // The leaf node: Planned, no children (it IS a leaf in the tree), but
   // has a non-empty dependency_summary
   let leaf_info = DerivationInfo {
-    name:               Derivation {
+    name:                   Derivation {
       path: PathBuf::from(
         "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-leaf-pkg.drv",
       ),
       name: "leaf-pkg".to_string(),
     },
-    outputs:            HashMap::new(),
-    input_derivations:  Vec::new(), // no children -> leaf
-    input_sources:      HashSet::new(),
-    build_status:       BuildStatus::Planned,
-    dependency_summary: leaf_summary,
-    cached:             false,
-    derivation_parents: HashSet::new(),
-    pname:              None,
-    platform:           None,
+    outputs:                HashMap::new(),
+    input_derivations:      Vec::new(), // no children -> leaf
+    input_sources:          HashSet::new(),
+    build_status:           BuildStatus::Planned,
+    dependency_summary:     leaf_summary,
+    dependencies_populated: true,
+    cached:                 false,
+    derivation_parents:     HashSet::new(),
+    pname:                  None,
+    platform:               None,
   };
   state.derivation_infos.insert(leaf_id, leaf_info);
 
@@ -878,24 +881,25 @@ fn tree_planned_leaf_shows_waiting_annotation() {
   let mut parent_summary = DependencySummary::default();
   parent_summary.planned_builds.insert(leaf_id);
   let parent_info = DerivationInfo {
-    name:               Derivation {
+    name:                   Derivation {
       path: PathBuf::from(
         "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-parent-pkg.drv",
       ),
       name: "parent-pkg".to_string(),
     },
-    outputs:            HashMap::new(),
-    input_derivations:  vec![InputDerivation {
+    outputs:                HashMap::new(),
+    input_derivations:      vec![InputDerivation {
       derivation: leaf_id,
       outputs:    HashSet::new(),
     }],
-    input_sources:      HashSet::new(),
-    build_status:       BuildStatus::Planned,
-    dependency_summary: parent_summary,
-    cached:             false,
-    derivation_parents: HashSet::new(),
-    pname:              None,
-    platform:           None,
+    input_sources:          HashSet::new(),
+    build_status:           BuildStatus::Planned,
+    dependency_summary:     parent_summary,
+    dependencies_populated: true,
+    cached:                 false,
+    derivation_parents:     HashSet::new(),
+    pname:                  None,
+    platform:               None,
   };
   state.derivation_infos.insert(parent_id, parent_info);
   state.forest_roots.push(parent_id);

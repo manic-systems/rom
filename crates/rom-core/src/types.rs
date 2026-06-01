@@ -1,4 +1,5 @@
 //! Core types for ROM
+use std::{convert::Infallible, str::FromStr};
 
 /// Legend display style
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -11,14 +12,15 @@ pub enum LegendStyle {
   Verbose,
 }
 
-impl LegendStyle {
-  #[must_use]
-  pub fn from_str(s: &str) -> Self {
-    match s.to_lowercase().as_str() {
+impl FromStr for LegendStyle {
+  type Err = Infallible;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(match s.to_lowercase().as_str() {
       "compact" => Self::Compact,
       "verbose" => Self::Verbose,
       _ => Self::Table,
-    }
+    })
   }
 }
 
@@ -55,39 +57,42 @@ pub enum SummaryStyle {
   Full,
 }
 
-impl SummaryStyle {
-  #[must_use]
-  pub fn from_str(s: &str) -> Self {
-    match s.to_lowercase().as_str() {
+impl FromStr for SummaryStyle {
+  type Err = Infallible;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(match s.to_lowercase().as_str() {
       "concise" => Self::Concise,
       "table" => Self::Table,
       "full" => Self::Full,
       _ => Self::Concise,
-    }
+    })
   }
 }
 
-impl LogPrefixStyle {
-  #[must_use]
-  pub fn from_str(s: &str) -> Self {
-    match s.to_lowercase().as_str() {
+impl FromStr for LogPrefixStyle {
+  type Err = Infallible;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(match s.to_lowercase().as_str() {
       "short" => Self::Short,
       "full" => Self::Full,
       "none" => Self::None,
       _ => Self::Short,
-    }
+    })
   }
 }
 
-impl DisplayFormat {
-  #[must_use]
-  pub fn from_str(s: &str) -> Self {
-    match s.to_lowercase().as_str() {
+impl FromStr for DisplayFormat {
+  type Err = Infallible;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(match s.to_lowercase().as_str() {
       "tree" => Self::Tree,
       "plain" => Self::Plain,
       "dashboard" => Self::Dashboard,
       _ => Self::Tree,
-    }
+    })
   }
 }
 

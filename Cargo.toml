@@ -1,39 +1,92 @@
 [workspace]
-members = ["crates/*", "rom"]
 resolver = "3"
+members = ["crates/*", "rom"]
 
 [workspace.package]
 version = "0.2.0"
 edition = "2024"
-description = "Pretty build graphs for your pretty Nix builds"
 rust-version = "1.92.0"
+description = "Pretty build graphs for your pretty Nix builds"
 license = "EUPL-1.2"
 
 [workspace.dependencies]
-rom-core = { path = "./crates/rom-core", version = "0.2.0" }
+cognos = {
+  path = "./crates/cognos",
+  version = "1.0.0"
+}  # cognos is versioned independently
 rom-cli = { path = "./crates/rom-cli", version = "0.2.0" }
-cognos = { path = "./crates/cognos", version = "1.0.0" }     # cognos is versioned independently
+rom-core = { path = "./crates/rom-core", version = "0.2.0" }
 
+ansi-to-tui = "8.0.1"
 anyhow = "1.0.102"
+chrono = "0.4.44"
 clap = { version = "4.6.1", features = ["derive"] }
+crossterm = "0.29.0"
+csv = "1.4.0"
+dirs = "6.0.0"
+eyre = "0.6.12"
+has-nerd-font = "0.20260228.0"
+indexmap = { version = "2.14.0", features = ["serde"] }
+nucleo-matcher = "0.3.1"
+ratatui = "0.30.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 serde_repr = "0.1.20"
-crossterm = "0.29.0"
-ratatui = "0.30.0"
-indexmap = { version = "2.14.0", features = ["serde"] }
-csv = "1.4.0"
-chrono = "0.4.44"
+tempfile = "3.27.0"
 thiserror = "2.0.18"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-eyre = "0.6.12"
-dirs = "6.0.0"
-tempfile = "3.27.0"
-has-nerd-font = "0.20260228.0"
+
+[workspace.lints.clippy]
+cargo = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
+blanket_clippy_restriction_lints = "allow"
+restriction = { level = "warn", priority = -1 }
+
+arbitrary_source_item_ordering = "allow"
+arithmetic_side_effects = "allow"
+as_conversions = "allow"
+doc_paragraphs_missing_punctuation = "allow"
+else_if_without_else = "allow"
+error_impl_error = "allow"
+exhaustive_enums = "allow"
+exhaustive_structs = "allow"
+expect_used = "allow"
+implicit_return = "allow"
+indexing_slicing = "allow"
+inline_modules = "allow"
+integer_division = "allow"
+integer_division_remainder_used = "allow"
+let_underscore_must_use = "allow"
+let_underscore_untyped = "allow"
+little_endian_bytes = "allow"
+map_err_ignore = "allow"
+missing_asserts_for_indexing = "allow"
+missing_docs_in_private_items = "allow"
+missing_errors_doc = "allow"
+missing_inline_in_public_items = "allow"
+missing_trait_methods = "allow"
+mod_module_files = "allow"
+module_name_repetitions = "allow"
+multiple_crate_versions = "allow"
+needless_borrowed_reference = "allow"
+print_stderr = "allow"
+print_stdout = "allow"
+question_mark_used = "allow"
+ref_patterns = "allow"
+semicolon_outside_block = "allow"
+separated_literal_suffix = "allow"
+single_call_fn = "allow"
+single_char_lifetime_names = "allow"
+std_instead_of_alloc = "allow"
+std_instead_of_core = "allow"
+tests_outside_test_module = "allow"
+unwrap_used = "allow"
 
 [profile.release]
 opt-level = 3
+strip = true
 lto = true
 codegen-units = 1
-strip = true

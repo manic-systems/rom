@@ -19,6 +19,18 @@ pub enum Platform {
   Lix,
 }
 
+impl std::str::FromStr for Platform {
+  type Err = ();
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s.to_lowercase().as_str() {
+      "nix" => Ok(Self::Nix),
+      "lix" => Ok(Self::Lix),
+      _ => Err(()),
+    }
+  }
+}
+
 impl Platform {
   /// The executable name for this platform.
   ///
@@ -47,16 +59,5 @@ impl Platform {
     }
 
     Self::Nix
-  }
-
-  /// Parse `"nix"` or `"lix"` from a string; returns `None` for anything
-  /// else.
-  #[must_use]
-  pub fn from_str(s: &str) -> Option<Self> {
-    match s.to_lowercase().as_str() {
-      "nix" => Some(Self::Nix),
-      "lix" => Some(Self::Lix),
-      _ => None,
-    }
   }
 }

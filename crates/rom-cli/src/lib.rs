@@ -1,5 +1,6 @@
 //! ROM CLI - command-line interface and nix process wrappers
 mod cli;
+mod log_store;
 
 pub use cli::{
   Cli,

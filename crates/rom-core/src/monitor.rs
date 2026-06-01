@@ -11,10 +11,13 @@ use crate::{
   cache::BuildReportCache,
   display::{Display, DisplayConfig},
   error::{Result, RomError},
+  graph::GraphIndexer,
   state::{BuildStatus, Derivation, FailType, State, StorePath},
   types::{Config, InputMode},
   update,
 };
+
+const DEPENDENCY_POPULATE_BUDGET_PER_RENDER: usize = 1;
 
 enum HumanParserState {
   Idle,
@@ -39,6 +42,7 @@ impl HumanParser {
 /// Processes nix output and displays progress
 pub struct Monitor<W: Write> {
   state:        State,
+  graph:        GraphIndexer,
   display:      Display<W>,
   config:       Config,
   human_parser: HumanParser,
@@ -68,6 +72,7 @@ impl<W: Write> Monitor<W> {
 
     Ok(Self {
       state,
+      graph: GraphIndexer::new(),
       display,
       config,
       human_parser: HumanParser::new(),
@@ -95,6 +100,12 @@ impl<W: Write> Monitor<W> {
       if last_poll.elapsed() >= poll_interval {
         let now = crate::state::current_time();
         crate::update::detect_local_completed_builds(&mut self.state, now);
+        if self.graph.populate_pending(
+          &mut self.state,
+          DEPENDENCY_POPULATE_BUDGET_PER_RENDER,
+        ) {
+          crate::update::maintain_state(&mut self.state, now);
+        }
         last_poll = std::time::Instant::now();
       }
 
@@ -150,7 +161,12 @@ impl<W: Write> Monitor<W> {
             writeln!(self.display.writer(), "{msg}").map_err(RomError::Io)?;
           }
 
-          let changed = update::process_message(&mut self.state, action);
+          let changed =
+            update::process_message(&mut self.state, action.clone());
+          self.graph.observe_action(&mut self.state, &action);
+          if let cognos::Actions::Message { msg, .. } = &action {
+            self.graph.observe_plan_line(&mut self.state, msg);
+          }
           Ok(changed)
         },
         Err(e) => {
@@ -188,14 +204,7 @@ impl<W: Write> Monitor<W> {
           for path_str in pending {
             if is_builds {
               if let Some(drv) = crate::state::Derivation::parse(&path_str) {
-                let drv_id = self.state.get_or_create_derivation_id(drv);
-                self.state.update_build_status(
-                  drv_id,
-                  crate::state::BuildStatus::Planned,
-                );
-                if !self.state.forest_roots.contains(&drv_id) {
-                  self.state.forest_roots.push(drv_id);
-                }
+                self.graph.plan_derivation(&mut self.state, drv);
               }
             } else if let Some(sp) = crate::state::StorePath::parse(&path_str) {
               let sp_id = self.state.get_or_create_store_path_id(sp);

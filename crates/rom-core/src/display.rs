@@ -4,11 +4,7 @@ use std::{
   io::{self, Write},
 };
 
-use crossterm::{
-  cursor,
-  execute,
-  style::{Color, ResetColor, SetForegroundColor},
-};
+use crossterm::{cursor, execute, style::Color};
 
 use crate::{
   icons::Icons,
@@ -28,6 +24,7 @@ pub fn format_duration(secs: f64) -> String {
   }
 }
 
+#[derive(Clone, Copy)]
 pub struct DisplayConfig {
   pub show_timers:       bool,
   pub max_tree_depth:    usize,
@@ -54,6 +51,50 @@ impl Default for DisplayConfig {
   }
 }
 
+#[must_use]
+pub fn render_state_lines(state: &State, config: DisplayConfig) -> Vec<String> {
+  let display = Display {
+    writer: io::sink(),
+    config,
+    last_lines: 0,
+    printed_log_lines: 0,
+  };
+  display.render_frame_lines(state)
+}
+
+pub struct TuiStateLines {
+  pub header: Option<String>,
+  pub body:   Vec<String>,
+}
+
+#[must_use]
+pub fn render_tui_state_lines(
+  state: &State,
+  config: DisplayConfig,
+) -> TuiStateLines {
+  let display = Display {
+    writer: io::sink(),
+    config,
+    last_lines: 0,
+    printed_log_lines: 0,
+  };
+  display.render_tui_frame_lines(state)
+}
+
+#[must_use]
+pub fn render_final_state_lines(
+  state: &State,
+  config: DisplayConfig,
+) -> Vec<String> {
+  let display = Display {
+    writer: io::sink(),
+    config,
+    last_lines: 0,
+    printed_log_lines: 0,
+  };
+  display.render_final_lines(state)
+}
+
 pub struct Display<W: Write> {
   writer:            W,
   config:            DisplayConfig,
@@ -66,6 +107,18 @@ pub struct Display<W: Write> {
 struct TreeNode {
   drv_id:   DerivationId,
   children: Vec<Self>,
+}
+
+struct Dashboard {
+  title:        String,
+  host:         String,
+  status_icon:  &'static str,
+  status_color: Color,
+  status_label: String,
+  duration:     f64,
+  jobs:         usize,
+  completed:    usize,
+  failed:       usize,
 }
 
 impl<W: Write> Display<W> {
@@ -122,7 +175,20 @@ impl<W: Write> Display<W> {
     // Clear only the graph from the previous render
     self.clear_previous()?;
 
-    // Build graph lines
+    let graph_lines = self.render_frame_lines(state);
+
+    self.last_lines = graph_lines.len();
+
+    let mut out = String::with_capacity(graph_lines.len() * 80);
+    for line in &graph_lines {
+      out.push_str(line);
+      out.push('\n');
+    }
+    self.writer.write_all(out.as_bytes())?;
+    self.writer.flush()
+  }
+
+  fn render_frame_lines(&self, state: &State) -> Vec<String> {
     let mut graph_lines = match self.config.format {
       crate::types::DisplayFormat::Tree => {
         let tree_lines = self.render_tree_view(state);
@@ -141,15 +207,107 @@ impl<W: Write> Display<W> {
       graph_lines.truncate(self.config.max_visible_lines);
     }
 
-    self.last_lines = graph_lines.len();
+    graph_lines
+  }
 
-    let mut out = String::with_capacity(graph_lines.len() * 80);
-    for line in &graph_lines {
-      out.push_str(line);
-      out.push('\n');
+  fn render_tui_frame_lines(&self, state: &State) -> TuiStateLines {
+    let mut body = match self.config.format {
+      crate::types::DisplayFormat::Tree => self.render_tree_view(state),
+      crate::types::DisplayFormat::Plain => {
+        let mut lines = self.render_plain_view(state);
+        if !lines.is_empty() {
+          lines.remove(0);
+        }
+        lines
+      },
+      crate::types::DisplayFormat::Dashboard => {
+        self.render_dashboard_view(state)
+      },
+    };
+
+    if body.len() > self.config.max_visible_lines {
+      body.truncate(self.config.max_visible_lines);
     }
-    self.writer.write_all(out.as_bytes())?;
-    self.writer.flush()
+
+    TuiStateLines {
+      header: self.render_tui_status_header(state),
+      body,
+    }
+  }
+
+  fn render_tui_status_header(&self, state: &State) -> Option<String> {
+    let running = state.full_summary.running_builds.len();
+    let completed = state.full_summary.completed_builds.len();
+    let failed = state.full_summary.failed_builds.len();
+    let planned = state.full_summary.planned_builds.len();
+    let dl_running = state.full_summary.running_downloads.len();
+    let dl_done = state.full_summary.completed_downloads.len();
+    let ul_running = state.full_summary.running_uploads.len();
+    let ul_done = state.full_summary.completed_uploads.len();
+
+    let show_builds = running + completed + failed + planned > 0;
+    let show_dl = dl_running + dl_done > 0;
+    let show_ul = ul_running + ul_done > 0;
+    if !show_builds && !show_dl && !show_ul {
+      return None;
+    }
+
+    let ic = self.ic();
+    let mut parts: Vec<String> = Vec::new();
+    if show_builds {
+      parts.push(self.count_colored(ic.running, running, Color::DarkYellow));
+      parts.push(self.count_colored(ic.done, completed, Color::DarkGreen));
+      parts.push(self.count_colored(ic.failed, failed, Color::DarkRed));
+      parts.push(self.count_colored(ic.planned, planned, Color::DarkBlue));
+    }
+    if show_dl {
+      parts.push(format!(
+        "{} {}",
+        self.colored(ic.download, Color::DarkGrey),
+        [
+          (dl_running > 0).then(|| {
+            self.count_colored(ic.running, dl_running, Color::DarkYellow)
+          }),
+          (dl_done > 0)
+            .then(|| self.count_colored(ic.done, dl_done, Color::DarkGreen)),
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join(" "),
+      ));
+    }
+    if show_ul {
+      parts.push(format!(
+        "{} {}",
+        self.colored(ic.upload, Color::DarkGrey),
+        [
+          (ul_running > 0).then(|| {
+            self.count_colored(ic.running, ul_running, Color::DarkYellow)
+          }),
+          (ul_done > 0)
+            .then(|| self.count_colored(ic.done, ul_done, Color::DarkGreen)),
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join(" "),
+      ));
+    }
+    parts.push(format!(
+      "{} {}",
+      self.colored(ic.clock, Color::DarkGrey),
+      self.colored(
+        &format_duration(current_time() - state.start_time),
+        Color::DarkGrey
+      ),
+    ));
+
+    Some(format!(
+      "{} {}",
+      self.colored(ic.summary, Color::DarkGrey),
+      parts.join(" │ ")
+    ))
   }
 
   pub fn render_final(&mut self, state: &State) -> io::Result<()> {
@@ -158,6 +316,22 @@ impl<W: Write> Display<W> {
     // Clear any previous render
     self.clear_previous()?;
 
+    let lines = self.render_final_lines(state);
+
+    tracing::debug!("render_final: {} lines to print", lines.len());
+
+    // Print final output (don't track last_lines since this is final)
+    for line in lines {
+      writeln!(self.writer, "{line}")?;
+    }
+
+    writeln!(self.writer)?;
+    self.writer.flush()?;
+
+    Ok(())
+  }
+
+  fn render_final_lines(&self, state: &State) -> Vec<String> {
     let mut lines = Vec::new();
 
     // Render final output based on format
@@ -178,17 +352,7 @@ impl<W: Write> Display<W> {
       },
     }
 
-    tracing::debug!("render_final: {} lines to print", lines.len());
-
-    // Print final output (don't track last_lines since this is final)
-    for line in lines {
-      writeln!(self.writer, "{line}")?;
-    }
-
-    writeln!(self.writer)?;
-    self.writer.flush()?;
-
-    Ok(())
+    lines
   }
 
   fn render_final_summary(&self, state: &State) -> Vec<String> {
@@ -207,7 +371,7 @@ impl<W: Write> Display<W> {
     let duration = current_time() - state.start_time;
     let now = chrono::Local::now();
     let at = now.format("%H:%M:%S");
-    let dur = self.format_duration(duration);
+    let dur = format_duration(duration);
 
     let ic = self.ic();
     let line = if failed > 0 {
@@ -260,7 +424,7 @@ impl<W: Write> Display<W> {
     let duration = current_time() - state.start_time;
     let now = chrono::Local::now();
     let at = now.format("%H:%M:%S");
-    let dur = self.format_duration(duration);
+    let dur = format_duration(duration);
 
     if completed + failed + dl_done + ul_done == 0 {
       return self.render_finished_line(state);
@@ -440,7 +604,7 @@ impl<W: Write> Display<W> {
       "{} {} after {}",
       self.colored("┗━", Color::DarkBlue),
       finish_label,
-      self.colored(&self.format_duration(duration), Color::DarkGrey),
+      self.colored(&format_duration(duration), Color::DarkGrey),
     ));
 
     lines
@@ -470,11 +634,12 @@ impl<W: Write> Display<W> {
     let ic = self.ic();
 
     // Always emit ⏵ │ ✔ │ ✗ │ ⏸, dim zeros
-    let mut parts: Vec<String> = Vec::new();
-    parts.push(self.count_colored(ic.running, running, Color::DarkYellow));
-    parts.push(self.count_colored(ic.done, completed, Color::DarkGreen));
-    parts.push(self.count_colored(ic.failed, failed, Color::DarkRed));
-    parts.push(self.count_colored(ic.planned, planned, Color::DarkBlue));
+    let mut parts: Vec<String> = vec![
+      self.count_colored(ic.running, running, Color::DarkYellow),
+      self.count_colored(ic.done, completed, Color::DarkGreen),
+      self.count_colored(ic.failed, failed, Color::DarkRed),
+      self.count_colored(ic.planned, planned, Color::DarkBlue),
+    ];
     if dl > 0 {
       parts.push(format!(
         "{} {dl}",
@@ -490,7 +655,7 @@ impl<W: Write> Display<W> {
     parts.push(format!(
       "{} {}",
       self.colored(ic.clock, Color::DarkGrey),
-      self.colored(&self.format_duration(duration), Color::DarkGrey),
+      self.colored(&format_duration(duration), Color::DarkGrey),
     ));
 
     vec![format!(
@@ -600,7 +765,7 @@ impl<W: Write> Display<W> {
           self.colored(ic.running, Color::DarkYellow),
           self.truncate_name(name, name_width),
           self.colored(ic.clock, Color::DarkGrey),
-          self.colored(&self.format_duration(*elapsed), Color::DarkGrey),
+          self.colored(&format_duration(*elapsed), Color::DarkGrey),
           host_label,
           width = name_width,
         ));
@@ -622,7 +787,7 @@ impl<W: Write> Display<W> {
             self.truncate_name(&pi.name.name, name_width),
             self.colored(&size_str, Color::DarkGrey),
             self.colored(ic.clock, Color::DarkGrey),
-            self.colored(&self.format_duration(elapsed), Color::DarkGrey),
+            self.colored(&format_duration(elapsed), Color::DarkGrey),
             width = name_width,
           ));
         }
@@ -638,7 +803,7 @@ impl<W: Write> Display<W> {
             self.colored(ic.upload, Color::DarkYellow),
             self.truncate_name(&pi.name.name, name_width),
             self.colored(ic.clock, Color::DarkGrey),
-            self.colored(&self.format_duration(elapsed), Color::DarkGrey),
+            self.colored(&format_duration(elapsed), Color::DarkGrey),
             width = name_width,
           ));
         }
@@ -700,7 +865,7 @@ impl<W: Write> Display<W> {
     sum_parts.push(format!(
       "{} {}",
       self.colored(ic.clock, Color::DarkGrey),
-      self.colored(&self.format_duration(duration), Color::DarkGrey),
+      self.colored(&format_duration(duration), Color::DarkGrey),
     ));
 
     // ┗━ ∑  [summary]
@@ -759,7 +924,7 @@ impl<W: Write> Display<W> {
             format!("  {}", self.colored(h, Color::DarkMagenta))
           },
         };
-        Some((info.name.name.clone(), self.format_duration(elapsed), host))
+        Some((info.name.name.clone(), format_duration(elapsed), host))
       })
       .collect();
     running_entries.sort_by(|a, b| a.0.cmp(&b.0));
@@ -799,7 +964,7 @@ impl<W: Write> Display<W> {
           self.colored(ic.download, Color::DarkYellow),
           self.truncate_name(&pi.name.name, name_width),
           self.colored(&size, Color::DarkGrey),
-          self.colored(&self.format_duration(elapsed), Color::DarkGrey),
+          self.colored(&format_duration(elapsed), Color::DarkGrey),
           width = name_width,
         ));
       }
@@ -838,7 +1003,7 @@ impl<W: Write> Display<W> {
     sum_parts.push(format!(
       "{} {}",
       self.colored(ic.clock, Color::DarkGrey),
-      self.colored(&self.format_duration(duration), Color::DarkGrey),
+      self.colored(&format_duration(duration), Color::DarkGrey),
     ));
 
     lines.push(format!(
@@ -898,7 +1063,7 @@ impl<W: Write> Display<W> {
         self.colored(ic.upload, Color::DarkYellow)
       ));
     }
-    let duration_str = self.format_duration(duration);
+    let duration_str = format_duration(duration);
     let header = if header_parts.is_empty() {
       format!(
         "{} {} {}",
@@ -925,8 +1090,7 @@ impl<W: Write> Display<W> {
         suffix = format!(
           "  {} {}",
           self.colored(ic.estimate, Color::DarkGrey),
-          self
-            .colored(&self.format_duration(remaining as f64), Color::DarkGrey)
+          self.colored(&format_duration(remaining as f64), Color::DarkGrey)
         );
       }
       let host_label = match &build.host {
@@ -939,7 +1103,7 @@ impl<W: Write> Display<W> {
         "  {} {}  {}{}{}",
         self.colored(ic.running, Color::DarkYellow),
         name,
-        self.colored(&self.format_duration(elapsed), Color::DarkGrey),
+        self.colored(&format_duration(elapsed), Color::DarkGrey),
         suffix,
         host_label,
       ));
@@ -997,27 +1161,6 @@ impl<W: Write> Display<W> {
     }
 
     let ic = self.ic();
-    let sep = self.colored(&"─".repeat(44), Color::DarkBlue);
-    let pipe = self.colored("│", Color::DarkBlue);
-
-    let title = state
-      .forest_roots
-      .first()
-      .and_then(|&id| state.get_derivation_info(id))
-      .map_or_else(|| "Build".to_string(), |info| info.name.name.clone());
-
-    let host = state
-      .full_summary
-      .running_builds
-      .values()
-      .find_map(|b| {
-        match &b.host {
-          cognos::Host::Remote(h) => Some(h.clone()),
-          _ => None,
-        }
-      })
-      .unwrap_or_else(|| "localhost".to_string());
-
     let (status_icon, status_color, status_label) = if running > 0 {
       (ic.running, Color::DarkYellow, "building")
     } else if planned > 0 || dl > 0 {
@@ -1027,30 +1170,91 @@ impl<W: Write> Display<W> {
     } else {
       (ic.done, Color::DarkGreen, "done")
     };
-    let status_str =
-      format!("{} {status_label}", self.colored(status_icon, status_color));
 
-    let duration_str = self.format_duration(duration);
-    let host_s = self.colored(&host, Color::DarkMagenta);
+    self.render_dashboard(Dashboard {
+      title: Self::dashboard_title(state),
+      host: Self::first_remote_host(
+        state.full_summary.running_builds.values().map(|b| &b.host),
+      )
+      .unwrap_or_else(|| "localhost".to_string()),
+      status_icon,
+      status_color,
+      status_label: status_label.to_string(),
+      duration,
+      jobs: running + completed + planned + failed,
+      completed,
+      failed,
+    })
+  }
+
+  fn render_dashboard_final(&self, state: &State) -> Vec<String> {
+    let duration = current_time() - state.start_time;
+    let completed = state.full_summary.completed_builds.len();
+    let failed = state.full_summary.failed_builds.len();
+    let now = chrono::Local::now();
+    let at = now.format("%H:%M:%S");
+
+    let ic = self.ic();
+    let (status_icon, status_color, status_label) =
+      if failed > 0 || !state.nix_errors.is_empty() {
+        (ic.failed, Color::DarkRed, format!("failed at {at}"))
+      } else {
+        (ic.done, Color::DarkGreen, format!("finished at {at}"))
+      };
+
+    let completed_hosts = state
+      .full_summary
+      .completed_builds
+      .values()
+      .map(|b| &b.host);
+    let failed_hosts =
+      state.full_summary.failed_builds.values().map(|b| &b.host);
+
+    self.render_dashboard(Dashboard {
+      title: Self::dashboard_title(state),
+      host: Self::first_remote_host(completed_hosts.chain(failed_hosts))
+        .unwrap_or_else(|| "localhost".to_string()),
+      status_icon,
+      status_color,
+      status_label,
+      duration,
+      jobs: completed + failed,
+      completed,
+      failed,
+    })
+  }
+
+  fn render_dashboard(&self, dashboard: Dashboard) -> Vec<String> {
+    let sep = self.colored(&"─".repeat(44), Color::DarkBlue);
+    let pipe = self.colored("│", Color::DarkBlue);
+    let status_str = format!(
+      "{} {}",
+      self.colored(dashboard.status_icon, dashboard.status_color),
+      dashboard.status_label
+    );
+
+    let duration_str = format_duration(dashboard.duration);
+    let host_s = self.colored(&dashboard.host, Color::DarkMagenta);
     let dur_s = self.colored(&duration_str, Color::DarkGrey);
-    let fail_s = if failed > 0 && self.config.use_color {
+    let fail_s = if dashboard.failed > 0 && self.config.use_color {
       format!(
-        "{}\x1b[1m{failed}\x1b[0m{}",
-        SetForegroundColor(Color::DarkRed),
-        ResetColor
+        "{}\x1b[1m{}\x1b[0m",
+        foreground_sgr(Color::DarkRed),
+        dashboard.failed
       )
     } else {
-      failed.to_string()
+      dashboard.failed.to_string()
     };
     let summary_str = format!(
       "jobs={}  ok={}  failed={fail_s}  total={dur_s}",
-      self.num_str(running + completed + planned + failed),
-      self.num_str(completed),
+      self.num_str(dashboard.jobs),
+      self.num_str(dashboard.completed),
     );
 
     let header = format!(
-      "{} BUILD GRAPH: {title}",
-      self.colored("┏━", Color::DarkBlue)
+      "{} BUILD GRAPH: {}",
+      self.colored("┏━", Color::DarkBlue),
+      dashboard.title
     );
 
     vec![
@@ -1064,85 +1268,23 @@ impl<W: Write> Display<W> {
     ]
   }
 
-  fn render_dashboard_final(&self, state: &State) -> Vec<String> {
-    let duration = current_time() - state.start_time;
-    let completed = state.full_summary.completed_builds.len();
-    let failed = state.full_summary.failed_builds.len();
-    let now = chrono::Local::now();
-    let at = now.format("%H:%M:%S");
-
-    let ic = self.ic();
-    let sep = self.colored(&"─".repeat(44), Color::DarkBlue);
-    let pipe = self.colored("│", Color::DarkBlue);
-
-    let title = state
+  fn dashboard_title(state: &State) -> String {
+    state
       .forest_roots
       .first()
       .and_then(|&id| state.get_derivation_info(id))
-      .map_or_else(|| "Build".to_string(), |info| info.name.name.clone());
+      .map_or_else(|| "Build".to_string(), |info| info.name.name.clone())
+  }
 
-    let host = state
-      .full_summary
-      .completed_builds
-      .values()
-      .find_map(|b| {
-        match &b.host {
-          cognos::Host::Remote(h) => Some(h.clone()),
-          _ => None,
-        }
-      })
-      .or_else(|| {
-        state.full_summary.failed_builds.values().find_map(|b| {
-          match &b.host {
-            cognos::Host::Remote(h) => Some(h.clone()),
-            _ => None,
-          }
-        })
-      })
-      .unwrap_or_else(|| "localhost".to_string());
-
-    let (status_icon, status_color, status_label) =
-      if failed > 0 || !state.nix_errors.is_empty() {
-        (ic.failed, Color::DarkRed, format!("failed at {at}"))
-      } else {
-        (ic.done, Color::DarkGreen, format!("finished at {at}"))
-      };
-    let status_str =
-      format!("{} {status_label}", self.colored(status_icon, status_color));
-
-    let duration_str = self.format_duration(duration);
-    let host_s = self.colored(&host, Color::DarkMagenta);
-    let dur_s = self.colored(&duration_str, Color::DarkGrey);
-    let jobs = completed + failed;
-    let fail_s = if failed > 0 && self.config.use_color {
-      format!(
-        "{}\x1b[1m{failed}\x1b[0m{}",
-        SetForegroundColor(Color::DarkRed),
-        ResetColor
-      )
-    } else {
-      failed.to_string()
-    };
-    let summary_str = format!(
-      "jobs={}  ok={}  failed={fail_s}  total={dur_s}",
-      self.num_str(jobs),
-      self.num_str(completed),
-    );
-
-    let header = format!(
-      "{} BUILD GRAPH: {title}",
-      self.colored("┏━", Color::DarkBlue)
-    );
-
-    vec![
-      header,
-      sep.clone(),
-      format!("{:<12} {pipe} {host_s}", "Host"),
-      format!("{:<12} {pipe} {status_str}", "Status"),
-      format!("{:<12} {pipe} {dur_s}", "Duration"),
-      sep,
-      format!("{:<12} {pipe} {summary_str}", "Summary"),
-    ]
+  fn first_remote_host<'a>(
+    hosts: impl IntoIterator<Item = &'a cognos::Host>,
+  ) -> Option<String> {
+    hosts.into_iter().find_map(|host| {
+      match host {
+        cognos::Host::Remote(name) => Some(name.clone()),
+        cognos::Host::Localhost => None,
+      }
+    })
   }
 
   fn render_tree_view(&self, state: &State) -> Vec<String> {
@@ -1474,7 +1616,7 @@ impl<W: Write> Display<W> {
         // Hide elapsed if under 1s; it is not meaningful at that resolution.
         if self.config.show_timers && elapsed > 1.0 {
           s.push_str(&self.colored(
-            &format!(" {} {}", ic.clock, self.format_duration(elapsed)),
+            &format!(" {} {}", ic.clock, format_duration(elapsed)),
             Color::DarkGrey,
           ));
           // Show the total build estimate after elapsed.
@@ -1483,7 +1625,7 @@ impl<W: Write> Display<W> {
               &format!(
                 " ({} {})",
                 ic.estimate,
-                self.format_duration(estimate_secs as f64)
+                format_duration(estimate_secs as f64)
               ),
               Color::DarkGrey,
             ));
@@ -1526,7 +1668,7 @@ impl<W: Write> Display<W> {
           let duration = fail.at - build_info.start;
           if duration > 1.0 {
             s.push_str(&self.colored(
-              &format!(" {} {}", ic.clock, self.format_duration(duration)),
+              &format!(" {} {}", ic.clock, format_duration(duration)),
               Color::DarkGrey,
             ));
           }
@@ -1547,7 +1689,7 @@ impl<W: Write> Display<W> {
           let duration = end - build_info.start;
           if duration > 1.0 {
             s.push_str(&self.colored(
-              &format!(" {} {}", ic.clock, self.format_duration(duration)),
+              &format!(" {} {}", ic.clock, format_duration(duration)),
               Color::DarkGrey,
             ));
           }
@@ -1627,7 +1769,7 @@ impl<W: Write> Display<W> {
 
   fn colored(&self, text: &str, color: Color) -> String {
     if self.config.use_color {
-      format!("{}{}{}", SetForegroundColor(color), text, ResetColor)
+      format!("{}{text}\x1b[0m", foreground_sgr(color))
     } else {
       text.to_string()
     }
@@ -1636,12 +1778,7 @@ impl<W: Write> Display<W> {
   /// Render text in the given color AND bold weight.
   fn colored_bold(&self, text: &str, color: Color) -> String {
     if self.config.use_color {
-      format!(
-        "{}\x1b[1m{}\x1b[0m{}",
-        SetForegroundColor(color),
-        text,
-        ResetColor
-      )
+      format!("{}\x1b[1m{text}\x1b[0m", foreground_sgr(color))
     } else {
       text.to_string()
     }
@@ -1668,16 +1805,6 @@ impl<W: Write> Display<W> {
     }
   }
 
-  pub fn format_duration(&self, secs: f64) -> String {
-    if secs < 60.0 {
-      format!("{secs:.0}s")
-    } else if secs < 3600.0 {
-      format!("{:.0}m{:.0}s", secs / 60.0, secs % 60.0)
-    } else {
-      format!("{:.0}h{:.0}m", secs / 3600.0, (secs % 3600.0) / 60.0)
-    }
-  }
-
   fn truncate_name(&self, name: &str, max_len: usize) -> String {
     if name.len() <= max_len {
       name.to_string()
@@ -1694,6 +1821,31 @@ impl<W: Write> Display<W> {
     };
     format_size(total) + &self.colored(&format!(" ({pct}%)"), Color::DarkGrey)
   }
+}
+
+fn foreground_sgr(color: Color) -> String {
+  let code = match color {
+    Color::Black => "38;5;0".to_string(),
+    Color::DarkGrey => "38;5;8".to_string(),
+    Color::Red => "38;5;9".to_string(),
+    Color::DarkRed => "38;5;1".to_string(),
+    Color::Green => "38;5;10".to_string(),
+    Color::DarkGreen => "38;5;2".to_string(),
+    Color::Yellow => "38;5;11".to_string(),
+    Color::DarkYellow => "38;5;3".to_string(),
+    Color::Blue => "38;5;12".to_string(),
+    Color::DarkBlue => "38;5;4".to_string(),
+    Color::Magenta => "38;5;13".to_string(),
+    Color::DarkMagenta => "38;5;5".to_string(),
+    Color::Cyan => "38;5;14".to_string(),
+    Color::DarkCyan => "38;5;6".to_string(),
+    Color::White => "38;5;15".to_string(),
+    Color::Grey => "38;5;7".to_string(),
+    Color::Rgb { r, g, b } => format!("38;2;{r};{g};{b}"),
+    Color::AnsiValue(value) => format!("38;5;{value}"),
+    Color::Reset => "39".to_string(),
+  };
+  format!("\x1b[{code}m")
 }
 
 fn format_size(bytes: u64) -> String {

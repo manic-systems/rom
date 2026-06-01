@@ -1,4 +1,6 @@
 //! State update logic for processing nix messages
+mod maintenance;
+
 use cognos::{
   Actions,
   Activities,
@@ -7,6 +9,11 @@ use cognos::{
   ProgressState,
   ResultType,
   Verbosity,
+};
+pub use maintenance::{
+  detect_local_completed_builds,
+  finish_state,
+  maintain_state,
 };
 use tracing::{debug, trace};
 
@@ -26,7 +33,6 @@ use crate::{
     InputDerivation,
     State,
     StorePath,
-    StorePathId,
     TransferInfo,
     current_time,
   },
@@ -37,25 +43,35 @@ pub fn process_message(state: &mut State, action: Actions) -> bool {
   let now = current_time();
   let mut changed = false;
 
+  trace!("Processing action: {:?}", action);
+
+  if !action_may_update_state(&action) {
+    return false;
+  }
+
   // Mark that we've received input
   if state.progress_state == ProgressState::JustStarted {
     state.progress_state = ProgressState::InputReceived;
     changed = true;
   }
 
-  trace!("Processing action: {:?}", action);
-
   match action {
     Actions::Start {
       id,
-      level,
       parent,
       text,
       activity,
       fields,
+      ..
     } => {
-      changed |=
-        handle_start(state, id, level, parent, text, activity, fields, now);
+      changed |= handle_start(state, StartAction {
+        id,
+        parent_id: if parent == 0 { None } else { Some(parent) },
+        text,
+        activity,
+        fields,
+        now,
+      });
     },
     Actions::Stop { id } => {
       changed |= handle_stop(state, id, now);
@@ -83,18 +99,68 @@ pub fn process_message(state: &mut State, action: Actions) -> bool {
   changed
 }
 
-fn handle_start(
-  state: &mut State,
-  id: Id,
-  _level: Verbosity,
-  parent: Id,
-  text: String,
-  activity: Activities,
-  fields: Vec<serde_json::Value>,
-  now: f64,
-) -> bool {
-  // Store activity status
-  let parent_id = if parent == 0 { None } else { Some(parent) };
+#[must_use]
+pub fn action_may_update_state(action: &Actions) -> bool {
+  match action {
+    Actions::Start { .. } | Actions::Stop { .. } => true,
+    Actions::Message {
+      level,
+      msg,
+      raw_msg,
+      ..
+    } => {
+      let clean = raw_msg.as_deref().unwrap_or(msg.as_str());
+      message_may_update_state(*level, clean)
+    },
+    Actions::Result { result_type, .. } => {
+      matches!(
+        result_type,
+        ResultType::UntrustedPath
+          | ResultType::CorruptedPath
+          | ResultType::SetPhase
+          | ResultType::Progress
+      )
+    },
+  }
+}
+
+fn message_may_update_state(level: Verbosity, msg: &str) -> bool {
+  if message_is_indented_plan_line(msg) || msg.contains("Running phase: ") {
+    return true;
+  }
+
+  match level {
+    Verbosity::Error => msg.contains("error:") || msg.contains("failed"),
+    Verbosity::Info | Verbosity::Notice => {
+      (msg.contains("evaluating") || msg.contains("copying"))
+        && extract_file_name(msg).is_some()
+    },
+    Verbosity::Talkative
+    | Verbosity::Chatty
+    | Verbosity::Debug
+    | Verbosity::Vomit => true,
+    Verbosity::Warning => false,
+  }
+}
+
+struct StartAction {
+  id:        Id,
+  parent_id: Option<Id>,
+  text:      String,
+  activity:  Activities,
+  fields:    Vec<serde_json::Value>,
+  now:       f64,
+}
+
+fn handle_start(state: &mut State, start: StartAction) -> bool {
+  let StartAction {
+    id,
+    parent_id,
+    text,
+    activity,
+    fields,
+    now,
+  } = start;
 
   let activity_u8 = activity as u8;
 
@@ -134,9 +200,10 @@ fn handle_start(
   };
 
   // Track parent-child relationships for dependency tree
-  if changed && activity_u8 == 105 && parent_id.is_some() {
-    let parent_act_id = parent_id.unwrap();
-
+  if changed
+    && activity_u8 == 105
+    && let Some(parent_act_id) = parent_id
+  {
     // Find parent and child derivation IDs
     let parent_drv_id = find_derivation_by_activity(state, parent_act_id);
     let child_drv_id = find_derivation_by_activity(state, id);
@@ -204,8 +271,7 @@ fn handle_stop(state: &mut State, id: Id, now: f64) -> bool {
 }
 
 fn handle_message(state: &mut State, level: Verbosity, msg: String) -> bool {
-  // Store all build logs for display
-  state.build_logs.push(msg.clone());
+  let mut changed = handle_indented_plan_line(state, &msg);
 
   // Extract phase from log messages like "Running phase: configurePhase"
   if let Some(phase_start) = msg.find("Running phase: ") {
@@ -217,6 +283,7 @@ fn handle_message(state: &mut State, level: Verbosity, msg: String) -> bool {
       if activity.activity == 105 {
         // Build activity
         activity.phase = Some(phase.clone());
+        changed = true;
       }
     }
   }
@@ -257,7 +324,7 @@ fn handle_message(state: &mut State, level: Verbosity, msg: String) -> bool {
         }
         return true;
       }
-      false
+      changed
     },
     Verbosity::Info | Verbosity::Notice => {
       // Track info messages for evaluation progress
@@ -267,22 +334,44 @@ fn handle_message(state: &mut State, level: Verbosity, msg: String) -> bool {
           state.evaluation_state.last_file_name = Some(file_name);
           state.evaluation_state.count += 1;
           state.evaluation_state.at = current_time();
+          changed = true;
         }
       }
-      true // return true since we stored the log
+      changed
     },
     Verbosity::Talkative
     | Verbosity::Chatty
     | Verbosity::Debug
     | Verbosity::Vomit => {
       // These are trace-level messages, store separately
-      state.traces.push(msg);
+      state.push_trace(msg);
       true
     },
-    _ => {
-      true // return true since we stored the log
-    },
+    _ => changed,
   }
+}
+
+fn handle_indented_plan_line(state: &mut State, msg: &str) -> bool {
+  if !message_is_indented_plan_line(msg) {
+    return false;
+  }
+
+  let path = msg.trim();
+  if let Some(drv) = Derivation::parse(path) {
+    state.plan_derivation(drv);
+    return true;
+  }
+
+  if let Some(store_path) = StorePath::parse(path) {
+    let store_path_id = state.get_or_create_store_path_id(store_path);
+    return state.full_summary.planned_downloads.insert(store_path_id);
+  }
+
+  false
+}
+
+fn message_is_indented_plan_line(msg: &str) -> bool {
+  msg.starts_with("  /nix/store/") || msg.starts_with("\t/nix/store/")
 }
 
 fn handle_result(
@@ -303,13 +392,7 @@ fn handle_result(
       }
       false
     },
-    ResultType::BuildLogLine => {
-      if let Some(line) = fields.first().and_then(|f| f.as_str()) {
-        state.build_logs.push(line.to_string());
-        return true;
-      }
-      false
-    },
+    ResultType::BuildLogLine => false,
     ResultType::UntrustedPath => {
       if let Some(path) = fields.first().and_then(|f| f.as_str()) {
         debug!("Untrusted path: {}", path);
@@ -364,13 +447,7 @@ fn handle_result(
       }
       false
     },
-    ResultType::PostBuildLogLine => {
-      if let Some(line) = fields.first().and_then(|f| f.as_str()) {
-        state.build_logs.push(format!("[post-build] {line}"));
-        return true;
-      }
-      false
-    },
+    ResultType::PostBuildLogLine => false,
     ResultType::FetchStatus => {
       if let Some(status) = fields.first().and_then(|f| f.as_str()) {
         debug!("Fetch status: {status}");
@@ -399,7 +476,7 @@ fn get_build_estimate(
 }
 
 /// Record completed build for future predictions
-fn record_build_completion(
+pub(super) fn record_build_completion(
   state: &mut State,
   derivation_name: String,
   platform: Option<String>,
@@ -468,15 +545,15 @@ fn handle_build_start(
         state.derivation_infos.len()
       );
 
-      // Parse .drv file to populate dependency tree
-      state.populate_derivation_dependencies(drv_id);
-      debug!(
-        "After populate_derivation_dependencies, state has {} derivations",
-        state.derivation_infos.len()
-      );
-
-      // Mark as forest root if no parent
-      if parent_id.is_none() && !state.forest_roots.contains(&drv_id) {
+      // Mark as forest root only if there is no protocol parent and no
+      // already-discovered derivation parent.
+      let has_derivation_parent = state
+        .get_derivation_info(drv_id)
+        .is_some_and(|info| !info.derivation_parents.is_empty());
+      if parent_id.is_none()
+        && !has_derivation_parent
+        && !state.forest_roots.contains(&drv_id)
+      {
         state.forest_roots.push(drv_id);
       }
 
@@ -563,6 +640,7 @@ fn handle_substitute_start(
       .full_summary
       .running_downloads
       .insert(path_id, transfer);
+    state.full_summary.planned_downloads.remove(&path_id);
 
     return true;
   }
@@ -583,6 +661,7 @@ fn handle_substitute_stop(state: &mut State, id: Id, now: f64) -> bool {
 
   if let Some((path_id, transfer_info)) = result {
     state.full_summary.running_downloads.remove(&path_id);
+    state.full_summary.planned_downloads.remove(&path_id);
     state.full_summary.completed_downloads.insert(
       path_id,
       CompletedTransferInfo {
@@ -890,241 +969,4 @@ fn find_derivation_by_activity(
   }
 
   None
-}
-
-fn build_sort_order(state: &State, drv_id: DerivationId) -> (u8, i64) {
-  let Some(info) = state.get_derivation_info(drv_id) else {
-    return (9, 0);
-  };
-  match &info.build_status {
-    BuildStatus::Failed { fail, .. } => (0, (fail.at * 1_000_000.0) as i64),
-    BuildStatus::Building(build_info) => {
-      (1, (build_info.start * 1_000_000.0) as i64)
-    },
-    BuildStatus::Planned => (4, 0),
-    BuildStatus::Built { end, .. } => (6, -(*end * 1_000_000.0) as i64),
-    BuildStatus::Unknown => (9, 0),
-  }
-}
-
-fn best_subtree_sort_order(
-  state: &State,
-  drv_id: DerivationId,
-  depth: u8,
-) -> (u8, i64) {
-  let own = build_sort_order(state, drv_id);
-  if depth == 0 {
-    return own;
-  }
-  let Some(info) = state.get_derivation_info(drv_id) else {
-    return own;
-  };
-  let children: Vec<DerivationId> = info
-    .input_derivations
-    .iter()
-    .map(|d| d.derivation)
-    .collect();
-  children
-    .into_iter()
-    .map(|child_id| best_subtree_sort_order(state, child_id, depth - 1))
-    .fold(
-      own,
-      |best, candidate| {
-        if candidate < best { candidate } else { best }
-      },
-    )
-}
-
-fn sort_key(
-  state: &State,
-  drv_id: DerivationId,
-) -> (u8, i64, u8, i64, usize, usize, usize) {
-  let (own_a, own_b) = build_sort_order(state, drv_id);
-  let (sub_a, sub_b) = best_subtree_sort_order(state, drv_id, 20);
-
-  let summary = state
-    .get_derivation_info(drv_id)
-    .map(|i| &i.dependency_summary);
-
-  let running_builds = summary.map_or(0, |s| s.running_builds.len());
-  let running_downloads = summary.map_or(0, |s| s.running_downloads.len());
-  let planned =
-    summary.map_or(0, |s| s.planned_builds.len() + s.planned_downloads.len());
-
-  (
-    own_a,
-    own_b,
-    sub_a,
-    sub_b,
-    usize::MAX.saturating_sub(running_builds),
-    usize::MAX.saturating_sub(running_downloads),
-    planned,
-  )
-}
-
-fn sort_tree_children(state: &mut State, drv_id: DerivationId) {
-  let Some(info) = state.derivation_infos.get(&drv_id) else {
-    return;
-  };
-  let mut inputs: Vec<InputDerivation> = info.input_derivations.clone();
-  inputs.sort_by_key(|d| sort_key(state, d.derivation));
-
-  if let Some(info) = state.derivation_infos.get_mut(&drv_id) {
-    info.input_derivations = inputs;
-  }
-}
-
-pub fn detect_local_completed_builds(state: &mut State, now: f64) -> bool {
-  let local_building: Vec<DerivationId> = state
-    .full_summary
-    .running_builds
-    .iter()
-    .filter(|(_, info)| info.host == cognos::Host::Localhost)
-    .map(|(id, _)| *id)
-    .collect();
-
-  let mut any_completed = false;
-
-  for drv_id in local_building {
-    let output_paths: Vec<std::path::PathBuf> = state
-      .get_derivation_info(drv_id)
-      .map(|info| {
-        info
-          .outputs
-          .values()
-          .filter_map(|&sp_id| {
-            state
-              .get_store_path_info(sp_id)
-              .map(|sp_info| sp_info.name.path.clone())
-          })
-          .collect()
-      })
-      .unwrap_or_default();
-
-    let all_exist =
-      !output_paths.is_empty() && output_paths.iter().all(|p| p.exists());
-    if all_exist {
-      let build_info = state.get_derivation_info(drv_id).and_then(|info| {
-        if let BuildStatus::Building(b) = &info.build_status {
-          Some(b.clone())
-        } else {
-          None
-        }
-      });
-
-      if let Some(build_info) = build_info {
-        let name = state
-          .get_derivation_info(drv_id)
-          .map(|i| i.name.name.clone())
-          .unwrap_or_default();
-        let platform = state
-          .get_derivation_info(drv_id)
-          .and_then(|i| i.platform.clone());
-        let start = build_info.start;
-        let host = build_info.host.clone();
-        state.update_build_status(drv_id, BuildStatus::Built {
-          info: build_info,
-          end:  now,
-        });
-        record_build_completion(state, name, platform, start, now, &host);
-        any_completed = true;
-      }
-    }
-  }
-
-  any_completed
-}
-
-/// Maintain state consistency
-pub fn maintain_state(state: &mut State, _now: f64) {
-  if !state.touched_ids.is_empty() {
-    let touched: Vec<DerivationId> =
-      state.touched_ids.iter().copied().collect();
-    for drv_id in touched {
-      sort_tree_children(state, drv_id);
-    }
-
-    let roots: Vec<DerivationId> = state.forest_roots.clone();
-    let mut sorted_roots = roots;
-    sorted_roots.sort_by_key(|&id| sort_key(state, id));
-    state.forest_roots = sorted_roots;
-
-    state.touched_ids.clear();
-  }
-}
-
-fn complete_build_success(state: &mut State, drv_id: DerivationId, now: f64) {
-  let build_info = state.get_derivation_info(drv_id).and_then(|info| {
-    if let BuildStatus::Building(build_info) = &info.build_status {
-      Some(build_info.clone())
-    } else {
-      None
-    }
-  });
-
-  if let Some(build_info) = build_info {
-    state.update_build_status(drv_id, BuildStatus::Built {
-      info: build_info,
-      end:  now,
-    });
-  }
-}
-
-pub fn finish_state(state: &mut State) {
-  state.progress_state = ProgressState::Finished;
-
-  let building: Vec<DerivationId> = state
-    .derivation_infos
-    .iter()
-    .filter_map(|(drv_id, info)| {
-      if matches!(info.build_status, BuildStatus::Building(_)) {
-        Some(*drv_id)
-      } else {
-        None
-      }
-    })
-    .collect();
-
-  for drv_id in building {
-    complete_build_success(state, drv_id, current_time());
-  }
-
-  let downloading: Vec<StorePathId> = state
-    .full_summary
-    .running_downloads
-    .keys()
-    .copied()
-    .collect();
-  for path_id in downloading {
-    if let Some(transfer) =
-      state.full_summary.running_downloads.remove(&path_id)
-    {
-      state.full_summary.completed_downloads.insert(
-        path_id,
-        CompletedTransferInfo {
-          start:       transfer.start,
-          end:         current_time(),
-          host:        transfer.host,
-          total_bytes: transfer.total_bytes.unwrap_or(0),
-        },
-      );
-    }
-  }
-
-  let uploading: Vec<StorePathId> =
-    state.full_summary.running_uploads.keys().copied().collect();
-  for path_id in uploading {
-    if let Some(transfer) = state.full_summary.running_uploads.remove(&path_id)
-    {
-      state.full_summary.completed_uploads.insert(
-        path_id,
-        CompletedTransferInfo {
-          start:       transfer.start,
-          end:         current_time(),
-          host:        transfer.host,
-          total_bytes: transfer.total_bytes.unwrap_or(0),
-        },
-      );
-    }
-  }
 }

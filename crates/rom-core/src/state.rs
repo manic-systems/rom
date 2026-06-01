@@ -1,13 +1,19 @@
 //! State management for ROM
+mod identity;
+
 use std::{
   collections::{HashMap, HashSet},
-  path::PathBuf,
   time::{Duration, SystemTime},
 };
 
 pub use cognos::ProgressState;
 use cognos::{Host, Id, OutputName};
+pub use identity::{Derivation, StorePath};
 use indexmap::IndexMap;
+
+const MAX_RETAINED_TRACES: usize = 1_000;
+const MAX_RENDER_SNAPSHOT_ROOTS: usize = 256;
+const RENDER_COMPLETED_LINGER_SECONDS: f64 = 3.0;
 
 /// Unique identifier for store paths
 pub type StorePathId = usize;
@@ -17,69 +23,6 @@ pub type DerivationId = usize;
 
 /// Unique identifier for activities
 pub type ActivityId = Id;
-
-/// Store path representation
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct StorePath {
-  pub path: PathBuf,
-  pub hash: String,
-  pub name: String,
-}
-
-impl StorePath {
-  #[must_use]
-  pub fn parse(path: &str) -> Option<Self> {
-    if !path.starts_with("/nix/store/") {
-      return None;
-    }
-
-    let path_buf = PathBuf::from(path);
-    let file_name = path_buf.file_name()?.to_str()?;
-
-    let parts: Vec<&str> = file_name.splitn(2, '-').collect();
-    if parts.len() != 2 {
-      return None;
-    }
-
-    Some(Self {
-      path: path_buf.clone(),
-      hash: parts[0].to_string(),
-      name: parts[1].to_string(),
-    })
-  }
-}
-
-/// Derivation representation
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Derivation {
-  pub path: PathBuf,
-  pub name: String,
-}
-
-impl Derivation {
-  #[must_use]
-  pub fn parse(path: &str) -> Option<Self> {
-    let path_buf = PathBuf::from(path);
-    let file_name = path_buf.file_name()?.to_str()?;
-
-    if !file_name.ends_with(".drv") {
-      return None;
-    }
-
-    let name = file_name.strip_suffix(".drv")?;
-    let parts: Vec<&str> = name.splitn(2, '-').collect();
-    let display_name = if parts.len() == 2 {
-      parts[1].to_string()
-    } else {
-      name.to_string()
-    };
-
-    Some(Self {
-      path: path_buf,
-      name: display_name,
-    })
-  }
-}
 
 /// Transfer information (download/upload)
 #[derive(Debug, Clone)]
@@ -154,16 +97,17 @@ pub struct InputDerivation {
 /// Derivation information
 #[derive(Debug, Clone)]
 pub struct DerivationInfo {
-  pub name:               Derivation,
-  pub outputs:            HashMap<OutputName, StorePathId>,
-  pub input_derivations:  Vec<InputDerivation>,
-  pub input_sources:      HashSet<StorePathId>,
-  pub build_status:       BuildStatus,
-  pub dependency_summary: DependencySummary,
-  pub cached:             bool,
-  pub derivation_parents: HashSet<DerivationId>,
-  pub pname:              Option<String>,
-  pub platform:           Option<String>,
+  pub name:                   Derivation,
+  pub outputs:                HashMap<OutputName, StorePathId>,
+  pub input_derivations:      Vec<InputDerivation>,
+  pub input_sources:          HashSet<StorePathId>,
+  pub build_status:           BuildStatus,
+  pub dependency_summary:     DependencySummary,
+  pub dependencies_populated: bool,
+  pub cached:                 bool,
+  pub derivation_parents:     HashSet<DerivationId>,
+  pub pname:                  Option<String>,
+  pub platform:               Option<String>,
 }
 
 /// Dependency summary for tracking build progress
@@ -330,25 +274,25 @@ pub struct EvalInfo {
 /// Main state for ROM
 #[derive(Debug, Clone)]
 pub struct State {
-  pub derivation_infos: IndexMap<DerivationId, DerivationInfo>,
-  pub store_path_infos: IndexMap<StorePathId, StorePathInfo>,
-  pub full_summary:     DependencySummary,
-  pub forest_roots:     Vec<DerivationId>,
-  pub build_cache:      HashMap<(String, String), Vec<BuildReport>>,
-  pub start_time:       f64,
-  pub progress_state:   ProgressState,
-  pub store_path_ids:   HashMap<StorePath, StorePathId>,
-  pub derivation_ids:   HashMap<Derivation, DerivationId>,
-  pub touched_ids:      HashSet<DerivationId>,
-  pub activities:       HashMap<ActivityId, ActivityStatus>,
-  pub nix_errors:       Vec<String>,
-  pub build_logs:       Vec<String>,
-  pub traces:           Vec<String>,
-  pub build_platform:   Option<String>,
-  pub evaluation_state: EvalInfo,
-  pub builds_activity:  Option<ActivityId>,
-  next_store_path_id:   StorePathId,
-  next_derivation_id:   DerivationId,
+  pub derivation_infos:  IndexMap<DerivationId, DerivationInfo>,
+  pub store_path_infos:  IndexMap<StorePathId, StorePathInfo>,
+  pub full_summary:      DependencySummary,
+  pub forest_roots:      Vec<DerivationId>,
+  pub build_cache:       HashMap<(String, String), Vec<BuildReport>>,
+  pub start_time:        f64,
+  pub progress_state:    ProgressState,
+  pub store_path_ids:    HashMap<StorePath, StorePathId>,
+  pub derivation_ids:    HashMap<Derivation, DerivationId>,
+  derivation_name_index: HashMap<String, HashSet<DerivationId>>,
+  pub touched_ids:       HashSet<DerivationId>,
+  pub activities:        HashMap<ActivityId, ActivityStatus>,
+  pub nix_errors:        Vec<String>,
+  pub traces:            Vec<String>,
+  pub build_platform:    Option<String>,
+  pub evaluation_state:  EvalInfo,
+  pub builds_activity:   Option<ActivityId>,
+  next_store_path_id:    StorePathId,
+  next_derivation_id:    DerivationId,
 }
 
 impl Default for State {
@@ -361,25 +305,25 @@ impl State {
   #[must_use]
   pub fn new() -> Self {
     Self {
-      derivation_infos:   IndexMap::new(),
-      store_path_infos:   IndexMap::new(),
-      full_summary:       DependencySummary::default(),
-      forest_roots:       Vec::new(),
-      build_cache:        HashMap::new(),
-      start_time:         current_time(),
-      progress_state:     ProgressState::JustStarted,
-      store_path_ids:     HashMap::new(),
-      derivation_ids:     HashMap::new(),
-      touched_ids:        HashSet::new(),
-      activities:         HashMap::new(),
-      nix_errors:         Vec::new(),
-      build_logs:         Vec::new(),
-      traces:             Vec::new(),
-      build_platform:     None,
-      evaluation_state:   EvalInfo::default(),
-      builds_activity:    None,
-      next_store_path_id: 0,
-      next_derivation_id: 0,
+      derivation_infos:      IndexMap::new(),
+      store_path_infos:      IndexMap::new(),
+      full_summary:          DependencySummary::default(),
+      forest_roots:          Vec::new(),
+      build_cache:           HashMap::new(),
+      start_time:            current_time(),
+      progress_state:        ProgressState::JustStarted,
+      store_path_ids:        HashMap::new(),
+      derivation_ids:        HashMap::new(),
+      derivation_name_index: HashMap::new(),
+      touched_ids:           HashSet::new(),
+      activities:            HashMap::new(),
+      nix_errors:            Vec::new(),
+      traces:                Vec::new(),
+      build_platform:        None,
+      evaluation_state:      EvalInfo::default(),
+      builds_activity:       None,
+      next_store_path_id:    0,
+      next_derivation_id:    0,
     }
   }
 
@@ -388,6 +332,223 @@ impl State {
     let mut state = Self::new();
     state.build_platform = platform;
     state
+  }
+
+  #[must_use]
+  pub fn render_snapshot(&self) -> Self {
+    let now = current_time();
+    let focus_ids = self.render_focus_derivations(now);
+    let forest_roots = self.render_forest_roots(&focus_ids);
+    let derivation_infos =
+      self.render_derivation_infos(&focus_ids, &forest_roots);
+    let derivation_name_index = derivation_name_index(&derivation_infos);
+    let activities = self.render_activities(&derivation_infos);
+
+    Self {
+      derivation_infos,
+      store_path_infos: self.render_store_path_infos(),
+      full_summary: self.render_dependency_summary(),
+      forest_roots,
+      build_cache: HashMap::new(),
+      start_time: self.start_time,
+      progress_state: self.progress_state.clone(),
+      store_path_ids: HashMap::new(),
+      derivation_ids: HashMap::new(),
+      derivation_name_index,
+      touched_ids: HashSet::new(),
+      activities,
+      nix_errors: Vec::new(),
+      traces: Vec::new(),
+      build_platform: self.build_platform.clone(),
+      evaluation_state: self.evaluation_state.clone(),
+      builds_activity: self.builds_activity,
+      next_store_path_id: self.next_store_path_id,
+      next_derivation_id: self.next_derivation_id,
+    }
+  }
+
+  fn render_dependency_summary(&self) -> DependencySummary {
+    DependencySummary {
+      planned_builds:      self.full_summary.planned_builds.clone(),
+      running_builds:      self.full_summary.running_builds.clone(),
+      completed_builds:    self.full_summary.completed_builds.clone(),
+      failed_builds:       self.full_summary.failed_builds.clone(),
+      planned_downloads:   self.full_summary.planned_downloads.clone(),
+      completed_downloads: HashMap::new(),
+      completed_uploads:   HashMap::new(),
+      running_downloads:   self.full_summary.running_downloads.clone(),
+      running_uploads:     self.full_summary.running_uploads.clone(),
+    }
+  }
+
+  fn render_focus_derivations(&self, now: f64) -> HashSet<DerivationId> {
+    let mut focus = HashSet::new();
+
+    focus.extend(self.full_summary.failed_builds.keys().copied());
+    focus.extend(self.full_summary.running_builds.keys().copied());
+    focus.extend(self.full_summary.completed_builds.iter().filter_map(
+      |(drv_id, build)| {
+        (now - build.end < RENDER_COMPLETED_LINGER_SECONDS).then_some(*drv_id)
+      },
+    ));
+
+    for path_id in self
+      .full_summary
+      .running_downloads
+      .keys()
+      .chain(self.full_summary.planned_downloads.iter())
+    {
+      if let Some(producer) = self
+        .store_path_infos
+        .get(path_id)
+        .and_then(|info| info.producer)
+      {
+        focus.insert(producer);
+      }
+    }
+
+    let mut stack = focus.iter().copied().collect::<Vec<_>>();
+    while let Some(drv_id) = stack.pop() {
+      let Some(info) = self.derivation_infos.get(&drv_id) else {
+        continue;
+      };
+      for parent_id in &info.derivation_parents {
+        if focus.insert(*parent_id) {
+          stack.push(*parent_id);
+        }
+      }
+    }
+
+    focus
+  }
+
+  fn render_forest_roots(
+    &self,
+    focus_ids: &HashSet<DerivationId>,
+  ) -> Vec<DerivationId> {
+    let mut roots = if self.forest_roots.is_empty() {
+      let mut roots = Vec::new();
+      roots.extend(self.full_summary.failed_builds.keys().copied());
+      roots.extend(self.full_summary.running_builds.keys().copied());
+      roots.extend(self.full_summary.planned_builds.iter().copied());
+      roots
+    } else {
+      self.forest_roots.clone()
+    };
+
+    roots.extend(focus_ids.iter().copied());
+    dedup_derivation_ids(&mut roots);
+    if roots.len() <= MAX_RENDER_SNAPSHOT_ROOTS {
+      return roots;
+    }
+
+    let mut selected = Vec::with_capacity(MAX_RENDER_SNAPSHOT_ROOTS);
+    selected.extend(
+      roots
+        .iter()
+        .filter(|id| focus_ids.contains(id))
+        .take(MAX_RENDER_SNAPSHOT_ROOTS)
+        .copied(),
+    );
+
+    let remaining = MAX_RENDER_SNAPSHOT_ROOTS.saturating_sub(selected.len());
+    if remaining > 0 {
+      let front_len = remaining.div_ceil(2).min(roots.len());
+      let tail_len = remaining.saturating_sub(front_len);
+      let tail_start = roots.len().saturating_sub(tail_len);
+      selected.extend(roots.iter().take(front_len).copied());
+      selected.extend(roots.iter().skip(tail_start).copied());
+    }
+
+    dedup_derivation_ids(&mut selected);
+    selected.truncate(MAX_RENDER_SNAPSHOT_ROOTS);
+    selected
+  }
+
+  fn render_derivation_infos(
+    &self,
+    focus_ids: &HashSet<DerivationId>,
+    forest_roots: &[DerivationId],
+  ) -> IndexMap<DerivationId, DerivationInfo> {
+    let mut render_ids = focus_ids.clone();
+    render_ids.extend(forest_roots.iter().copied());
+
+    let mut snapshot_ids = render_ids.clone();
+    for drv_id in &render_ids {
+      if let Some(info) = self.derivation_infos.get(drv_id) {
+        snapshot_ids
+          .extend(info.input_derivations.iter().map(|input| input.derivation));
+      }
+    }
+
+    let mut ids = snapshot_ids.iter().copied().collect::<Vec<_>>();
+    ids.sort_unstable();
+    ids
+      .into_iter()
+      .filter_map(|drv_id| {
+        let mut info = self.derivation_infos.get(&drv_id)?.clone();
+        info
+          .input_derivations
+          .retain(|input| snapshot_ids.contains(&input.derivation));
+        info
+          .derivation_parents
+          .retain(|parent_id| snapshot_ids.contains(parent_id));
+        if !render_ids.contains(&drv_id) {
+          info.input_derivations.clear();
+        }
+
+        Some((drv_id, info))
+      })
+      .collect()
+  }
+
+  fn render_activities(
+    &self,
+    derivation_infos: &IndexMap<DerivationId, DerivationInfo>,
+  ) -> HashMap<ActivityId, ActivityStatus> {
+    let mut ids = HashSet::new();
+    for info in derivation_infos.values() {
+      match &info.build_status {
+        BuildStatus::Building(build)
+        | BuildStatus::Built { info: build, .. }
+        | BuildStatus::Failed { info: build, .. } => {
+          if let Some(activity_id) = build.activity_id {
+            ids.insert(activity_id);
+          }
+        },
+        BuildStatus::Unknown | BuildStatus::Planned => {},
+      }
+    }
+
+    ids
+      .into_iter()
+      .filter_map(|id| {
+        self.activities.get(&id).cloned().map(|status| (id, status))
+      })
+      .collect()
+  }
+
+  fn render_store_path_infos(&self) -> IndexMap<StorePathId, StorePathInfo> {
+    let summary = &self.full_summary;
+    let mut ids = HashSet::new();
+    ids.extend(summary.planned_downloads.iter().copied());
+    ids.extend(summary.running_downloads.keys().copied());
+    ids.extend(summary.running_uploads.keys().copied());
+
+    ids
+      .into_iter()
+      .filter_map(|id| {
+        self
+          .store_path_infos
+          .get(&id)
+          .map(|info| (id, info.clone()))
+      })
+      .collect()
+  }
+
+  pub fn push_trace(&mut self, line: impl Into<String>) {
+    self.traces.push(line.into());
+    trim_vec_front(&mut self.traces, MAX_RETAINED_TRACES);
   }
 
   pub fn get_or_create_store_path_id(
@@ -423,152 +584,70 @@ impl State {
     self.next_derivation_id += 1;
 
     self.derivation_infos.insert(id, DerivationInfo {
-      name:               drv.clone(),
-      outputs:            HashMap::new(),
-      input_derivations:  Vec::new(),
-      input_sources:      HashSet::new(),
-      build_status:       BuildStatus::Unknown,
-      dependency_summary: DependencySummary::default(),
-      cached:             false,
-      derivation_parents: HashSet::new(),
-      pname:              None,
-      platform:           None,
+      name:                   drv.clone(),
+      outputs:                HashMap::new(),
+      input_derivations:      Vec::new(),
+      input_sources:          HashSet::new(),
+      build_status:           BuildStatus::Unknown,
+      dependency_summary:     DependencySummary::default(),
+      dependencies_populated: false,
+      cached:                 false,
+      derivation_parents:     HashSet::new(),
+      pname:                  None,
+      platform:               None,
     });
+    self
+      .derivation_name_index
+      .entry(drv.name.clone())
+      .or_default()
+      .insert(id);
     self.derivation_ids.insert(drv, id);
 
     id
   }
 
-  /// Populate derivation dependencies by parsing its .drv file
-  pub fn populate_derivation_dependencies(&mut self, drv_id: DerivationId) {
-    use cognos::aterm;
-    use tracing::debug;
+  #[must_use]
+  pub fn derivation_ids_with_name(&self, name: &str) -> Vec<DerivationId> {
+    self
+      .derivation_name_index
+      .get(name)
+      .into_iter()
+      .flat_map(|ids| ids.iter().copied())
+      .collect()
+  }
 
-    // platform is always set after a successful parse; use it as the
-    // "already parsed" marker so leaf nodes (zero inputs) are not re-parsed.
-    let already_parsed = self
-      .get_derivation_info(drv_id)
-      .map_or(false, |info| info.platform.is_some());
+  pub fn plan_derivation(&mut self, drv: Derivation) -> DerivationId {
+    let drv_id = self.get_or_create_derivation_id(drv);
+    let should_mark_planned =
+      self.get_derivation_info(drv_id).is_some_and(|info| {
+        matches!(
+          info.build_status,
+          BuildStatus::Unknown | BuildStatus::Planned
+        )
+      });
 
-    if already_parsed {
-      debug!("Skipping already-parsed derivation {}", drv_id);
-      return;
+    if should_mark_planned {
+      self.update_build_status(drv_id, BuildStatus::Planned);
     }
 
-    let drv_path = {
-      let info = match self.get_derivation_info(drv_id) {
-        Some(i) => i,
-        None => return,
-      };
-      // Path already includes .drv extension from Derivation::parse
-      info.name.path.display().to_string()
-    };
-
-    debug!("Attempting to parse .drv file: {}", drv_path);
-
-    let parsed = match aterm::parse_drv_file(&drv_path) {
-      Ok(p) => {
-        debug!(
-          "Successfully parsed .drv file: {} with {} input derivations",
-          drv_path,
-          p.input_drvs.len()
-        );
-        p
-      },
-      Err(e) => {
-        debug!("Failed to parse .drv file {}: {}", drv_path, e);
-        return;
-      },
-    };
-
-    // Extract metadata
-    if let Some(pname) = aterm::extract_pname(&parsed.env)
-      && let Some(info) = self.get_derivation_info_mut(drv_id)
+    if self.derivation_parents(drv_id).is_empty()
+      && !self.forest_roots.contains(&drv_id)
     {
-      info.pname = Some(pname);
+      self.forest_roots.push(drv_id);
     }
 
+    drv_id
+  }
+
+  pub(crate) fn dependencies_populated(&self, drv_id: DerivationId) -> bool {
+    self
+      .get_derivation_info(drv_id)
+      .is_some_and(|info| info.dependencies_populated)
+  }
+
+  pub(crate) fn mark_dependencies_populated(&mut self, drv_id: DerivationId) {
     if let Some(info) = self.get_derivation_info_mut(drv_id) {
-      info.platform = Some(parsed.platform);
-    }
-
-    // Register the derivation's output store paths
-    for (output_name, store_path_str) in &parsed.outputs {
-      if let Some(sp) = StorePath::parse(store_path_str) {
-        let sp_id = self.get_or_create_store_path_id(sp);
-        if let Some(sp_info) = self.get_store_path_info_mut(sp_id) {
-          sp_info.producer = Some(drv_id);
-        }
-        if let Some(drv_info) = self.get_derivation_info_mut(drv_id) {
-          drv_info
-            .outputs
-            .insert(cognos::OutputName::parse(output_name), sp_id);
-        }
-      }
-    }
-
-    // Process input derivations
-    for (input_drv_path, outputs) in parsed.input_drvs {
-      if let Some(input_drv) = Derivation::parse(&input_drv_path) {
-        let input_drv_id = self.get_or_create_derivation_id(input_drv);
-
-        // Do NOT auto-mark inputs as Planned here.  A derivation should only
-        // be marked Planned when Nix explicitly reports it will be built (via
-        // a build-queued or similar protocol event).  Inputs that are already
-        // in the store are Unknown and have an empty dependencySummary; the
-        // tree renderer filters them out (node_is_visible returns false for
-        // Unknown nodes with an empty summary).  Marking them Planned here
-        // causes all cached/already-built inputs to incorrectly appear in the
-        // tree, which is exactly the discrepancy with NOM's output.
-
-        // Create output set
-        let mut output_set = HashSet::new();
-        for output in outputs {
-          output_set.insert(OutputName::parse(&output));
-        }
-
-        // Add to parent's input derivations
-        if let Some(parent_info) = self.get_derivation_info_mut(drv_id) {
-          let input = InputDerivation {
-            derivation: input_drv_id,
-            outputs:    output_set,
-          };
-          if parent_info
-            .input_derivations
-            .iter()
-            .any(|d| d.derivation == input_drv_id)
-          {
-            debug!(
-              "Input derivation {} already in parent {}",
-              input_drv_id, drv_id
-            );
-          } else {
-            parent_info.input_derivations.push(input);
-            debug!(
-              "Added input derivation {} to {} (parent now has {} inputs)",
-              input_drv_id,
-              drv_id,
-              parent_info.input_derivations.len()
-            );
-          }
-        } else {
-          debug!(
-            "Parent derivation {} not found when trying to add input {}",
-            drv_id, input_drv_id
-          );
-        }
-
-        // Mark child as having this parent
-        if let Some(child_info) = self.get_derivation_info_mut(input_drv_id) {
-          child_info.derivation_parents.insert(drv_id);
-        }
-
-        // Remove from forest roots if it has a parent
-        self.forest_roots.retain(|&id| id != input_drv_id);
-
-        // Do not recurse: child dependencies are populated lazily when nix
-        // reports starting those builds via JSON events.
-      }
+      info.dependencies_populated = true;
     }
   }
 
@@ -636,7 +715,7 @@ impl State {
   /// Recompute a derivation's full dependency_summary by merging:
   /// 1. Its own contribution (based on build_status)
   /// 2. All its children's dependency_summaries
-  fn recompute_derivation_summary(&mut self, id: DerivationId) {
+  pub(crate) fn recompute_derivation_summary(&mut self, id: DerivationId) {
     // First, compute our own contribution
     self.recompute_own_summary(id);
 
@@ -672,7 +751,7 @@ impl State {
 
   /// Propagate a status change up the parent chain by recomputing each
   /// ancestor's dependency_summary. This is for O(1) subtree aggregation.
-  fn propagate_to_parents(&mut self, id: DerivationId) {
+  pub(crate) fn propagate_to_parents(&mut self, id: DerivationId) {
     // Collect all ancestors first to avoid borrowing issues
     let mut ancestors: Vec<DerivationId> = Vec::new();
     let mut current_parents = self.derivation_parents(id);
@@ -856,10 +935,33 @@ fn extract_derivation_from_text(text: &str) -> Option<Derivation> {
   None
 }
 
+fn derivation_name_index(
+  derivation_infos: &IndexMap<DerivationId, DerivationInfo>,
+) -> HashMap<String, HashSet<DerivationId>> {
+  let mut index: HashMap<String, HashSet<DerivationId>> = HashMap::new();
+  for (id, info) in derivation_infos {
+    index.entry(info.name.name.clone()).or_default().insert(*id);
+  }
+  index
+}
+
 #[must_use]
 pub fn current_time() -> f64 {
   SystemTime::now()
     .duration_since(SystemTime::UNIX_EPOCH)
     .unwrap_or(Duration::ZERO)
     .as_secs_f64()
+}
+
+fn trim_vec_front<T>(items: &mut Vec<T>, max_len: usize) {
+  let trim_at = max_len + max_len / 10;
+  if items.len() > trim_at {
+    let excess = items.len() - max_len;
+    items.drain(0..excess);
+  }
+}
+
+fn dedup_derivation_ids(ids: &mut Vec<DerivationId>) {
+  let mut seen = HashSet::new();
+  ids.retain(|id| seen.insert(*id));
 }

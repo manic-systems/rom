@@ -2,9 +2,11 @@
 pub mod cache;
 pub mod display;
 pub mod error;
+pub mod graph;
 pub mod icons;
 pub mod monitor;
 pub mod state;
+pub mod tui;
 pub mod types;
 pub mod update;
 
