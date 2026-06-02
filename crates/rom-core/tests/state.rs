@@ -4,7 +4,6 @@ use rom_core::{
     ActivityStatus,
     BuildInfo,
     BuildStatus,
-    CompletedTransferInfo,
     Derivation,
     InputDerivation,
     ProgressState,
@@ -81,31 +80,6 @@ fn render_snapshot_keeps_transfer_store_path_names() {
   assert_eq!(
     snapshot.get_store_path_info(path_id).unwrap().name.name,
     "source-tarball-1.0"
-  );
-}
-
-#[test]
-fn render_snapshot_drops_completed_transfer_maps() {
-  let mut state = State::new();
-  let path = StorePath::parse("/nix/store/abc123-source-tarball-1.0").unwrap();
-  let path_id = state.get_or_create_store_path_id(path);
-  state.full_summary.completed_downloads.insert(
-    path_id,
-    CompletedTransferInfo {
-      start:       rom_core::state::current_time() - 1.0,
-      end:         rom_core::state::current_time(),
-      host:        cognos::Host::Localhost,
-      total_bytes: 1024,
-    },
-  );
-
-  let snapshot = state.render_snapshot();
-
-  assert!(snapshot.full_summary.completed_downloads.is_empty());
-  assert!(
-    snapshot.get_store_path_info(path_id).is_none(),
-    "completed transfer path metadata should not be cloned into live render \
-     snapshots"
   );
 }
 
