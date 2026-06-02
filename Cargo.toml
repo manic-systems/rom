@@ -10,10 +10,7 @@ description = "Pretty build graphs for your pretty Nix builds"
 license = "EUPL-1.2"
 
 [workspace.dependencies]
-cognos = {
-  path = "./crates/cognos",
-  version = "1.0.0"
-}  # cognos is versioned independently
+cognos = { path = "./crates/cognos", version = "1.0.0" }  # cognos is versioned independently
 rom-cli = { path = "./crates/rom-cli", version = "0.2.0" }
 rom-core = { path = "./crates/rom-core", version = "0.2.0" }
 
