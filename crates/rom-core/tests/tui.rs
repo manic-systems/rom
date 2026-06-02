@@ -600,6 +600,73 @@ fn tui_keeps_sibling_rail_through_nested_active_subtree() {
 }
 
 #[test]
+fn tui_removes_dangling_left_rail_from_nested_sibling_subtrees() {
+  let backend = TestBackend::new(96, 24);
+  let mut terminal = Terminal::new(backend).unwrap();
+  let mut state = State::new();
+  let root_id = add_derivation(&mut state, "nixos-system-fool");
+  let system_path_id = add_derivation(&mut state, "system-path");
+  let portal_id = add_derivation(&mut state, "xdg-desktop-portal-kde-6.6.5");
+  let plasma_id = add_derivation(&mut state, "plasma-workspace-6.6.5");
+  let bitwarden_wrapped_id =
+    add_derivation(&mut state, "bitwarden-desktop-wrapped");
+  let bitwarden_id = add_derivation(&mut state, "bitwarden-desktop-2026.5.0");
+
+  for (parent, child) in [
+    (root_id, system_path_id),
+    (system_path_id, portal_id),
+    (portal_id, plasma_id),
+    (system_path_id, bitwarden_wrapped_id),
+    (bitwarden_wrapped_id, bitwarden_id),
+  ] {
+    state
+      .get_derivation_info_mut(parent)
+      .unwrap()
+      .input_derivations
+      .push(InputDerivation {
+        derivation: child,
+        outputs:    HashSet::new(),
+      });
+    state
+      .get_derivation_info_mut(child)
+      .unwrap()
+      .derivation_parents
+      .insert(parent);
+  }
+
+  for drv_id in [root_id, system_path_id, portal_id, bitwarden_wrapped_id] {
+    state.update_build_status(drv_id, BuildStatus::Planned);
+  }
+  for drv_id in [plasma_id, bitwarden_id] {
+    state.update_build_status(
+      drv_id,
+      BuildStatus::Building(BuildInfo {
+        start:       current_time() - 2.0,
+        host:        cognos::Host::Localhost,
+        estimate:    None,
+        activity_id: None,
+      }),
+    );
+  }
+  state.forest_roots.push(root_id);
+
+  let config = tui_config();
+  terminal
+    .draw(|frame| draw(frame, &state, &[], &config, &TuiView::default()))
+    .unwrap();
+
+  let plasma_row = row_text(
+    &terminal,
+    row_containing(&terminal, "plasma-workspace-6.6.5").unwrap(),
+  );
+  assert!(
+    !plasma_row.starts_with("│ "),
+    "nested sibling subtree should not show a dangling left rail: \
+     {plasma_row:?}"
+  );
+}
+
+#[test]
 fn tui_prefers_structural_parent_for_shared_active_dependency() {
   let backend = TestBackend::new(80, 24);
   let mut terminal = Terminal::new(backend).unwrap();

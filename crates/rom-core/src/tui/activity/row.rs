@@ -13,7 +13,7 @@ use super::{
 };
 use crate::{
   display::format_duration,
-  state::{BuildInfo, BuildStatus, DerivationId, State},
+  state::{BuildInfo, BuildStatus, DerivationId, State, StorePathId},
   tui::{
     BUILT_GREEN,
     DOWNLOAD_BLUE,
@@ -27,7 +27,7 @@ use crate::{
 };
 
 #[derive(Clone, Copy, Default)]
-struct GraphCell(u8);
+pub(super) struct GraphCell(u8);
 
 const EDGE_UP: u8 = 0b0001;
 const EDGE_DOWN: u8 = 0b0010;
@@ -48,6 +48,22 @@ const EDGE_CROSS: u8 = EDGE_UP | EDGE_DOWN | EDGE_LEFT | EDGE_RIGHT;
 impl GraphCell {
   fn add(&mut self, edges: u8) {
     self.0 |= edges;
+  }
+
+  pub(super) fn clear(&mut self) {
+    self.0 = 0;
+  }
+
+  pub(super) fn has_up_edge(self) -> bool {
+    self.0 & EDGE_UP != 0
+  }
+
+  pub(super) fn has_down_edge(self) -> bool {
+    self.0 & EDGE_DOWN != 0
+  }
+
+  pub(super) fn is_vertical_rail(self) -> bool {
+    matches!(self.0, EDGE_VERTICAL | EDGE_UP | EDGE_DOWN)
   }
 
   fn symbol(self) -> &'static str {
@@ -98,24 +114,51 @@ fn row_activity(
 }
 
 pub(super) struct ActivityLine<'a> {
-  pub(super) state:           &'a State,
-  pub(super) transfer_lookup: &'a TransferLookup,
-  pub(super) drv_id:          DerivationId,
-  pub(super) info:            &'a crate::state::DerivationInfo,
-  pub(super) collapsed_deps:  CollapsedDependencies,
-  pub(super) branch_rails:    &'a [bool],
-  pub(super) connector:       Option<BranchConnector>,
-  pub(super) has_children:    bool,
-  pub(super) now:             f64,
-  pub(super) width:           usize,
+  pub(super) state:            &'a State,
+  pub(super) transfer_lookup:  &'a TransferLookup,
+  pub(super) drv_id:           DerivationId,
+  pub(super) info:             &'a crate::state::DerivationInfo,
+  pub(super) transfer_path_id: Option<StorePathId>,
+  pub(super) collapsed_deps:   CollapsedDependencies,
+  pub(super) branch_rails:     &'a [bool],
+  pub(super) connector:        Option<BranchConnector>,
+  pub(super) has_children:     bool,
+  pub(super) now:              f64,
+  pub(super) width:            usize,
 }
 
-pub(super) fn activity_line(args: ActivityLine<'_>) -> Line<'static> {
+#[derive(Clone)]
+pub(super) struct RenderedActivityLine {
+  pub(super) graph_cells:      Vec<GraphCell>,
+  pub(super) body:             Vec<Span<'static>>,
+  pub(super) transfer_path_id: Option<StorePathId>,
+}
+
+impl RenderedActivityLine {
+  pub(super) fn to_line(&self) -> Line<'static> {
+    let mut spans =
+      Vec::with_capacity(self.graph_cells.len() + self.body.len() + 1);
+    spans.extend(
+      self
+        .graph_cells
+        .iter()
+        .map(|cell| Span::styled(cell.symbol(), hierarchy_style())),
+    );
+    if !self.graph_cells.is_empty() {
+      spans.push(Span::raw(" "));
+    }
+    spans.extend(self.body.iter().cloned());
+    Line::from(spans)
+  }
+}
+
+pub(super) fn activity_line(args: ActivityLine<'_>) -> RenderedActivityLine {
   let ActivityLine {
     state,
     transfer_lookup,
     drv_id,
     info,
+    transfer_path_id,
     collapsed_deps,
     branch_rails,
     connector,
@@ -123,8 +166,9 @@ pub(super) fn activity_line(args: ActivityLine<'_>) -> Line<'static> {
     now,
     width,
   } = args;
-  let mut prefix = activity_prefix(branch_rails, connector, has_children);
-  let prefix_width = spans_width(&prefix);
+  let graph_cells =
+    activity_prefix_cells(branch_rails, connector, has_children);
+  let prefix_width = graph_cells.len() + usize::from(!graph_cells.is_empty());
   let row_activity = row_activity(transfer_lookup, drv_id, info, now);
   let (status, status_style) =
     status_indicator(&row_activity, &info.build_status, now);
@@ -144,26 +188,31 @@ pub(super) fn activity_line(args: ActivityLine<'_>) -> Line<'static> {
     &elapsed,
   );
 
+  let mut body = Vec::new();
   if !status.is_empty() {
-    prefix.push(Span::styled(status, status_style));
-    prefix.push(Span::raw(" "));
+    body.push(Span::styled(status, status_style));
+    body.push(Span::raw(" "));
   }
-  prefix.push(Span::styled(
+  body.push(Span::styled(
     name,
     name_style(&row_activity, &info.build_status, branch_rails.len()),
   ));
 
   if let Some(suffix) = suffix {
-    prefix.push(Span::raw(" "));
-    prefix.push(Span::styled(suffix, secondary_style()));
+    body.push(Span::raw(" "));
+    body.push(Span::styled(suffix, secondary_style()));
   }
 
   if !elapsed.is_empty() {
-    prefix.push(Span::raw(" "));
-    prefix.push(Span::styled(elapsed, secondary_style()));
+    body.push(Span::raw(" "));
+    body.push(Span::styled(elapsed, secondary_style()));
   }
 
-  Line::from(prefix)
+  RenderedActivityLine {
+    graph_cells,
+    body,
+    transfer_path_id,
+  }
 }
 
 pub(super) fn transfer_activity_line(
@@ -219,11 +268,11 @@ pub(super) fn transfer_activity_line(
   Some(Line::from(spans))
 }
 
-fn activity_prefix(
+fn activity_prefix_cells(
   branch_rails: &[bool],
   connector: Option<BranchConnector>,
   has_children: bool,
-) -> Vec<Span<'static>> {
+) -> Vec<GraphCell> {
   let Some(connector) = connector else {
     return Vec::new();
   };
@@ -258,14 +307,7 @@ fn activity_prefix(
     connect_cells(&mut cells, connector_col + 2, connector_col + 3);
   }
 
-  let mut prefix = Vec::with_capacity(graph_width + 1);
-  prefix.extend(
-    cells
-      .into_iter()
-      .map(|cell| Span::styled(cell.symbol(), hierarchy_style())),
-  );
-  prefix.push(Span::raw(" "));
-  prefix
+  cells
 }
 
 fn connect_cells(cells: &mut [GraphCell], left: usize, right: usize) {
@@ -552,8 +594,4 @@ fn name_style(
       }
     },
   }
-}
-
-fn spans_width(spans: &[Span<'_>]) -> usize {
-  spans.iter().map(|span| span.content.chars().count()).sum()
 }
