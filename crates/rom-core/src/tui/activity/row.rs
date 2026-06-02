@@ -159,10 +159,7 @@ pub(super) fn activity_line(args: ActivityLine<'_>) -> Line<'static> {
   }
 
   if !elapsed.is_empty() {
-    let used = spans_width(&prefix);
-    let elapsed_width = elapsed.chars().count();
-    let padding = width.saturating_sub(used + elapsed_width).max(1);
-    prefix.push(Span::raw(" ".repeat(padding)));
+    prefix.push(Span::raw(" "));
     prefix.push(Span::styled(elapsed, secondary_style()));
   }
 
@@ -215,10 +212,7 @@ pub(super) fn transfer_activity_line(
   }
 
   if !elapsed.is_empty() {
-    let used = spans_width(&spans);
-    let elapsed_width = elapsed.chars().count();
-    let padding = width.saturating_sub(used + elapsed_width).max(1);
-    spans.push(Span::raw(" ".repeat(padding)));
+    spans.push(Span::raw(" "));
     spans.push(Span::styled(elapsed, secondary_style()));
   }
 
