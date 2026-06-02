@@ -24,8 +24,7 @@ const BUILT_GREEN: Color = Color::Rgb(128, 158, 94);
 const DOWNLOAD_BLUE: Color = Color::Rgb(116, 168, 196);
 const MUTED_RED: Color = Color::Rgb(204, 102, 96);
 const MUTED_YELLOW: Color = Color::Rgb(224, 190, 96);
-const SPINNER_FRAMES: &[&str] =
-  &["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+const SPINNER_FRAMES: &[&str] = &["⢄", "⢂", "⢁", "⡁", "⡈", "⡐", "⡠"];
 
 #[derive(Clone, Copy, Default)]
 pub struct TuiConfig {
