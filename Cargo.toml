@@ -31,6 +31,7 @@ eyre = "0.6.12"
 dirs = "6.0.0"
 tempfile = "3.27.0"
 has-nerd-font = "0.20260228.0"
+unicode-width = "0.2.2"
 
 [profile.release]
 opt-level = 3

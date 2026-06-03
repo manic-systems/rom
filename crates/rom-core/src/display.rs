@@ -8,7 +8,9 @@ use crossterm::{
   cursor,
   execute,
   style::{Color, ResetColor, SetForegroundColor},
+  terminal,
 };
+use unicode_width::UnicodeWidthChar;
 
 use crate::{
   icons::Icons,
@@ -57,8 +59,8 @@ impl Default for DisplayConfig {
 pub struct Display<W: Write> {
   writer:            W,
   config:            DisplayConfig,
-  /// Number of graph lines printed in the last render (cleared on next render)
-  last_lines:        usize,
+  /// Number of terminal screen rows printed in the last render.
+  last_rows:         usize,
   /// Total log lines already printed (they scroll naturally, never cleared)
   printed_log_lines: usize,
 }
@@ -73,7 +75,7 @@ impl<W: Write> Display<W> {
     Ok(Self {
       writer,
       config,
-      last_lines: 0,
+      last_rows: 0,
       printed_log_lines: 0,
     })
   }
@@ -85,19 +87,21 @@ impl<W: Write> Display<W> {
   }
 
   pub fn clear_previous(&mut self) -> io::Result<()> {
-    if self.last_lines > 0 {
+    if self.last_rows > 0 {
       // Move up in a single escape sequence, then clear to end of screen.
       // This is much cheaper than calling MoveUp(1) in a loop because it
       // produces one write + one flush instead of N.
+      let rows = self.last_rows.min(u16::MAX as usize) as u16;
       execute!(
         self.writer,
         cursor::MoveToColumn(0),
-        cursor::MoveUp(self.last_lines as u16),
+        cursor::MoveUp(rows),
         cursor::MoveToColumn(0),
         crossterm::terminal::Clear(
           crossterm::terminal::ClearType::FromCursorDown
         )
       )?;
+      self.last_rows = 0;
     }
     Ok(())
   }
@@ -116,7 +120,6 @@ impl<W: Write> Display<W> {
       }
       self.writer.write_all(log_out.as_bytes())?;
       self.printed_log_lines = logs.len();
-      self.last_lines = 0; // graph was cleared above
     }
 
     // Clear only the graph from the previous render
@@ -141,7 +144,7 @@ impl<W: Write> Display<W> {
       graph_lines.truncate(self.config.max_visible_lines);
     }
 
-    self.last_lines = graph_lines.len();
+    self.last_rows = Self::rendered_rows(&graph_lines);
 
     let mut out = String::with_capacity(graph_lines.len() * 80);
     for line in &graph_lines {
@@ -180,7 +183,7 @@ impl<W: Write> Display<W> {
 
     tracing::debug!("render_final: {} lines to print", lines.len());
 
-    // Print final output (don't track last_lines since this is final)
+    // Print final output (don't track last_rows since this is final)
     for line in lines {
       writeln!(self.writer, "{line}")?;
     }
@@ -189,6 +192,31 @@ impl<W: Write> Display<W> {
     self.writer.flush()?;
 
     Ok(())
+  }
+
+  fn rendered_rows(lines: &[String]) -> usize {
+    let width = terminal::size()
+      .ok()
+      .map(|(cols, _)| cols as usize)
+      .filter(|&cols| cols > 0);
+
+    Self::rendered_rows_for_width(lines, width)
+  }
+
+  fn rendered_rows_for_width(lines: &[String], width: Option<usize>) -> usize {
+    let Some(width) = width else {
+      return lines.len();
+    };
+
+    lines
+      .iter()
+      .map(|line| Self::screen_rows_for_line(line, width))
+      .sum()
+  }
+
+  fn screen_rows_for_line(line: &str, width: usize) -> usize {
+    let visible_width = visible_width(line);
+    visible_width.div_ceil(width).max(1)
   }
 
   fn render_final_summary(&self, state: &State) -> Vec<String> {
@@ -1696,6 +1724,54 @@ impl<W: Write> Display<W> {
   }
 }
 
+fn visible_width(text: &str) -> usize {
+  let mut width = 0;
+  let mut chars = text.chars().peekable();
+
+  while let Some(ch) = chars.next() {
+    if ch == '\x1b' {
+      skip_ansi_escape(&mut chars);
+    } else {
+      width += UnicodeWidthChar::width(ch).unwrap_or(0);
+    }
+  }
+
+  width
+}
+
+fn skip_ansi_escape<I>(chars: &mut std::iter::Peekable<I>)
+where
+  I: Iterator<Item = char>,
+{
+  match chars.peek() {
+    Some('[') => {
+      chars.next();
+      for ch in chars.by_ref() {
+        if ('@'..='~').contains(&ch) {
+          break;
+        }
+      }
+    },
+    Some(']') => {
+      chars.next();
+      let mut saw_escape = false;
+      for ch in chars.by_ref() {
+        if saw_escape && ch == '\\' {
+          break;
+        }
+        if ch == '\x07' {
+          break;
+        }
+        saw_escape = ch == '\x1b';
+      }
+    },
+    Some(_) => {
+      chars.next();
+    },
+    None => {},
+  }
+}
+
 fn format_size(bytes: u64) -> String {
   if bytes < 1024 {
     format!("{bytes} B")
@@ -1705,5 +1781,26 @@ fn format_size(bytes: u64) -> String {
     format!("{:.1} MiB", bytes as f64 / (1024.0 * 1024.0))
   } else {
     format!("{:.1} GiB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn rendered_rows_counts_wrapped_screen_rows() {
+    let lines = vec!["abc".to_string(), "abcdef".to_string(), String::new()];
+
+    assert_eq!(
+      Display::<Vec<u8>>::rendered_rows_for_width(&lines, Some(3)),
+      4
+    );
+  }
+
+  #[test]
+  fn visible_width_ignores_ansi_escape_sequences() {
+    assert_eq!(visible_width("\x1b[31mabcdef\x1b[0m"), 6);
+    assert_eq!(visible_width("\x1b[1mwide 你\x1b[0m"), 7);
   }
 }

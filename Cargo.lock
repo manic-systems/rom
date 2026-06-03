@@ -1404,6 +1404,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.18",
  "tracing",
+ "unicode-width",
 ]
 
 [[package]]
