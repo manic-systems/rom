@@ -13,7 +13,7 @@ use super::{
 };
 use crate::{
   display::format_duration,
-  state::{BuildInfo, BuildStatus, DerivationId, State, StorePathId},
+  state::{BuildInfo, BuildStatus, DerivationId, RenderSnapshot, StorePathId},
   tui::{
     BUILT_GREEN,
     DOWNLOAD_BLUE,
@@ -114,7 +114,7 @@ fn row_activity(
 }
 
 pub(super) struct ActivityLine<'a> {
-  pub(super) state:            &'a State,
+  pub(super) state:            &'a RenderSnapshot,
   pub(super) transfer_lookup:  &'a TransferLookup,
   pub(super) drv_id:           DerivationId,
   pub(super) info:             &'a crate::state::DerivationInfo,
@@ -216,7 +216,7 @@ pub(super) fn activity_line(args: ActivityLine<'_>) -> RenderedActivityLine {
 }
 
 pub(super) fn transfer_activity_line(
-  state: &State,
+  state: &RenderSnapshot,
   transfer: &TransferActivity,
   now: f64,
   width: usize,
@@ -354,7 +354,7 @@ fn status_indicator(
 }
 
 fn activity_suffix(
-  state: &State,
+  state: &RenderSnapshot,
   info: &crate::state::DerivationInfo,
   collapsed_deps: CollapsedDependencies,
   row_activity: &RowActivity,
@@ -446,7 +446,7 @@ fn collapsed_deps_suffix(deps: CollapsedDependencies) -> Option<String> {
   }
 }
 
-fn running_suffix(state: &State, build: &BuildInfo) -> Option<String> {
+fn running_suffix(state: &RenderSnapshot, build: &BuildInfo) -> Option<String> {
   let phase = build
     .activity_id
     .and_then(|id| state.activities.get(&id))
@@ -462,7 +462,7 @@ fn running_suffix(state: &State, build: &BuildInfo) -> Option<String> {
 }
 
 fn failed_suffix(
-  state: &State,
+  state: &RenderSnapshot,
   build: &BuildInfo,
   fail: &crate::state::BuildFail,
 ) -> String {

@@ -1,8 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
+mod layout;
 mod row;
 
-use ratatui::text::{Line, Span};
+use layout::combine_activity_lines;
+use ratatui::text::Line;
 use row::{
   ActivityLine,
   RenderedActivityLine,
@@ -10,13 +12,12 @@ use row::{
   transfer_activity_line,
 };
 
-use super::secondary_style;
 use crate::{
   display::DisplayConfig,
   state::{
     BuildStatus,
     DerivationId,
-    State,
+    RenderSnapshot,
     StorePathId,
     TransferInfo,
     current_time,
@@ -91,7 +92,7 @@ impl TransferActivity {
 }
 
 impl TransferLookup {
-  fn from_state(state: &State) -> Self {
+  fn from_state(state: &RenderSnapshot) -> Self {
     let mut lookup = Self::default();
 
     for (path_id, transfer) in &state.full_summary.running_downloads {
@@ -116,7 +117,7 @@ impl TransferLookup {
 
   fn insert_path_activity(
     &mut self,
-    state: &State,
+    state: &RenderSnapshot,
     path_id: StorePathId,
     activity: TransferActivity,
   ) {
@@ -151,7 +152,7 @@ fn transfer_activity_priority(activity: &TransferActivity) -> u8 {
 }
 
 pub(super) fn render_activity_graph_lines(
-  state: &State,
+  state: &RenderSnapshot,
   display: DisplayConfig,
   max_lines: usize,
   width: usize,
@@ -192,7 +193,7 @@ pub(super) fn render_activity_graph_lines(
 }
 
 fn transfer_line_candidates(
-  state: &State,
+  state: &RenderSnapshot,
   now: f64,
   width: usize,
 ) -> Vec<TransferLine> {
@@ -231,209 +232,8 @@ fn transfer_line_candidates(
   lines
 }
 
-fn unrendered_transfer_lines(
-  transfer_lines: &[TransferLine],
-  rendered_transfer_paths: &HashSet<StorePathId>,
-) -> Vec<Line<'static>> {
-  transfer_lines
-    .iter()
-    .filter(|line| !rendered_transfer_paths.contains(&line.path_id))
-    .map(|line| line.line.clone())
-    .collect()
-}
-
-fn combine_activity_lines(
-  tree_lines: Vec<RenderedActivityLine>,
-  transfer_lines: &[TransferLine],
-  max_lines: usize,
-) -> Vec<Line<'static>> {
-  if max_lines == 0 {
-    return Vec::new();
-  }
-  if tree_lines.is_empty() {
-    return truncate_activity_lines(
-      unrendered_transfer_lines(transfer_lines, &HashSet::new()),
-      max_lines,
-    );
-  }
-  if max_lines == 1 {
-    let visible_paths =
-      rendered_transfer_paths_for_budget(&tree_lines, max_lines);
-    let transfer_lines =
-      unrendered_transfer_lines(transfer_lines, &visible_paths);
-    if transfer_lines.is_empty() {
-      return activity_lines_for_budget(&tree_lines, max_lines);
-    }
-    return truncate_activity_lines(transfer_lines, max_lines);
-  }
-
-  let transfer_budget = standalone_transfer_budget(max_lines);
-  let mut tree_budget = max_lines;
-  for _ in 0..=max_lines {
-    let visible_paths =
-      rendered_transfer_paths_for_budget(&tree_lines, tree_budget);
-    let transfer_lines =
-      unrendered_transfer_lines(transfer_lines, &visible_paths);
-
-    if transfer_lines.is_empty() {
-      return activity_lines_for_budget(&tree_lines, tree_budget);
-    }
-
-    let mut transfer_lines =
-      truncate_activity_lines(transfer_lines, transfer_budget);
-    let next_tree_budget = max_lines.saturating_sub(transfer_lines.len());
-    if next_tree_budget == tree_budget {
-      transfer_lines
-        .extend(activity_lines_for_budget(&tree_lines, tree_budget));
-      return transfer_lines;
-    }
-    tree_budget = next_tree_budget;
-  }
-
-  activity_lines_for_budget(&tree_lines, max_lines)
-}
-
-fn standalone_transfer_budget(max_lines: usize) -> usize {
-  if max_lines <= 3 {
-    return 1;
-  }
-
-  (max_lines / 4).clamp(1, 6).min(max_lines - 3)
-}
-
-fn rendered_transfer_paths_for_budget(
-  lines: &[RenderedActivityLine],
-  max_lines: usize,
-) -> HashSet<StorePathId> {
-  visible_activity_line_slice(lines, max_lines)
-    .iter()
-    .filter_map(|line| line.transfer_path_id)
-    .collect()
-}
-
-fn activity_lines_for_budget(
-  lines: &[RenderedActivityLine],
-  max_lines: usize,
-) -> Vec<Line<'static>> {
-  if lines.len() <= max_lines {
-    let mut lines = lines.to_vec();
-    clean_isolated_tree_rails(&mut lines);
-    return lines.iter().map(RenderedActivityLine::to_line).collect();
-  }
-  if max_lines == 0 {
-    return Vec::new();
-  }
-  if max_lines == 1 {
-    return lines
-      .last()
-      .map(|line| line.to_line())
-      .into_iter()
-      .collect();
-  }
-
-  let tail_len = max_lines - 1;
-  let hidden = lines.len().saturating_sub(tail_len);
-  let mut visible = Vec::with_capacity(max_lines);
-  visible.push(hidden_activity_line(hidden));
-  let mut tree_lines = visible_activity_line_slice(lines, max_lines).to_vec();
-  clean_isolated_tree_rails(&mut tree_lines);
-  visible.extend(tree_lines.iter().map(RenderedActivityLine::to_line));
-  visible
-}
-
-fn visible_activity_line_slice(
-  lines: &[RenderedActivityLine],
-  max_lines: usize,
-) -> &[RenderedActivityLine] {
-  if lines.len() <= max_lines {
-    return lines;
-  }
-  if max_lines == 0 {
-    return &[];
-  }
-  if max_lines == 1 {
-    return lines.last().map(std::slice::from_ref).unwrap_or_default();
-  }
-
-  let tail_len = max_lines - 1;
-  let tail_start = lines.len().saturating_sub(tail_len);
-  &lines[tail_start..]
-}
-
-fn truncate_activity_lines(
-  lines: Vec<Line<'static>>,
-  max_lines: usize,
-) -> Vec<Line<'static>> {
-  if lines.len() <= max_lines {
-    return lines;
-  }
-  if max_lines == 0 {
-    return Vec::new();
-  }
-  if max_lines == 1 {
-    return lines.into_iter().rev().take(1).collect();
-  }
-
-  let tail_len = max_lines - 1;
-  let hidden = lines.len().saturating_sub(tail_len);
-  let tail_start = lines.len().saturating_sub(tail_len);
-  let mut visible = Vec::with_capacity(max_lines);
-  visible.push(hidden_activity_line(hidden));
-  visible.extend(lines.into_iter().skip(tail_start));
-  visible
-}
-
-fn hidden_activity_line(hidden: usize) -> Line<'static> {
-  let label = if hidden == 1 {
-    "1 hidden row above".to_string()
-  } else {
-    format!("{hidden} hidden rows above")
-  };
-  Line::from(vec![
-    Span::styled("⋮", secondary_style()),
-    Span::raw(" "),
-    Span::styled(label, secondary_style()),
-  ])
-}
-
-fn clean_isolated_tree_rails(lines: &mut [RenderedActivityLine]) {
-  let cells = lines
-    .iter()
-    .map(|line| line.graph_cells.clone())
-    .collect::<Vec<_>>();
-  let mut replacements = Vec::new();
-
-  for (line_index, line_cells) in cells.iter().enumerate() {
-    for (column, cell) in line_cells.iter().enumerate() {
-      if !cell.is_vertical_rail() {
-        continue;
-      }
-
-      let connected_above = line_index
-        .checked_sub(1)
-        .and_then(|index| cells.get(index))
-        .and_then(|line| line.get(column))
-        .is_some_and(|cell| cell.has_down_edge());
-      let connected_below = cells
-        .get(line_index + 1)
-        .and_then(|line| line.get(column))
-        .is_some_and(|cell| cell.has_up_edge());
-
-      if !connected_above && !connected_below {
-        replacements.push((line_index, column));
-      }
-    }
-  }
-
-  for (line_index, column) in replacements {
-    if let Some(cell) = lines[line_index].graph_cells.get_mut(column) {
-      cell.clear();
-    }
-  }
-}
-
 fn build_activity_forest(
-  state: &State,
+  state: &RenderSnapshot,
   max_depth: usize,
   max_lines: usize,
   now: f64,
@@ -493,7 +293,7 @@ fn select_activity_roots(
 }
 
 struct ActivityBuildCtx<'a> {
-  state:           &'a State,
+  state:           &'a RenderSnapshot,
   transfer_lookup: &'a TransferLookup,
   max_depth:       usize,
   now:             f64,
@@ -557,10 +357,9 @@ fn build_activity_node(
     || !children.is_empty();
 
   if !should_render {
-    collapsed_deps.add(collapsed_self_dependency(info, ctx.now));
     return ActivityBuildResult {
-      node: None,
-      collapsed_deps,
+      node:           None,
+      collapsed_deps: collapsed_inactive_dependency(ctx.state, drv_id, ctx.now),
     };
   }
 
@@ -577,7 +376,7 @@ fn build_activity_node(
 }
 
 fn should_traverse_activity_child(
-  state: &State,
+  state: &RenderSnapshot,
   transfer_lookup: &TransferLookup,
   drv_id: DerivationId,
   focus_ids: &HashSet<DerivationId>,
@@ -591,7 +390,7 @@ fn should_traverse_activity_child(
 }
 
 fn activity_focus_ids(
-  state: &State,
+  state: &RenderSnapshot,
   transfer_lookup: &TransferLookup,
   now: f64,
 ) -> HashSet<DerivationId> {
@@ -623,7 +422,7 @@ fn activity_focus_ids(
 }
 
 fn derivation_ids_for_transfer_path(
-  state: &State,
+  state: &RenderSnapshot,
   path_id: crate::state::StorePathId,
 ) -> Vec<DerivationId> {
   let Some(store_path) = state.get_store_path_info(path_id) else {
@@ -680,7 +479,7 @@ fn shared_or_collapsed_dependency(
 }
 
 fn collapsed_inactive_dependency(
-  state: &State,
+  state: &RenderSnapshot,
   drv_id: DerivationId,
   now: f64,
 ) -> CollapsedDependencies {
@@ -812,7 +611,7 @@ fn activity_sort_priority(
 }
 
 struct ActivityRenderCtx<'a> {
-  state:           &'a State,
+  state:           &'a RenderSnapshot,
   transfer_lookup: &'a TransferLookup,
   now:             f64,
   width:           usize,

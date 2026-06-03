@@ -1,5 +1,5 @@
 use std::{
-  io::{self, Write},
+  io,
   process::{Child, ExitStatus},
   sync::atomic::Ordering,
   thread,
@@ -16,10 +16,10 @@ use ratatui::{Terminal, backend::CrosstermBackend};
 
 use super::{
   DEPENDENCY_POPULATE_BUDGET_PER_FRAME,
+  MonitorOutcome,
   MonitorShared,
   WrapperConfig,
   display_config,
-  render_final_after_tui,
   run_streaming_render_loop,
   snapshot_logs,
 };
@@ -42,13 +42,13 @@ impl TerminalSession {
 
   fn draw(
     &mut self,
-    state: &rom_core::state::State,
-    logs: &[String],
+    state: &rom_core::state::RenderSnapshot,
+    logs: &rom_core::tui::TuiLogs,
     config: &rom_core::tui::TuiConfig,
     view: &rom_core::tui::TuiView,
   ) -> io::Result<()> {
     self.terminal.draw(|frame| {
-      rom_core::tui::draw(frame, state, logs, config, view);
+      rom_core::tui::draw_prepared(frame, state, logs, config, view);
     })?;
     Ok(())
   }
@@ -68,13 +68,22 @@ impl Drop for TerminalSession {
 #[derive(Default)]
 struct TuiRuntime {
   view:         rom_core::tui::TuiView,
-  frozen_state: Option<rom_core::state::State>,
+  frozen_state: Option<rom_core::state::RenderSnapshot>,
   frozen_logs:  Vec<String>,
+  search_cache: Option<CachedLogSearch>,
+}
+
+#[derive(Clone)]
+struct CachedLogSearch {
+  query:    String,
+  log_len:  usize,
+  last_log: Option<String>,
+  search:   rom_core::tui::TuiLogSearch,
 }
 
 impl TuiRuntime {
   fn draw(
-    &self,
+    &mut self,
     terminal: &mut TerminalSession,
     shared: &MonitorShared,
     silent: bool,
@@ -83,7 +92,9 @@ impl TuiRuntime {
     if self.view.paused
       && let Some(state) = &self.frozen_state
     {
-      return terminal.draw(state, &self.frozen_logs, config, &self.view);
+      let state = state.clone();
+      let logs = self.prepared_logs(self.frozen_logs.clone());
+      return terminal.draw(&state, &logs, config, &self.view);
     }
 
     let state = {
@@ -91,7 +102,34 @@ impl TuiRuntime {
       state.render_snapshot()
     };
     let logs = snapshot_logs(shared, silent, Some(&self.view));
+    let logs = self.prepared_logs(logs);
     terminal.draw(&state, &logs, config, &self.view)
+  }
+
+  fn prepared_logs(&mut self, logs: Vec<String>) -> rom_core::tui::TuiLogs {
+    if self.view.search_query.is_empty() {
+      return rom_core::tui::TuiLogs::plain(logs);
+    }
+
+    let log_len = logs.len();
+    let last_log = logs.last().cloned();
+    if let Some(cache) = &self.search_cache
+      && cache.query == self.view.search_query
+      && cache.log_len == log_len
+      && cache.last_log == last_log
+    {
+      return rom_core::tui::TuiLogs::searched(logs, cache.search.clone());
+    }
+
+    let search =
+      rom_core::tui::build_log_search(&logs, &self.view.search_query);
+    self.search_cache = Some(CachedLogSearch {
+      query: self.view.search_query.clone(),
+      log_len,
+      last_log,
+      search: search.clone(),
+    });
+    rom_core::tui::TuiLogs::searched(logs, search)
   }
 
   fn toggle_pause(&mut self, shared: &MonitorShared, silent: bool) {
@@ -100,6 +138,7 @@ impl TuiRuntime {
       self.frozen_state = None;
       self.frozen_logs.clear();
       self.view.log_scroll = 0;
+      self.search_cache = None;
       return;
     }
 
@@ -118,7 +157,7 @@ pub(super) fn run_tui_render_loop(
   child: &mut Child,
   shared: &MonitorShared,
   cfg: &WrapperConfig,
-) -> eyre::Result<i32> {
+) -> eyre::Result<MonitorOutcome> {
   let Ok(mut terminal) = TerminalSession::enter() else {
     return run_streaming_render_loop(child, shared, cfg);
   };
@@ -129,14 +168,13 @@ pub(super) fn run_tui_render_loop(
   };
   let mut runtime = TuiRuntime::default();
   let mut status: Option<ExitStatus> = None;
-  let mut cancelled_exit_code = None;
 
   loop {
-    if let Some(exit_code) =
+    if let Some(outcome) =
       handle_tui_events(child, shared, cfg, &mut runtime, &mut status)?
     {
-      cancelled_exit_code = Some(exit_code);
-      break;
+      drop(terminal);
+      return Ok(outcome);
     }
 
     if status.is_none() {
@@ -159,37 +197,9 @@ pub(super) fn run_tui_render_loop(
     thread::sleep(Duration::from_millis(100));
   }
 
-  if let Some(exit_code) = cancelled_exit_code {
-    drop(terminal);
-    if exit_code == 130 {
-      let _ = writeln!(io::stderr(), "rom: build cancelled");
-    }
-    return Ok(exit_code);
-  }
-
-  {
-    let mut state = shared.state.lock().unwrap();
-    let mut graph = shared.graph.lock().unwrap();
-    if graph.populate_pending(&mut state, DEPENDENCY_POPULATE_BUDGET_PER_FRAME)
-    {
-      let now = rom_core::state::current_time();
-      rom_core::update::maintain_state(&mut state, now);
-    }
-    rom_core::update::finish_state(&mut state);
-  }
-  {
-    let state = shared.state.lock().unwrap();
-    let logs = snapshot_logs(shared, cfg.silent, None);
-    terminal
-      .draw(&state, &logs, &tui_config, &runtime.view)
-      .map_err(rom_core::error::RomError::Io)?;
-  }
   drop(terminal);
-
   let exit_code = status.and_then(|status| status.code()).unwrap_or(1);
-  render_final_after_tui(shared, cfg, exit_code)?;
-
-  Ok(exit_code)
+  Ok(MonitorOutcome::Completed(exit_code))
 }
 
 fn handle_tui_events(
@@ -198,7 +208,7 @@ fn handle_tui_events(
   cfg: &WrapperConfig,
   runtime: &mut TuiRuntime,
   status: &mut Option<ExitStatus>,
-) -> eyre::Result<Option<i32>> {
+) -> eyre::Result<Option<MonitorOutcome>> {
   while event::poll(Duration::from_millis(0))
     .map_err(rom_core::error::RomError::Io)?
   {
@@ -221,7 +231,7 @@ fn handle_tui_key(
   cfg: &WrapperConfig,
   runtime: &mut TuiRuntime,
   status: &mut Option<ExitStatus>,
-) -> eyre::Result<Option<i32>> {
+) -> eyre::Result<Option<MonitorOutcome>> {
   if key.modifiers.contains(KeyModifiers::CONTROL)
     && matches!(key.code, KeyCode::Char('c' | 'C'))
   {
@@ -255,6 +265,7 @@ fn handle_tui_key(
       runtime.view.search_active = false;
       runtime.view.search_query.clear();
       runtime.view.log_scroll = 0;
+      runtime.search_cache = None;
       Ok(None)
     },
     KeyCode::Char('w' | 'W') => {
@@ -294,7 +305,7 @@ fn handle_tui_search_key(
   runtime: &mut TuiRuntime,
   child: &mut Child,
   status: &mut Option<ExitStatus>,
-) -> eyre::Result<Option<i32>> {
+) -> eyre::Result<Option<MonitorOutcome>> {
   match key.code {
     KeyCode::Esc | KeyCode::Enter => {
       runtime.view.search_active = false;
@@ -303,6 +314,7 @@ fn handle_tui_search_key(
     KeyCode::Backspace => {
       runtime.view.search_query.pop();
       runtime.view.log_scroll = 0;
+      runtime.search_cache = None;
       Ok(None)
     },
     KeyCode::Char('u' | 'U')
@@ -310,6 +322,7 @@ fn handle_tui_search_key(
     {
       runtime.view.search_query.clear();
       runtime.view.log_scroll = 0;
+      runtime.search_cache = None;
       Ok(None)
     },
     KeyCode::Up => {
@@ -343,6 +356,7 @@ fn handle_tui_search_key(
     {
       runtime.view.search_query.push(ch);
       runtime.view.log_scroll = 0;
+      runtime.search_cache = None;
       Ok(None)
     },
     KeyCode::Char('c' | 'C')
@@ -365,21 +379,21 @@ fn scroll_logs_down(runtime: &mut TuiRuntime, amount: usize) {
 fn cancel_child(
   child: &mut Child,
   status: &mut Option<ExitStatus>,
-) -> eyre::Result<i32> {
+) -> eyre::Result<MonitorOutcome> {
   if let Some(status) = status.as_ref() {
-    return Ok(status.code().unwrap_or(1));
+    return Ok(MonitorOutcome::Completed(status.code().unwrap_or(1)));
   }
 
   if let Some(done) = child.try_wait().map_err(rom_core::error::RomError::Io)? {
     let exit_code = done.code().unwrap_or(1);
     *status = Some(done);
-    return Ok(exit_code);
+    return Ok(MonitorOutcome::Completed(exit_code));
   }
 
   child.kill().map_err(rom_core::error::RomError::Io)?;
   let killed = child.wait().map_err(rom_core::error::RomError::Io)?;
   *status = Some(killed);
-  Ok(130)
+  Ok(MonitorOutcome::Cancelled)
 }
 
 fn populate_pending_dependencies(shared: &MonitorShared) {

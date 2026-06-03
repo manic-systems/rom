@@ -71,7 +71,15 @@ pub fn post_tui_failure_error_lines(
   for line in &state.nix_errors {
     push_unique_error_line(&mut lines, line);
   }
+  let nix_error_bodies = state
+    .nix_errors
+    .iter()
+    .map(|line| strip_ansi_for_matching(line))
+    .collect::<Vec<_>>();
   for line in logs.iter().filter(|line| is_error_log_line(line)) {
+    if log_line_is_covered_by_nix_error(line, &nix_error_bodies) {
+      continue;
+    }
     push_unique_error_line(&mut lines, line);
   }
 
@@ -92,6 +100,42 @@ fn push_unique_error_line(lines: &mut Vec<String>, line: &str) {
   if !lines.iter().any(|existing| existing == line) {
     lines.push(line.to_string());
   }
+}
+
+fn log_line_is_covered_by_nix_error(line: &str, nix_errors: &[String]) -> bool {
+  let normalized = strip_ansi_for_matching(line);
+  let normalized = normalized.trim();
+  if normalized.is_empty() {
+    return true;
+  }
+
+  normalized
+    .lines()
+    .map(str::trim)
+    .filter(|fragment| !fragment.is_empty())
+    .all(|fragment| log_fragment_is_covered_by_nix_error(fragment, nix_errors))
+}
+
+fn log_fragment_is_covered_by_nix_error(
+  fragment: &str,
+  nix_errors: &[String],
+) -> bool {
+  let mut candidates = vec![fragment];
+  if let Some(unprefixed_error) = fragment.strip_prefix("error:") {
+    candidates.push(unprefixed_error.trim());
+  }
+  if let Some((_, unprefixed_log)) = fragment.split_once("> ") {
+    let unprefixed_log = unprefixed_log.trim();
+    candidates.push(unprefixed_log);
+    if let Some(unprefixed_error) = unprefixed_log.strip_prefix("error:") {
+      candidates.push(unprefixed_error.trim());
+    }
+  }
+
+  candidates.into_iter().any(|candidate| {
+    !candidate.is_empty()
+      && nix_errors.iter().any(|error| error.contains(candidate))
+  })
 }
 
 fn is_error_log_line(line: &str) -> bool {
@@ -169,6 +213,26 @@ mod tests {
     let lines = post_tui_failure_error_lines(&state, &logs);
 
     assert_eq!(lines, vec!["\x1b[31merror:\x1b[0m configure failed"]);
+  }
+
+  #[test]
+  fn post_tui_failure_errors_skip_logs_covered_by_nix_error() {
+    let mut state = rom_core::state::State::new();
+    state.nix_errors.push(
+      "Cannot build '/nix/store/foo.drv'.\nReason: builder failed with exit \
+       code 23.\nLast 2 log lines:\n> rom test builder line\n> error: rom \
+       test builder failed on stderr"
+        .to_string(),
+    );
+    let logs = vec![
+      "drv> error: rom test builder failed on stderr".to_string(),
+      "error: Cannot build '/nix/store/foo.drv'.".to_string(),
+      "Reason: builder failed with exit code 23.".to_string(),
+    ];
+
+    let lines = post_tui_failure_error_lines(&state, &logs);
+
+    assert_eq!(lines, vec![state.nix_errors[0].clone()]);
   }
 
   #[test]

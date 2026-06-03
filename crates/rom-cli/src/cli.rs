@@ -26,6 +26,25 @@ use crate::log_store::{
 
 pub(super) const DEPENDENCY_POPULATE_BUDGET_PER_FRAME: usize = 1;
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(super) enum MonitorOutcome {
+  Completed(i32),
+  Cancelled,
+}
+
+impl MonitorOutcome {
+  fn exit_code(self) -> i32 {
+    match self {
+      Self::Completed(code) => code,
+      Self::Cancelled => 130,
+    }
+  }
+
+  fn is_cancelled(self) -> bool {
+    matches!(self, Self::Cancelled)
+  }
+}
+
 #[derive(Debug, Parser)]
 #[command(name = "rom", version, about = "ROM - A Nix build output monitor")]
 pub struct Cli {
@@ -497,7 +516,7 @@ fn run_monitored_command(
   let stderr_thread = spawn_stderr_reader(stderr, &shared, cfg, use_tui);
   let stdout_thread = spawn_stdout_reader(stdout, &shared);
 
-  let exit_code = if use_tui {
+  let outcome = if use_tui {
     tui_runtime::run_tui_render_loop(&mut child, &shared, cfg)?
   } else {
     run_streaming_render_loop(&mut child, &shared, cfg)?
@@ -505,13 +524,10 @@ fn run_monitored_command(
 
   let _ = stderr_thread.join();
   let _ = stdout_thread.join();
+  flush_stdout_lines(&shared).map_err(rom_core::error::RomError::Io)?;
+  finish_monitored_command(&shared, cfg, outcome, use_tui)?;
 
-  let stdout_lines = shared.stdout_lines.lock().unwrap();
-  for line in stdout_lines.iter() {
-    let _ = writeln!(io::stdout(), "{line}");
-  }
-
-  Ok(exit_code)
+  Ok(outcome.exit_code())
 }
 
 fn spawn_stderr_reader<R: Read + Send + 'static>(
@@ -633,6 +649,15 @@ fn spawn_stdout_reader<R: Read + Send + 'static>(
       stdout_lines.lock().unwrap().push(line);
     }
   })
+}
+
+fn flush_stdout_lines(shared: &MonitorShared) -> io::Result<()> {
+  let stdout_lines = shared.stdout_lines.lock().unwrap();
+  let mut stdout = io::stdout().lock();
+  for line in stdout_lines.iter() {
+    writeln!(stdout, "{line}")?;
+  }
+  stdout.flush()
 }
 
 fn build_log_line(action: &cognos::Actions) -> Option<(cognos::Id, &str)> {
@@ -776,7 +801,7 @@ pub(super) fn run_streaming_render_loop(
   child: &mut Child,
   shared: &MonitorShared,
   cfg: &WrapperConfig,
-) -> eyre::Result<i32> {
+) -> eyre::Result<MonitorOutcome> {
   let render_state = shared.state.clone();
   let render_graph = shared.graph.clone();
   let log_store = shared.log_store.clone();
@@ -811,22 +836,48 @@ pub(super) fn run_streaming_render_loop(
         break;
       }
     }
-
-    thread::sleep(Duration::from_millis(50));
-    let mut state = render_state.lock().unwrap();
-    rom_core::update::finish_state(&mut state);
-    let _ = display.render_final(&state);
   });
 
   let status = child.wait().map_err(rom_core::error::RomError::Io)?;
   let _ = render_thread.join();
-  Ok(status.code().unwrap_or(1))
+  Ok(MonitorOutcome::Completed(status.code().unwrap_or(1)))
 }
 
-pub(super) fn render_final_after_tui(
+fn finish_monitored_command(
+  shared: &MonitorShared,
+  cfg: &WrapperConfig,
+  outcome: MonitorOutcome,
+  show_failure_errors: bool,
+) -> eyre::Result<()> {
+  if outcome.is_cancelled() {
+    let _ = writeln!(io::stderr(), "rom: build cancelled");
+    return Ok(());
+  }
+
+  finish_monitor_state(shared);
+  render_final_after_monitor(
+    shared,
+    cfg,
+    outcome.exit_code(),
+    show_failure_errors,
+  )
+}
+
+fn finish_monitor_state(shared: &MonitorShared) {
+  let mut state = shared.state.lock().unwrap();
+  let mut graph = shared.graph.lock().unwrap();
+  if graph.populate_pending(&mut state, DEPENDENCY_POPULATE_BUDGET_PER_FRAME) {
+    let now = rom_core::state::current_time();
+    rom_core::update::maintain_state(&mut state, now);
+  }
+  rom_core::update::finish_state(&mut state);
+}
+
+fn render_final_after_monitor(
   shared: &MonitorShared,
   cfg: &WrapperConfig,
   exit_code: i32,
+  show_failure_errors: bool,
 ) -> eyre::Result<()> {
   use rom_core::display::Display;
 
@@ -838,7 +889,7 @@ pub(super) fn render_final_after_tui(
   display
     .render_final(&state)
     .map_err(rom_core::error::RomError::Io)?;
-  if exit_code != 0 {
+  if show_failure_errors && exit_code != 0 {
     let logs = shared.log_store.lock().unwrap().snapshot(None);
     write_post_tui_failure_errors(io::stderr(), &state, &logs)
       .map_err(rom_core::error::RomError::Io)?;

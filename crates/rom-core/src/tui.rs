@@ -10,10 +10,11 @@ use ratatui::{
   widgets::{Block, Borders, Paragraph, Wrap},
 };
 
+pub use self::logs::{TuiLogSearch, TuiLogs, build_log_search};
 use self::{activity::render_activity_graph_lines, logs::logs_pane};
 use crate::{
   display::{DisplayConfig, format_duration},
-  state::{State, current_time},
+  state::{RenderSnapshot, current_time},
 };
 
 const TEXT_PRIMARY: Color = Color::Rgb(214, 217, 207);
@@ -55,8 +56,19 @@ impl Default for TuiView {
 
 pub fn draw(
   frame: &mut Frame<'_>,
-  state: &State,
+  state: &RenderSnapshot,
   logs: &[String],
+  config: &TuiConfig,
+  view: &TuiView,
+) {
+  let logs = TuiLogs::for_view(logs.to_vec(), view);
+  draw_prepared(frame, state, &logs, config, view);
+}
+
+pub fn draw_prepared(
+  frame: &mut Frame<'_>,
+  state: &RenderSnapshot,
+  logs: &TuiLogs,
   config: &TuiConfig,
   view: &TuiView,
 ) {
@@ -78,7 +90,7 @@ pub fn draw(
 }
 
 fn graph(
-  state: &State,
+  state: &RenderSnapshot,
   config: &TuiConfig,
   view: &TuiView,
   height: u16,
@@ -107,7 +119,7 @@ fn graph(
     .wrap(Wrap { trim: false })
 }
 
-fn idle_graph_line(state: &State, width: usize) -> Line<'static> {
+fn idle_graph_line(state: &RenderSnapshot, width: usize) -> Line<'static> {
   if let Some(line) = evaluation_graph_line(state, width) {
     return line;
   }
@@ -118,7 +130,10 @@ fn idle_graph_line(state: &State, width: usize) -> Line<'static> {
   ))
 }
 
-fn evaluation_graph_line(state: &State, width: usize) -> Option<Line<'static>> {
+fn evaluation_graph_line(
+  state: &RenderSnapshot,
+  width: usize,
+) -> Option<Line<'static>> {
   let eval = &state.evaluation_state;
   if eval.count == 0 && eval.last_file_name.is_none() {
     return None;
@@ -194,7 +209,7 @@ pub(super) fn hierarchy_style() -> Style {
   Style::default().fg(GRAPH_LINE_COLOR)
 }
 
-fn status_header(state: &State, view: &TuiView) -> Paragraph<'static> {
+fn status_header(state: &RenderSnapshot, view: &TuiView) -> Paragraph<'static> {
   let summary = &state.full_summary;
   let mut spans = vec![
     Span::styled(

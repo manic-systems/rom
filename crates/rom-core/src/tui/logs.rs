@@ -17,14 +17,64 @@ use super::{TuiView, hierarchy_style};
 
 const MAX_RENDERED_LOG_LINE_CHARS: usize = 2_000;
 
+#[derive(Clone, Default)]
+pub struct TuiLogs {
+  lines:  Vec<String>,
+  search: Option<TuiLogSearch>,
+}
+
+#[derive(Clone)]
+pub struct TuiLogSearch {
+  query:   String,
+  matches: Vec<TuiLogMatch>,
+}
+
+#[derive(Clone)]
+pub struct TuiLogMatch {
+  line_index: usize,
+  indices:    Vec<usize>,
+}
+
+impl TuiLogs {
+  pub fn plain(lines: Vec<String>) -> Self {
+    Self {
+      lines,
+      search: None,
+    }
+  }
+
+  pub fn searched(lines: Vec<String>, search: TuiLogSearch) -> Self {
+    Self {
+      lines,
+      search: Some(search),
+    }
+  }
+
+  pub fn for_view(lines: Vec<String>, view: &TuiView) -> Self {
+    if view.search_query.is_empty() {
+      Self::plain(lines)
+    } else {
+      let search = build_log_search(&lines, &view.search_query);
+      Self::searched(lines, search)
+    }
+  }
+}
+
+pub fn build_log_search(logs: &[String], query: &str) -> TuiLogSearch {
+  TuiLogSearch {
+    query:   query.to_string(),
+    matches: matching_logs(logs, query),
+  }
+}
+
 pub(super) fn logs_pane(
-  logs: &[String],
+  logs: &TuiLogs,
   view: &TuiView,
   height: u16,
 ) -> Paragraph<'static> {
   let visible_lines = height.saturating_sub(1) as usize;
   let (mut lines, match_count) = if view.search_query.is_empty() {
-    visible_plain_log_lines(logs, view.log_scroll, visible_lines)
+    visible_plain_log_lines(&logs.lines, view.log_scroll, visible_lines)
   } else {
     visible_matching_log_lines(logs, view, visible_lines)
   };
@@ -67,19 +117,32 @@ fn visible_plain_log_lines(
 }
 
 fn visible_matching_log_lines(
-  logs: &[String],
+  logs: &TuiLogs,
   view: &TuiView,
   visible_lines: usize,
 ) -> (Vec<Line<'static>>, usize) {
-  let matching_logs = matching_logs(logs, &view.search_query);
-  let match_count = matching_logs.len();
-  let max_scroll = matching_logs.len().saturating_sub(visible_lines);
+  let Some(search) = logs
+    .search
+    .as_ref()
+    .filter(|search| search.query == view.search_query)
+  else {
+    return (Vec::new(), 0);
+  };
+
+  let match_count = search.matches.len();
+  let max_scroll = search.matches.len().saturating_sub(visible_lines);
   let scroll = view.log_scroll.min(max_scroll);
-  let end = matching_logs.len().saturating_sub(scroll);
+  let end = search.matches.len().saturating_sub(scroll);
   let start = end.saturating_sub(visible_lines);
-  let lines = matching_logs[start..end]
+  let lines = search.matches[start..end]
     .iter()
-    .flat_map(|line| render_log_line(line))
+    .filter_map(|line| {
+      logs
+        .lines
+        .get(line.line_index)
+        .map(|raw| render_log_line(raw, &line.indices))
+    })
+    .flatten()
     .collect();
   (lines, match_count)
 }
@@ -104,18 +167,14 @@ fn logs_title(view: &TuiView, match_count: usize) -> String {
   title
 }
 
-struct LogMatch<'a> {
-  line:    &'a str,
-  indices: Vec<usize>,
-}
-
-fn matching_logs<'a>(logs: &'a [String], query: &str) -> Vec<LogMatch<'a>> {
+fn matching_logs(logs: &[String], query: &str) -> Vec<TuiLogMatch> {
   if query.is_empty() {
     return logs
       .iter()
-      .map(|line| {
-        LogMatch {
-          line:    line.as_str(),
+      .enumerate()
+      .map(|(line_index, _)| {
+        TuiLogMatch {
+          line_index,
           indices: Vec::new(),
         }
       })
@@ -133,18 +192,26 @@ fn matching_logs<'a>(logs: &'a [String], query: &str) -> Vec<LogMatch<'a>> {
 
   logs
     .iter()
-    .filter_map(|line| {
-      match_log_line(line, &pattern, &mut matcher, &mut utf32_buffer)
+    .enumerate()
+    .filter_map(|(line_index, line)| {
+      match_log_line(
+        line_index,
+        line,
+        &pattern,
+        &mut matcher,
+        &mut utf32_buffer,
+      )
     })
     .collect()
 }
 
-fn match_log_line<'a>(
-  line: &'a str,
+fn match_log_line(
+  line_index: usize,
+  line: &str,
   pattern: &Pattern,
   matcher: &mut Matcher,
   utf32_buffer: &mut Vec<char>,
-) -> Option<LogMatch<'a>> {
+) -> Option<TuiLogMatch> {
   let bounded = bounded_log_line(line);
   let text = strip_ansi_for_matching(bounded.as_ref());
   let mut indices = Vec::new();
@@ -152,18 +219,18 @@ fn match_log_line<'a>(
   indices.sort_unstable();
   indices.dedup();
 
-  Some(LogMatch {
-    line,
+  Some(TuiLogMatch {
+    line_index,
     indices: indices.into_iter().map(|index| index as usize).collect(),
   })
 }
 
-fn render_log_line(line: &LogMatch<'_>) -> Vec<Line<'static>> {
-  let parsed = parse_ansi_line(line.line);
-  if line.indices.is_empty() {
+fn render_log_line(line: &str, indices: &[usize]) -> Vec<Line<'static>> {
+  let parsed = parse_ansi_line(line);
+  if indices.is_empty() {
     return parsed;
   }
-  highlight_matches(parsed, &line.indices)
+  highlight_matches(parsed, indices)
 }
 
 fn strip_ansi_for_matching(line: &str) -> String {
