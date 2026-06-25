@@ -41,22 +41,32 @@ pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
 
   // XXX: The derivation has this structure:
   // Derive(outputs, inputDrvs, inputSrcs, platform, builder, args, env)
-  let parts = parse_top_level_list(inner)?;
+  let parts = parse_top_level_list(inner);
 
-  if parts.len() < 7 {
+  let [
+    outputs,
+    input_drvs,
+    input_srcs,
+    platform,
+    builder,
+    args,
+    env,
+    ..,
+  ] = parts.as_slice()
+  else {
     return Err(format!(
       "Invalid derivation format: expected 7 parts, got {}",
       parts.len()
     ));
-  }
+  };
 
-  let outputs = parse_outputs(&parts[0])?;
-  let input_drvs = parse_input_drvs(&parts[1])?;
-  let input_srcs = parse_string_list(&parts[2])?;
-  let platform = parse_string(&parts[3])?;
-  let builder = parse_string(&parts[4])?;
-  let args = parse_string_list(&parts[5])?;
-  let env = parse_env(&parts[6])?;
+  let outputs = parse_outputs(outputs)?;
+  let input_drvs = parse_input_drvs(input_drvs)?;
+  let input_srcs = parse_string_list(input_srcs)?;
+  let platform = parse_string(platform)?;
+  let builder = parse_string(builder)?;
+  let args = parse_string_list(args)?;
+  let env = parse_env(env)?;
 
   Ok(ParsedDerivation {
     outputs,
@@ -70,7 +80,7 @@ pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
 }
 
 /// Parse the top-level comma-separated list, respecting nested brackets
-fn parse_top_level_list(s: &str) -> Result<Vec<String>, String> {
+fn parse_top_level_list(s: &str) -> Vec<String> {
   let mut parts = Vec::new();
   let mut current = String::new();
   let mut depth = 0;
@@ -115,122 +125,101 @@ fn parse_top_level_list(s: &str) -> Result<Vec<String>, String> {
     parts.push(current.trim().to_string());
   }
 
-  Ok(parts)
+  parts
+}
+
+fn parse_list(s: &str, error: &'static str) -> Result<Vec<String>, String> {
+  let inner = s
+    .trim()
+    .strip_prefix('[')
+    .and_then(|s| s.strip_suffix(']'))
+    .ok_or(error)?;
+
+  Ok(parse_top_level_list(inner))
+}
+
+fn parse_tuple(s: &str, error: &'static str) -> Result<Vec<String>, String> {
+  let inner = s
+    .trim()
+    .strip_prefix('(')
+    .and_then(|s| s.strip_suffix(')'))
+    .ok_or(error)?;
+
+  Ok(parse_top_level_list(inner))
+}
+
+fn parse_tuple_list<T>(
+  s: &str,
+  list_error: &'static str,
+  tuple_error: &'static str,
+  mut parse_item: impl FnMut(&[String]) -> Result<Option<T>, String>,
+) -> Result<Vec<T>, String> {
+  let mut items = Vec::new();
+
+  for tuple in parse_list(s, list_error)? {
+    if let Some(item) = parse_item(&parse_tuple(&tuple, tuple_error)?)? {
+      items.push(item);
+    }
+  }
+
+  Ok(items)
 }
 
 /// Parse outputs: [("out","/nix/store/...","",""),...]
 fn parse_outputs(s: &str) -> Result<Vec<(String, String)>, String> {
-  let s = s.trim();
-  if s == "[]" {
-    return Ok(Vec::new());
-  }
-
-  let inner = s
-    .strip_prefix('[')
-    .and_then(|s| s.strip_suffix(']'))
-    .ok_or("Invalid outputs format")?;
-
-  let tuples = parse_top_level_list(inner)?;
-  let mut outputs = Vec::new();
-
-  for tuple in tuples {
-    let tuple = tuple.trim();
-    let inner = tuple
-      .strip_prefix('(')
-      .and_then(|s| s.strip_suffix(')'))
-      .ok_or("Invalid output tuple format")?;
-
-    let parts = parse_top_level_list(inner)?;
-    if parts.len() >= 2 {
-      let name = parse_string(&parts[0])?;
-      let path = parse_string(&parts[1])?;
-      outputs.push((name, path));
-    }
-  }
-
-  Ok(outputs)
+  parse_tuple_list(
+    s,
+    "Invalid outputs format",
+    "Invalid output tuple format",
+    parse_string_pair,
+  )
 }
 
 /// Parse input derivations: [("/nix/store/foo.drv",["out"]),...]
 fn parse_input_drvs(s: &str) -> Result<Vec<(String, Vec<String>)>, String> {
-  let s = s.trim();
-  if s == "[]" {
-    return Ok(Vec::new());
-  }
+  parse_tuple_list(
+    s,
+    "Invalid input drvs format",
+    "Invalid input drv tuple format",
+    |parts| {
+      if parts.len() < 2 {
+        return Ok(None);
+      }
 
-  let inner = s
-    .strip_prefix('[')
-    .and_then(|s| s.strip_suffix(']'))
-    .ok_or("Invalid input drvs format")?;
-
-  let tuples = parse_top_level_list(inner)?;
-  let mut input_drvs = Vec::new();
-
-  for tuple in tuples {
-    let tuple = tuple.trim();
-    let inner = tuple
-      .strip_prefix('(')
-      .and_then(|s| s.strip_suffix(')'))
-      .ok_or("Invalid input drv tuple format")?;
-
-    let parts = parse_top_level_list(inner)?;
-    if parts.len() >= 2 {
-      let drv_path = parse_string(&parts[0])?;
-      let outputs = parse_string_list(&parts[1])?;
-      input_drvs.push((drv_path, outputs));
-    }
-  }
-
-  Ok(input_drvs)
+      Ok(Some((
+        parse_string(&parts[0])?,
+        parse_string_list(&parts[1])?,
+      )))
+    },
+  )
 }
 
 /// Parse environment variables: [("name","value"),...]
 fn parse_env(s: &str) -> Result<Vec<(String, String)>, String> {
-  let s = s.trim();
-  if s == "[]" {
-    return Ok(Vec::new());
+  parse_tuple_list(
+    s,
+    "Invalid env format",
+    "Invalid env tuple format",
+    parse_string_pair,
+  )
+}
+
+fn parse_string_pair(
+  parts: &[String],
+) -> Result<Option<(String, String)>, String> {
+  if parts.len() < 2 {
+    return Ok(None);
   }
 
-  let inner = s
-    .strip_prefix('[')
-    .and_then(|s| s.strip_suffix(']'))
-    .ok_or("Invalid env format")?;
-
-  let tuples = parse_top_level_list(inner)?;
-  let mut env = Vec::new();
-
-  for tuple in tuples {
-    let tuple = tuple.trim();
-    let inner = tuple
-      .strip_prefix('(')
-      .and_then(|s| s.strip_suffix(')'))
-      .ok_or("Invalid env tuple format")?;
-
-    let parts = parse_top_level_list(inner)?;
-    if parts.len() >= 2 {
-      let name = parse_string(&parts[0])?;
-      let value = parse_string(&parts[1])?;
-      env.push((name, value));
-    }
-  }
-
-  Ok(env)
+  Ok(Some((parse_string(&parts[0])?, parse_string(&parts[1])?)))
 }
 
 /// Parse a list of strings: ["foo","bar",...]
 fn parse_string_list(s: &str) -> Result<Vec<String>, String> {
-  let s = s.trim();
-  if s == "[]" {
-    return Ok(Vec::new());
-  }
-
-  let inner = s
-    .strip_prefix('[')
-    .and_then(|s| s.strip_suffix(']'))
-    .ok_or("Invalid string list format")?;
-
-  let items = parse_top_level_list(inner)?;
-  items.into_iter().map(|item| parse_string(&item)).collect()
+  parse_list(s, "Invalid string list format")?
+    .into_iter()
+    .map(|item| parse_string(&item))
+    .collect()
 }
 
 /// Parse a quoted string: "foo" -> foo
@@ -289,19 +278,17 @@ pub fn get_input_derivations<P: AsRef<Path>>(
 /// Extract pname from environment variables
 #[must_use]
 pub fn extract_pname(env: &[(String, String)]) -> Option<String> {
-  env
-    .iter()
-    .find(|(k, _)| k == "pname")
-    .map(|(_, v)| v.clone())
+  extract_env(env, "pname")
 }
 
 /// Extract version from environment variables
 #[must_use]
 pub fn extract_version(env: &[(String, String)]) -> Option<String> {
-  env
-    .iter()
-    .find(|(k, _)| k == "version")
-    .map(|(_, v)| v.clone())
+  extract_env(env, "version")
+}
+
+fn extract_env(env: &[(String, String)], key: &str) -> Option<String> {
+  env.iter().find(|(k, _)| k == key).map(|(_, v)| v.clone())
 }
 
 #[cfg(test)]

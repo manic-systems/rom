@@ -21,15 +21,15 @@ pub enum OutputName {
 impl OutputName {
   #[must_use]
   pub fn parse(name: &str) -> Self {
-    match name.to_lowercase().as_str() {
-      "out" => Self::Out,
-      "doc" => Self::Doc,
-      "dev" => Self::Dev,
-      "bin" => Self::Bin,
-      "info" => Self::Info,
-      "lib" => Self::Lib,
-      "man" => Self::Man,
-      "dist" => Self::Dist,
+    match name {
+      name if name.eq_ignore_ascii_case("out") => Self::Out,
+      name if name.eq_ignore_ascii_case("doc") => Self::Doc,
+      name if name.eq_ignore_ascii_case("dev") => Self::Dev,
+      name if name.eq_ignore_ascii_case("bin") => Self::Bin,
+      name if name.eq_ignore_ascii_case("info") => Self::Info,
+      name if name.eq_ignore_ascii_case("lib") => Self::Lib,
+      name if name.eq_ignore_ascii_case("man") => Self::Man,
+      name if name.eq_ignore_ascii_case("dist") => Self::Dist,
       _ => Self::Other(name.to_string()),
     }
   }
