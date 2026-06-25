@@ -4,6 +4,8 @@
 /// New formats should be added as sibling modules here.
 pub mod json;
 
+use std::{process::Command, str::FromStr};
+
 /// A Nix-family evaluator that rom can monitor.
 ///
 /// Both platforms emit `--log-format internal-json` on stderr with `@nix `
@@ -33,30 +35,38 @@ impl Platform {
   }
 
   /// Attempt to detect the active platform by inspecting `nix --version`
-  /// output. Returns `Nix` if the version string contains neither "lix" nor
-  /// fails to run.
+  /// output.
+  ///
+  /// # Returns
+  ///
+  /// `Nix` if the version string contains neither "lix" nor fails to run.
   #[must_use]
   pub fn detect() -> Self {
-    let output = std::process::Command::new("nix").arg("--version").output();
+    let output = Command::new("nix").arg("--version").output();
 
     if let Ok(out) = output {
       let version = String::from_utf8_lossy(&out.stdout);
-      if version.to_lowercase().contains("lix") {
+      if version
+        .as_bytes()
+        .windows(3)
+        .any(|s| s.eq_ignore_ascii_case(b"lix"))
+      {
         return Self::Lix;
       }
     }
 
     Self::Nix
   }
+}
 
-  /// Parse `"nix"` or `"lix"` from a string; returns `None` for anything
-  /// else.
-  #[must_use]
-  pub fn from_str(s: &str) -> Option<Self> {
-    match s.to_lowercase().as_str() {
-      "nix" => Some(Self::Nix),
-      "lix" => Some(Self::Lix),
-      _ => None,
+impl FromStr for Platform {
+  type Err = ();
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s {
+      s if s.eq_ignore_ascii_case("nix") => Ok(Self::Nix),
+      s if s.eq_ignore_ascii_case("lix") => Ok(Self::Lix),
+      _ => Err(()),
     }
   }
 }

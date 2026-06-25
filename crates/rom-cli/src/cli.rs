@@ -130,7 +130,7 @@ pub fn run() -> eyre::Result<()> {
   let platform = cli
     .platform
     .as_deref()
-    .and_then(cognos::Platform::from_str)
+    .and_then(|platform| platform.parse().ok())
     .unwrap_or_else(cognos::Platform::detect);
 
   // Check if we're being called as a symlink (rom-build, rom-shell)
