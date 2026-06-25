@@ -8,11 +8,12 @@ edition = "2024"
 description = "Pretty build graphs for your pretty Nix builds"
 rust-version = "1.92.0"
 license = "EUPL-1.2"
+homepage = "https://github.com/manic-systems/rom"
 
 [workspace.dependencies]
 rom-core = { path = "./crates/rom-core", version = "0.2.0" }
 rom-cli = { path = "./crates/rom-cli", version = "0.2.0" }
-cognos = { path = "./crates/cognos", version = "1.0.0" }     # cognos is versioned independently
+cognos = { path = "./crates/cognos", version = "1.0.1" }     # cognos is versioned independently
 
 anyhow = "1.0.102"
 clap = { version = "4.6.1", features = ["derive"] }

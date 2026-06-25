@@ -5,6 +5,7 @@ version = "1.0.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+homepage.workspace = true
 readme = true
 
 [dependencies]
