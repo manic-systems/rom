@@ -3,7 +3,7 @@ members = ["crates/*", "rom"]
 resolver = "3"
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 description = "Pretty build graphs for your pretty Nix builds"
 rust-version = "1.92.0"
@@ -11,8 +11,8 @@ license = "EUPL-1.2"
 homepage = "https://github.com/manic-systems/rom"
 
 [workspace.dependencies]
-rom-core = { path = "./crates/rom-core", version = "0.2.0" }
-rom-cli = { path = "./crates/rom-cli", version = "0.2.0" }
+rom-core = { path = "./crates/rom-core", version = "0.2.1" }
+rom-cli = { path = "./crates/rom-cli", version = "0.2.1" }
 cognos = { path = "./crates/cognos", version = "1.0.1" }     # cognos is versioned independently
 
 anyhow = "1.0.102"
