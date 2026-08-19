@@ -5,7 +5,7 @@ real-time dependency graph. Think of it as `NOM`, but written in Rust with a
 focus on speed, configurability, and showing you exactly what Nix is doing with
 your builds.
 
-Built with a modular parser under [`crates/cognos`](crates/cognos) that handles
+Built with a modular parser under [`crates/cognos`](../crates/cognos) that handles
 the ATerm and internal-json log formats from Nix.
 
 > [!NOTE]
@@ -100,7 +100,7 @@ easier.
 The ATerm and internal-json log parser was inspired, and mostly copied from
 <https://git.atagen.co/atagen/nous> with consolidation, cleaner repo layout, and
 a better separation of concerns. rom builds on the ideas previously pondered by
-nous, and provides a subcrate under [`crates/cognos`](crates/cognos) for easy
+nous, and provides a subcrate under [`crates/cognos`](../crates/cognos) for easy
 parsing. Thank you Atagen for letting me play with the idea.
 
 ## License
