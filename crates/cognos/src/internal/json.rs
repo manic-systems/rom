@@ -116,13 +116,62 @@ pub enum Actions {
   },
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnsupportedRecord {
+  pub action: String,
+  pub kind:   Option<u64>,
+}
+
+#[derive(Debug, Clone)]
+pub enum DecodedAction {
+  Known(Actions),
+  Unsupported(UnsupportedRecord),
+}
+
+#[derive(Deserialize)]
+struct Envelope {
+  action: String,
+  #[serde(rename = "type")]
+  kind:   Option<serde_json::Value>,
+  level:  Option<serde_json::Value>,
+}
+
+/// Decode one internal-JSON payload while distinguishing valid future protocol
+/// extensions from malformed instances of the current protocol.
+pub fn decode_action(json: &[u8]) -> Result<DecodedAction, serde_json::Error> {
+  let value: serde_json::Value = serde_json::from_slice(json)?;
+  let envelope: Envelope = serde_json::from_value(value.clone())?;
+  let kind = envelope.kind.as_ref().and_then(serde_json::Value::as_u64);
+  let level = envelope.level.as_ref().and_then(serde_json::Value::as_u64);
+  let unsupported = match envelope.action.as_str() {
+    "start" => {
+      kind.is_some_and(|kind| !matches!(kind, 0 | 100..=112))
+        || level.is_some_and(|level| level > 7)
+    },
+    "msg" => level.is_some_and(|level| level > 7),
+    "result" => kind.is_some_and(|kind| !matches!(kind, 100..=108)),
+    "stop" => false,
+    _ => true,
+  };
+  if unsupported {
+    return Ok(DecodedAction::Unsupported(UnsupportedRecord {
+      action: envelope.action,
+      kind,
+    }));
+  }
+  serde_json::from_value(value).map(DecodedAction::Known)
+}
+
 /// Parse a single line of `--log-format internal-json` output.
 /// Lines are prefixed with `@nix ` followed by a JSON object.
 /// Returns `None` for lines that are not internal-json messages.
 #[must_use]
 pub fn parse_line(line: &str) -> Option<Actions> {
   let json = line.strip_prefix("@nix ")?;
-  serde_json::from_str(json).ok()
+  match decode_action(json.as_bytes()).ok()? {
+    DecodedAction::Known(action) => Some(action),
+    DecodedAction::Unsupported(_) => None,
+  }
 }
 
 #[cfg(test)]
@@ -369,6 +418,19 @@ mod tests {
       Actions::Stop { id } => assert_eq!(id, 42),
       _ => panic!("expected Stop"),
     }
+  }
+
+  #[test]
+  fn decode_distinguishes_unsupported_protocol_from_malformed_records() {
+    match decode_action(br#"{"action":"start","type":113}"#).unwrap() {
+      DecodedAction::Unsupported(record) => {
+        assert_eq!(record.action, "start");
+        assert_eq!(record.kind, Some(113));
+      },
+      DecodedAction::Known(_) => panic!("unknown activity was accepted"),
+    }
+    assert!(decode_action(br#"{"action":"stop","id":"bad"}"#).is_err());
+    assert!(decode_action(b"{not json").is_err());
   }
 
   #[test]
