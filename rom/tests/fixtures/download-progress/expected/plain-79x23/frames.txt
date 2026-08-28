@@ -1,0 +1,74 @@
+--- event 0 @ 0ms: write ---
+┏━ Builds
+┣━ ⏵ demo  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 0s
+--- event 1 @ 100ms: checkpoint build-started ---
+┏━ Builds
+┣━ ⏵ demo  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 0s
+--- event 2 @ 250ms: write ---
+┏━ Builds
+┣━ ⏵ demo  ↓ ◓  0 B  0s  cache.nixos.org
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 1        ↓ 0         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
+--- event 3 @ 300ms: write ---
+┏━ Builds
+┣━ ⏵ demo  ↓ ◓  0 B  0s  cache.nixos.org
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 1        ↓ 0         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
+--- event 4 @ 500ms: write ---
+┏━ Builds
+┣━ ⏵ demo  ↓ ████████████████                  50%  512 KiB/1.0 MiB  0s  cache.
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 1        ↓ 0         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
+--- event 5 @ 500ms: checkpoint download-halfway ---
+┏━ Builds
+┣━ ⏵ demo  ↓ ████████████████                  50%  512 KiB/1.0 MiB  0s  cache.
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 1        ↓ 0         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
+--- event 6 @ 550ms: write ---
+┏━ Builds
+┣━ ⏵ demo  ↓ ████████████████                  50%  512 KiB/1.0 MiB  0s  cache.
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 1        ↓ 0         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
+--- event 7 @ 650ms: write ---
+┏━ Builds
+┣━ ⏵ demo  ↓ ████████████████                  50%  512 KiB/1.0 MiB  0s  cache.
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 1        ↓ 0         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
+--- event 8 @ 900ms: write ---
+┏━ Builds
+┣━ ✔ demo  ↓ ████████████████████████████████ 100%  1.0 MiB/1.0 MiB  0s  cache.
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 0        ✔ 1         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 0        ↓ 1         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
+--- event 9 @ 950ms: checkpoint download-complete ---
+┏━ Builds
+┣━ ✔ demo  ↓ ████████████████████████████████ 100%  1.0 MiB/1.0 MiB  0s  cache.
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 0        ✔ 1         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 0        ↓ 1         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
+--- event 10 @ 1000ms: eof ---
+┏━ Builds
+┗━ Finished after 1s
+--- event 11 @ 1000ms: checkpoint complete ---
+┏━ Builds
+┗━ Finished after 1s

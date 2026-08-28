@@ -1,0 +1,11 @@
+hello-2.12.3> structuredAttrs is enabled
+hello-2.12.3> Using versionCheckHook
+hello-2.12.3> unpacking source archive /nix/store/wj7phsmi7ncidl8k00p489krqss7n9sd-hello-2.12.3.tar.gz
+hello-2.12.3> configure flags: --disable-dependency-tracking --prefix=/nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3
+hello-2.12.3> checking whether build environment is sane... yes
+hello-2.12.3> gcc -DLOCALEDIR="/nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3/share/locale" -g -O2 -c -o src/hello.o src/hello.c
+hello-2.12.3> gcc -g -O2 -Wl,--as-needed -o hello src/hello.o lib/libhello.a
+hello-2.12.3> PASS: tests/atexit-1
+hello-2.12.3> PASS: tests/greeting-1
+hello-2.12.3> PASS: tests/hello-1
+hello-2.12.3> installing locale files into /nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3/share/locale

@@ -1,0 +1,5 @@
+┏━ Builds
+┣━ ⏵ hello-2.12.3  ⏱ 1s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 1s

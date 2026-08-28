@@ -1,0 +1,50 @@
+--- event 0 @ 0ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ root\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 1 @ 100ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ root\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┃  ┗━ \e[0;33m⏵ child\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 2        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m2\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 2 @ 200ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ root\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┃  ┗━ \e[0;33m⏵ child\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┃     ┗━ \e[0;33m⏵ leaf\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 3        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m3\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 3 @ 250ms: checkpoint three-level-tree ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ root\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┃  ┗━ \e[0;33m⏵ child\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┃     ┗━ \e[0;33m⏵ leaf\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 3        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m3\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 4 @ 300ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ root\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┃  ┗━ \e[0;33m⏵ child\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┃     ┗━ \e[0;33m⏵ leaf\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 3        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m3\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 5 @ 500ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 0        \e[0;32m✔ 3         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m3\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 6 @ 550ms: checkpoint complete ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 0        \e[0;32m✔ 3         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m3\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 7 @ 600ms: eof ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┗━ \e[0;32mFinished after 0s\e[0m

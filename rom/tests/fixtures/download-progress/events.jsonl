@@ -1,0 +1,12 @@
+{"at_ms":0,"type":"write","text":"@nix {\"action\":\"start\",\"id\":10,\"level\":3,\"parent\":0,\"text\":\"building '/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-demo.drv'\",\"type\":105,\"fields\":[\"/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-demo.drv\",\"\",1,1]}\n"}
+{"at_ms":100,"type":"checkpoint","name":"build-started"}
+{"at_ms":250,"type":"write","text":"@nix {\"action\":\"start\",\"id\":20,\"level\":3,\"parent\":10,\"text\":\"copying path '/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-demo' from 'https://cache.nixos.org'\",\"type\":108,\"fields\":[\"/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-demo\",\"https://cache.nixos.org\"]}\n"}
+{"at_ms":300,"type":"write","text":"@nix {\"action\":\"start\",\"id\":21,\"level\":3,\"parent\":20,\"text\":\"downloading demo\",\"type\":101,\"fields\":[\"https://cache.nixos.org/nar/demo\"]}\n"}
+{"at_ms":500,"type":"write","text":"@nix {\"action\":\"result\",\"id\":20,\"type\":105,\"fields\":[524288,1048576,1,0]}\n"}
+{"at_ms":500,"type":"checkpoint","name":"download-halfway"}
+{"at_ms":550,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"\\u001b[1;35mchecking styled output\\u001b[0m\"]}\n"}
+{"at_ms":650,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"configuring flags: --disable-static --disable-dependency-tracking --prefix=/nix/store/8vqx-example-imagemagick-7.1.2 --bindir=/nix/store/8vqx-example-imagemagick-7.1.2/bin --includedir=/nix/store/8vqx-example-imagemagick-7.1.2-dev/include\"]}\n"}
+{"at_ms":900,"type":"write","text":"@nix {\"action\":\"result\",\"id\":20,\"type\":105,\"fields\":[1048576,1048576,0,0]}\n@nix {\"action\":\"stop\",\"id\":21}\n@nix {\"action\":\"stop\",\"id\":20}\n@nix {\"action\":\"stop\",\"id\":10}\n"}
+{"at_ms":950,"type":"checkpoint","name":"download-complete"}
+{"at_ms":1000,"type":"eof"}
+{"at_ms":1000,"type":"checkpoint","name":"complete"}

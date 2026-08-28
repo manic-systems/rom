@@ -1,0 +1,8 @@
+{"at_ms":0,"type":"write","text":"@nix {\"action\":\"start\",\"id\":10,\"level\":3,\"parent\":0,\"text\":\"building '/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-root.drv'\",\"type\":105,\"fields\":[\"/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-root.drv\",\"\",1,1]}\n"}
+{"at_ms":100,"type":"write","text":"@nix {\"action\":\"start\",\"id\":11,\"level\":3,\"parent\":10,\"text\":\"building '/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv'\",\"type\":105,\"fields\":[\"/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv\",\"\",1,1]}\n"}
+{"at_ms":200,"type":"write","text":"@nix {\"action\":\"start\",\"id\":12,\"level\":3,\"parent\":11,\"text\":\"building '/nix/store/cccccccccccccccccccccccccccccccc-leaf.drv'\",\"type\":105,\"fields\":[\"/nix/store/cccccccccccccccccccccccccccccccc-leaf.drv\",\"\",1,1]}\n"}
+{"at_ms":250,"type":"checkpoint","name":"three-level-tree"}
+{"at_ms":300,"type":"write","text":"@nix {\"action\":\"result\",\"id\":12,\"type\":101,\"fields\":[\"\\u001b[1;35mbuilding leaf\\u001b[0m\"]}\n"}
+{"at_ms":500,"type":"write","text":"@nix {\"action\":\"stop\",\"id\":12}\n@nix {\"action\":\"stop\",\"id\":11}\n@nix {\"action\":\"stop\",\"id\":10}\n"}
+{"at_ms":550,"type":"checkpoint","name":"complete"}
+{"at_ms":600,"type":"eof"}

@@ -8,6 +8,8 @@
   rust-analyzer-unwrapped,
   rustPlatform,
   cargo-nextest,
+  uv,
+  python3,
 }:
 mkShell {
   name = "rust";
@@ -22,6 +24,8 @@ mkShell {
     rust-analyzer-unwrapped
 
     cargo-nextest
+    uv
+    python3
   ];
 
   env.RUST_SRC_PATH = "${rustPlatform.rustLibSrc}";

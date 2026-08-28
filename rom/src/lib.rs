@@ -1,28 +1,48 @@
-//! ROM - Rust Output Monitor
-pub use rom_core::{
-  Config,
-  InputMode,
-  Monitor,
-  Result,
-  RomError,
-  cache,
-  create_monitor,
-  display,
-  error,
-  monitor,
-  monitor_stream,
-  state,
-  types,
-  update,
-};
+//! ROM - a Nix and Lix build output monitor.
+#![allow(clippy::module_name_repetitions)]
 
-pub mod cli {
-  pub use rom_cli::{Cli, Commands, parse_args_with_separator};
-}
+pub mod cache;
+#[cfg(feature = "cli")] pub mod cli;
+pub mod display;
+pub mod error;
+mod event;
+pub mod icons;
+pub mod monitor;
+pub mod state;
+pub mod terminal;
+pub mod types;
+pub mod update;
+
+pub use error::{Result, RomError};
+pub use monitor::{
+  DerivationResolver,
+  Engine,
+  FilesystemResolver,
+  Monitor,
+  Output,
+  Processed,
+  StreamEngine,
+  create_monitor,
+  monitor_stream,
+};
+pub use types::{
+  Config,
+  DisplayFormat,
+  EngineConfig,
+  IconMode,
+  InputMode,
+  LegendStyle,
+  LogLine,
+  LogPrefixStyle,
+  RenderConfig,
+  SummaryStyle,
+  Theme,
+};
 
 /// Run the CLI application with the provided arguments.
 ///
 /// This is the main entry point for the CLI application.
+#[cfg(feature = "cli")]
 pub fn run() -> eyre::Result<()> {
-  rom_cli::run()
+  cli::run()
 }

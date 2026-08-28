@@ -1,0 +1,4 @@
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 0        \e[0;32m✔ 1         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 4s\e[0m

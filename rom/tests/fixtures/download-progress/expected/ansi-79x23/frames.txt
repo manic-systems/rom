@@ -1,0 +1,74 @@
+--- event 0 @ 0ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ demo\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 1 @ 100ms: checkpoint build-started ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ demo\e[0;90m  ⏱ 0s\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 2 @ 250ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ demo\e[0;36m  ↓ ◓\e[0;90m  0 B  0s\e[0;35m  cache.nixos.org\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┃  Downloads    \e[0;33m↓ 1        \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0;31m          \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 3 @ 300ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ demo\e[0;36m  ↓ ◓\e[0;90m  0 B  0s\e[0;35m  cache.nixos.org\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┃  Downloads    \e[0;33m↓ 1        \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0;31m          \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 4 @ 500ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ demo\e[0;36m  ↓ ████████████████\e[0;100m                \e[0m \e[0;36m 50%\e[0;90m  512 KiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┃  Downloads    \e[0;33m↓ 1        \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0;31m          \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 5 @ 500ms: checkpoint download-halfway ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ demo\e[0;36m  ↓ ████████████████\e[0;100m                \e[0m \e[0;36m 50%\e[0;90m  512 KiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┃  Downloads    \e[0;33m↓ 1        \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0;31m          \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 6 @ 550ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ demo\e[0;36m  ↓ ████████████████\e[0;100m                \e[0m \e[0;36m 50%\e[0;90m  512 KiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┃  Downloads    \e[0;33m↓ 1        \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0;31m          \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 7 @ 650ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;33m⏵ demo\e[0;36m  ↓ ████████████████\e[0;100m                \e[0m \e[0;36m 50%\e[0;90m  512 KiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 1        \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┃  Downloads    \e[0;33m↓ 1        \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0;31m          \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 8 @ 900ms: write ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;32m✔ demo  ↓ ████████████████████████████████\e[0m \e[0;32m100%\e[0;90m  1.0 MiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 0        \e[0;32m✔ 1         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┃  Downloads    \e[0;33m↓ 0        \e[0;32m↓ 1         \e[0;34m⏸ 0       \e[0;31m          \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 9 @ 950ms: checkpoint download-complete ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;32m✔ demo  ↓ ████████████████████████████████\e[0m \e[0;32m100%\e[0;90m  1.0 MiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
+\e[0;34m┣━ \e[0;97mStatus       \e[0;33mRunning    \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed    \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds       \e[0;33m⏵ 0        \e[0;32m✔ 1         \e[0;34m⏸ 0       \e[0;31m✗ 0       \e[0;97m1\e[0m
+\e[0;34m┃  Downloads    \e[0;33m↓ 0        \e[0;32m↓ 1         \e[0;34m⏸ 0       \e[0;31m          \e[0;97m1\e[0m
+\e[0;34m┗━ \e[0;90mElapsed ⏱ 0s\e[0m
+--- event 10 @ 1000ms: eof ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┗━ \e[0;32mFinished after 1s\e[0m
+--- event 11 @ 1000ms: checkpoint complete ---
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┗━ \e[0;32mFinished after 1s\e[0m

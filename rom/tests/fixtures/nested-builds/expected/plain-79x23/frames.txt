@@ -1,0 +1,50 @@
+--- event 0 @ 0ms: write ---
+┏━ Builds
+┣━ ⏵ root  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 0s
+--- event 1 @ 100ms: write ---
+┏━ Builds
+┣━ ⏵ root  ⏱ 0s
+┃  ┗━ ⏵ child  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 2        ✔ 0         ⏸ 0       ✗ 0       2
+┗━ Elapsed ⏱ 0s
+--- event 2 @ 200ms: write ---
+┏━ Builds
+┣━ ⏵ root  ⏱ 0s
+┃  ┗━ ⏵ child  ⏱ 0s
+┃     ┗━ ⏵ leaf  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 3        ✔ 0         ⏸ 0       ✗ 0       3
+┗━ Elapsed ⏱ 0s
+--- event 3 @ 250ms: checkpoint three-level-tree ---
+┏━ Builds
+┣━ ⏵ root  ⏱ 0s
+┃  ┗━ ⏵ child  ⏱ 0s
+┃     ┗━ ⏵ leaf  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 3        ✔ 0         ⏸ 0       ✗ 0       3
+┗━ Elapsed ⏱ 0s
+--- event 4 @ 300ms: write ---
+┏━ Builds
+┣━ ⏵ root  ⏱ 0s
+┃  ┗━ ⏵ child  ⏱ 0s
+┃     ┗━ ⏵ leaf  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 3        ✔ 0         ⏸ 0       ✗ 0       3
+┗━ Elapsed ⏱ 0s
+--- event 5 @ 500ms: write ---
+┏━ Builds
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 0        ✔ 3         ⏸ 0       ✗ 0       3
+┗━ Elapsed ⏱ 0s
+--- event 6 @ 550ms: checkpoint complete ---
+┏━ Builds
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 0        ✔ 3         ⏸ 0       ✗ 0       3
+┗━ Elapsed ⏱ 0s
+--- event 7 @ 600ms: eof ---
+┏━ Builds
+┗━ Finished after 0s

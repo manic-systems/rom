@@ -1,0 +1,6 @@
+┏━ Builds
+┣━ ⏵ demo  ↓ ████████████████                  50%  512 KiB/1.0 MiB  0s  cache.
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┃  Downloads    ↓ 1        ↓ 0         ⏸ 0                 1
+┗━ Elapsed ⏱ 0s
