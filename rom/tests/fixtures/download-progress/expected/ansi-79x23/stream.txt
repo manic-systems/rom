@@ -1,0 +1,2 @@
+\e[0;34mdemo> \e[0m\e[1;35mchecking styled output\e[0m\e[0m
+\e[0;34mdemo> \e[0mconfiguring flags: --disable-static --disable-dependency-tracking --prefix=/nix/store/8vqx-example-imagemagick-7.1.2 --bindir=/nix/store/8vqx-example-imagemagick-7.1.2/bin --includedir=/nix/store/8vqx-example-imagemagick-7.1.2-dev/include\e[0m

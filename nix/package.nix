@@ -17,6 +17,7 @@ in
         fileset = fs.unions [
           (s + /crates)
           (s + /rom)
+          (s + /scripts)
           (s + /Cargo.lock)
           (s + /Cargo.toml)
         ];

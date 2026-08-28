@@ -1,0 +1,62 @@
+--- event 0 @ 0ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 0s
+--- event 2 @ 120ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 0s
+--- event 3 @ 250ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  (unpackPhase)  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 0s
+--- event 4 @ 500ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  (updateAutotoolsGnuConfigScriptsPhase)  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 0s
+--- event 5 @ 800ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  (configurePhase)  ⏱ 0s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 0s
+--- event 7 @ 1800ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  (buildPhase)  ⏱ 1s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 1s
+--- event 8 @ 2500ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  (checkPhase)  ⏱ 2s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 2s
+--- event 10 @ 3400ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  (installPhase)  ⏱ 3s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 3s
+--- event 11 @ 4000ms: write ---
+┏━ Builds
+┣━ ⏵ hello-2.12.3  (installCheckPhase)  ⏱ 4s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 4s
+--- event 12 @ 4600ms: write ---
+┏━ Builds
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 0        ✔ 1         ⏸ 0       ✗ 0       1
+┗━ Elapsed ⏱ 4s
+--- event 14 @ 4800ms: eof ---
+┏━ Builds
+┗━ Finished after 4s

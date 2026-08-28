@@ -1,0 +1,11 @@
+\e[0;34mhello-2.12.3> \e[0mstructuredAttrs is enabled\e[0m
+\e[0;34mhello-2.12.3> \e[0mUsing versionCheckHook\e[0m
+\e[0;34mhello-2.12.3> \e[0munpacking source archive /nix/store/wj7phsmi7ncidl8k00p489krqss7n9sd-hello-2.12.3.tar.gz\e[0m
+\e[0;34mhello-2.12.3> \e[0mconfigure flags: --disable-dependency-tracking --prefix=/nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3\e[0m
+\e[0;34mhello-2.12.3> \e[0mchecking whether build environment is sane... yes\e[0m
+\e[0;34mhello-2.12.3> \e[0mgcc -DLOCALEDIR="/nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3/share/locale" -g -O2 -c -o src/hello.o src/hello.c\e[0m
+\e[0;34mhello-2.12.3> \e[0mgcc -g -O2 -Wl,--as-needed -o hello src/hello.o lib/libhello.a\e[0m
+\e[0;34mhello-2.12.3> \e[0m\e[0;32mPASS\e[m: tests/atexit-1\e[0m
+\e[0;34mhello-2.12.3> \e[0m\e[0;32mPASS\e[m: tests/greeting-1\e[0m
+\e[0;34mhello-2.12.3> \e[0m\e[0;32mPASS\e[m: tests/hello-1\e[0m
+\e[0;34mhello-2.12.3> \e[0minstalling locale files into /nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3/share/locale\e[0m

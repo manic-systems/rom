@@ -1,0 +1,16 @@
+{"at_ms":0,"type":"write","text":"@nix {\"action\":\"start\",\"id\":10,\"level\":3,\"parent\":0,\"text\":\"building '/nix/store/d46zpb9f4qfi85sn8n6zghdf67p7dhgq-hello-2.12.3.drv'\",\"type\":105,\"fields\":[\"/nix/store/d46zpb9f4qfi85sn8n6zghdf67p7dhgq-hello-2.12.3.drv\",\"\",1,1]}\n"}
+{"at_ms":80,"type":"checkpoint","name":"build-started"}
+{"at_ms":120,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"structuredAttrs is enabled\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"Using versionCheckHook\"]}\n"}
+{"at_ms":250,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"unpackPhase\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"unpacking source archive /nix/store/wj7phsmi7ncidl8k00p489krqss7n9sd-hello-2.12.3.tar.gz\"]}\n"}
+{"at_ms":500,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"patchPhase\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"updateAutotoolsGnuConfigScriptsPhase\"]}\n"}
+{"at_ms":800,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"configurePhase\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"configure flags: --disable-dependency-tracking --prefix=/nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"checking whether build environment is sane... yes\"]}\n"}
+{"at_ms":1200,"type":"checkpoint","name":"configured"}
+{"at_ms":1800,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"buildPhase\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"gcc -DLOCALEDIR=\\\"/nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3/share/locale\\\" -g -O2 -c -o src/hello.o src/hello.c\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"gcc -g -O2 -Wl,--as-needed -o hello src/hello.o lib/libhello.a\"]}\n"}
+{"at_ms":2500,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"checkPhase\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"\\u001b[0;32mPASS\\u001b[m: tests/atexit-1\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"\\u001b[0;32mPASS\\u001b[m: tests/greeting-1\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"\\u001b[0;32mPASS\\u001b[m: tests/hello-1\"]}\n"}
+{"at_ms":2800,"type":"checkpoint","name":"tests-passing"}
+{"at_ms":3400,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"installPhase\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":101,\"fields\":[\"installing locale files into /nix/store/lxra5fkapsdbdjqi6wa205s7vmqh1vxb-hello-2.12.3/share/locale\"]}\n"}
+{"at_ms":4000,"type":"write","text":"@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"fixupPhase\"]}\n@nix {\"action\":\"result\",\"id\":10,\"type\":104,\"fields\":[\"installCheckPhase\"]}\n"}
+{"at_ms":4600,"type":"write","text":"@nix {\"action\":\"stop\",\"id\":10}\n"}
+{"at_ms":4700,"type":"checkpoint","name":"build-complete"}
+{"at_ms":4800,"type":"eof"}
+{"at_ms":4800,"type":"checkpoint","name":"complete"}

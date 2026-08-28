@@ -1,0 +1,2 @@
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┗━ \e[0;32mFinished after 4s\e[0m
