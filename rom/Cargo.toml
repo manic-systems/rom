@@ -10,11 +10,45 @@ homepage.workspace = true
 [[bin]]
 name = "rom"
 path = "src/main.rs"
+required-features = ["cli"]
 
 [lib]
 path = "src/lib.rs"
 
+[features]
+default = ["cli"]
+cli = [
+  "dep:clap",
+  "dep:eyre",
+  "dep:libc",
+  "dep:signal-hook",
+  "dep:tracing-subscriber",
+]
+
 [dependencies]
-rom-core.workspace = true
-rom-cli.workspace = true
-eyre.workspace = true
+cognos.workspace = true
+
+clap = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
+crossterm.workspace = true
+ratatui-core.workspace = true
+indexmap.workspace = true
+csv.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, optional = true }
+eyre = { workspace = true, optional = true }
+dirs.workspace = true
+has-nerd-font.workspace = true
+unicode-width.workspace = true
+libc = { workspace = true, optional = true }
+signal-hook = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[[bench]]
+name = "reducer"
+harness = false

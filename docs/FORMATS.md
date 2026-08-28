@@ -29,32 +29,31 @@ rom build nixpkgs#hello
 **Tree Format**:
 
 ```plaintext
-┏━ Dependency Graph:
-┃ ⏵ hello-2.12.2 (buildPhase) ⏱ 5s
-┣━━━ Builds
-┗━ ∑ ⏵ 1 │ ✔ 0 │ ✗ 0 │ ⏸ 4 │ ⏱ 5s
+┏━ Builds
+┣━ ⏸ hello-2.12.2
+┃  ┗━ ⏵ dependency-1.0  ⏱ 5s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 4       ✗ 0       5
+┃  Downloads    ↓ 2        ↓ 3         ⏸ 1                 6
+┗━ Elapsed ⏱ 5s
 ```
 
 **Plain Format**:
 
 ```plaintext
-━ ⏱ ⏸ 4 planned ↓ 2 downloading ↑ 1 uploading 5.7s
-  ↓ breakpad-2024.02.16 1.2 MB/5.0 MB (24%)
-  ↓ spirv-tools-1.4.321.0 0 B
-  ↑ gcc-13.2.0 250 KB
-  ⏵ hello-2.12.2 5s
+━ Builds  ⏱ 5s  ⏵ 1 building  ⏸ 4 planned
+  ⏵ hello-2.12.2  5s
+  breakpad-2024.02.16  ↓ █████▌              24%  1.2 MiB/5.0 MiB
 ```
 
 **Dashboard Format**:
 
 ```plaintext
-BUILD GRAPH: hello-2.12.2
-────────────────────────────────────────────
-Host        │ localhost
-Status      │ ⏵ building
-Duration    │ 8.1s
-────────────────────────────────────────────
-Summary     │ jobs=1  ok=1  failed=0  total=8.1s
+┏━ Build Dashboard: hello-2.12.2
+┃  Host      │ localhost
+┃  Status    │ ⏵ building
+┃  Duration  │ 8s
+┗━ Summary   │ jobs=5  ok=0  failed=0  waiting=4
 ```
 
 ## Legend Styles
@@ -71,27 +70,30 @@ the screen. At this moment they only affect the **tree format**.
 **Table**:
 
 ```plaintext
-┏━ Dependency Graph:
-┃ ⏵ hello-2.12.2 (buildPhase) ⏱ 5s
-┣━━━ Builds
-┗━ ∑ ⏵ 1 │ ✔ 0 │ ✗ 0 │ ⏸ 4 │ ⏱ 5s
+┏━ Builds
+┣━ ⏵ hello-2.12.2  ⏱ 5s
+┣━ Status       Running    Completed   Waiting   Failed    Total
+┃  Builds       ⏵ 1        ✔ 0         ⏸ 4       ✗ 0       5
+┃  Downloads    ↓ 2        ↓ 3         ⏸ 1                 6
+┗━ Elapsed ⏱ 5s
 ```
 
 **Compact**:
 
 ```plaintext
-┏━ Dependency Graph:
-┃ ⏵ hello-2.12.2 (buildPhase) ⏱ 5s
-┗━ ⏵ 1 │ ✔ 0 │ ✗ 0 │ ⏸ 4 │ ⏱ 5s
+┏━ Builds
+┣━ ⏵ hello-2.12.2  ⏱ 5s
+┗━ ⏵ 1  ✔ 0  ✗ 0  ⏸ 4
 ```
 
 **Verbose**:
 
 ```plaintext
-┏━ Dependency Graph:
-┃ ⏵ hello-2.12.2 (buildPhase) ⏱ 5s
-┣━━━ Build Summary:
-┗━ ⏵ 1 running │ ✔ 0 completed │ ✗ 0 failed │ ⏸ 4 planned │ ⏱ 5s
+┏━ Builds
+┣━ ⏵ hello-2.12.2  ⏱ 5s
+┣━ Build Summary
+┃  ⏵ hello-2.12.2  5s
+┗━ ⏵ 1 building  ✔ 0 completed  ✗ 0 failed  ⏸ 4 waiting
 ```
 
 ## Icon Legend

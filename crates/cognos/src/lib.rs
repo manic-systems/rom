@@ -10,6 +10,15 @@ pub use aterm::{
 };
 pub use internal::{
   Platform,
-  json::{Actions, Activities, Id, ResultType, Verbosity},
+  json::{
+    Actions,
+    Activities,
+    DecodedAction,
+    Id,
+    ResultType,
+    UnsupportedRecord,
+    Verbosity,
+    decode_action,
+  },
 };
 pub use state::{Host, OutputName, ProgressState};
