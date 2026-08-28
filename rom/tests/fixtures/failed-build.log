@@ -1,0 +1,10 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-app-1.0.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-app-1.0.drv","",1,1]}
+50 @nix {"action":"start","id":11,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000002-lib-1.0.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000002-lib-1.0.drv","",1,1]}
+100 @nix {"action":"result","id":11,"type":104,"fields":["buildPhase"]}
+150 @nix {"action":"result","id":11,"type":101,"fields":["make: *** [Makefile:12: lib.o] Error 1"]}
+200 = building
+300 @nix {"action":"msg","level":0,"msg":"error: builder for '/nix/store/00000000000000000000000000000002-lib-1.0.drv' failed with exit code 2"}
+300 @nix {"action":"stop","id":11}
+350 @nix {"action":"msg","level":0,"msg":"error: 1 dependencies of derivation '/nix/store/00000000000000000000000000000001-app-1.0.drv' failed to build"}
+350 @nix {"action":"stop","id":10}
+400 = failed

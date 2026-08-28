@@ -1,3 +1,5 @@
+#![cfg(feature = "cli")]
+
 use std::process::Command;
 
 fn run_rom(args: &[&str]) -> (String, String, i32) {

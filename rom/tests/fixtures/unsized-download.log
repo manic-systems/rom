@@ -1,0 +1,5 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-demo.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-demo.drv","",1,1]}
+100 @nix {"action":"start","id":20,"level":3,"parent":10,"text":"copying path '/nix/store/00000000000000000000000000000002-openssl-3.0.15' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/00000000000000000000000000000002-openssl-3.0.15","https://cache.nixos.org"]}
+300 = downloading
+500 @nix {"action":"stop","id":20}
+600 @nix {"action":"stop","id":10}

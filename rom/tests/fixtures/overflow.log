@@ -1,0 +1,52 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-system.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-system.drv","",1,1]}
+10 @nix {"action":"start","id":11,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000010-bash.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000010-bash.drv","",1,1]}
+20 @nix {"action":"start","id":12,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000011-coreutils.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000011-coreutils.drv","",1,1]}
+30 @nix {"action":"start","id":13,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000012-gcc.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000012-gcc.drv","",1,1]}
+40 @nix {"action":"start","id":14,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000013-glibc.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000013-glibc.drv","",1,1]}
+50 @nix {"action":"start","id":15,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000014-openssl.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000014-openssl.drv","",1,1]}
+60 @nix {"action":"start","id":16,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000015-zlib.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000015-zlib.drv","",1,1]}
+70 @nix {"action":"start","id":17,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000016-curl.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000016-curl.drv","",1,1]}
+80 @nix {"action":"start","id":18,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000017-python3.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000017-python3.drv","",1,1]}
+90 @nix {"action":"start","id":19,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000018-perl.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000018-perl.drv","",1,1]}
+100 @nix {"action":"start","id":20,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000019-git.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000019-git.drv","",1,1]}
+110 @nix {"action":"start","id":21,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000020-ncurses.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000020-ncurses.drv","",1,1]}
+120 @nix {"action":"start","id":22,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000021-readline.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000021-readline.drv","",1,1]}
+130 @nix {"action":"start","id":23,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000022-sqlite.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000022-sqlite.drv","",1,1]}
+140 @nix {"action":"start","id":24,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000023-libffi.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000023-libffi.drv","",1,1]}
+150 @nix {"action":"start","id":25,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000024-xz.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000024-xz.drv","",1,1]}
+160 @nix {"action":"start","id":26,"level":3,"parent":10,"text":"building '/nix/store/00000000000000000000000000000025-gettext.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000025-gettext.drv","",1,1]}
+200 @nix {"action":"result","id":11,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":12,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":13,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":14,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":15,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":16,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":17,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":18,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":19,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":20,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":21,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":22,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":23,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":24,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":25,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"result","id":26,"type":104,"fields":["buildPhase"]}
+300 = all-running
+400 @nix {"action":"stop","id":11}
+400 @nix {"action":"stop","id":12}
+400 @nix {"action":"stop","id":13}
+400 @nix {"action":"stop","id":14}
+400 @nix {"action":"stop","id":15}
+400 @nix {"action":"stop","id":16}
+400 @nix {"action":"stop","id":17}
+400 @nix {"action":"stop","id":18}
+500 = half-done
+600 @nix {"action":"stop","id":19}
+600 @nix {"action":"stop","id":20}
+600 @nix {"action":"stop","id":21}
+600 @nix {"action":"stop","id":22}
+600 @nix {"action":"stop","id":23}
+600 @nix {"action":"stop","id":24}
+600 @nix {"action":"stop","id":25}
+600 @nix {"action":"stop","id":26}
+700 @nix {"action":"stop","id":10}

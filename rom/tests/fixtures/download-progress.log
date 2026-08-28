@@ -1,0 +1,13 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-demo.drv'","type":105,"fields":["/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-demo.drv","",1,1]}
+100 = build-started
+250 @nix {"action":"start","id":20,"level":3,"parent":10,"text":"copying path '/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-demo' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-demo","https://cache.nixos.org"]}
+300 @nix {"action":"start","id":21,"level":3,"parent":20,"text":"downloading demo","type":101,"fields":["https://cache.nixos.org/nar/demo"]}
+500 @nix {"action":"result","id":20,"type":105,"fields":[524288,1048576,1,0]}
+500 = download-halfway
+550 @nix {"action":"result","id":10,"type":101,"fields":["\u001b[1;35mchecking styled output\u001b[0m"]}
+650 @nix {"action":"result","id":10,"type":101,"fields":["configuring flags: --disable-static --disable-dependency-tracking --prefix=/nix/store/8vqx-example-imagemagick-7.1.2 --bindir=/nix/store/8vqx-example-imagemagick-7.1.2/bin --includedir=/nix/store/8vqx-example-imagemagick-7.1.2-dev/include"]}
+900 @nix {"action":"result","id":20,"type":105,"fields":[1048576,1048576,0,0]}
+900 @nix {"action":"stop","id":21}
+900 @nix {"action":"stop","id":20}
+900 @nix {"action":"stop","id":10}
+950 = download-complete
