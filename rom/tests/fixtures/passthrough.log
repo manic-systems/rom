@@ -1,0 +1,6 @@
+0 warning: Git tree '/home/user/src/app' is dirty
+50 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-hello-2.12.3.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-hello-2.12.3.drv","",1,1]}
+100 evaluation warning: 'system' has been renamed to 'stdenv.hostPlatform.system'
+150 @nix {"action":"result","id":10,"type":101,"fields":["unpacking sources"]}
+200 = building
+300 @nix {"action":"stop","id":10}
