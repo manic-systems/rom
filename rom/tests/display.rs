@@ -92,6 +92,34 @@ fn tree_has_continuous_header_and_root_connector() {
 }
 
 #[test]
+fn running_build_displays_its_current_phase() {
+  let mut engine = engine_with_build(TestBuildStatus::Building);
+  let processed = engine
+    .process_record_at(
+      br#"@nix {"action":"result","id":1,"type":104,"fields":["checkPhase"]}"#,
+      1.0,
+    )
+    .unwrap();
+  assert!(processed.changed);
+  assert!(processed.output.is_empty());
+
+  for format in [DisplayFormat::Tree, DisplayFormat::Plain] {
+    let frame = render_frame(
+      engine.state(),
+      &RenderConfig {
+        format,
+        ..RenderConfig::default()
+      },
+      2.0,
+      79,
+      23,
+      false,
+    );
+    assert!(frame.text().contains("(checkPhase)"), "{}", frame.text());
+  }
+}
+
+#[test]
 fn final_eof_does_not_claim_an_active_build_succeeded() {
   let engine = engine_with_build(TestBuildStatus::Building);
   let text =

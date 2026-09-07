@@ -87,6 +87,9 @@ pub(crate) fn apply_event_at(
             force:    false,
           });
         },
+        ActivityResult::SetPhase(phase) => {
+          effects.changed |= state.set_activity_phase(id, phase);
+        },
         ActivityResult::Progress {
           done,
           expected,
@@ -204,6 +207,7 @@ fn apply_start(
     parent: start.parent,
     derivation,
     store_path,
+    phase: None,
     progress: None,
   });
 }

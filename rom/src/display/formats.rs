@@ -61,11 +61,11 @@ impl Renderer<'_> {
       .running_builds
       .iter()
       .filter_map(|(id, build)| {
-        Some((self.snapshot.derivation(*id)?.name.name.clone(), build))
+        Some((*id, self.snapshot.derivation(*id)?.name.name.clone(), build))
       })
       .collect();
-    builds.sort_by(|left, right| left.0.cmp(&right.0));
-    for (name, build) in builds {
+    builds.sort_by(|left, right| left.1.cmp(&right.1));
+    for (id, name, build) in builds {
       let mut spans = vec![
         self.span("  ", self.config.theme.text),
         self.span(
@@ -73,6 +73,9 @@ impl Renderer<'_> {
           self.config.theme.running,
         ),
       ];
+      if let Some(phase) = self.snapshot.phase(id) {
+        spans.push(self.span(format!("  ({phase})"), self.config.theme.muted));
+      }
       if self.config.show_timers {
         spans.push(self.span(
           format!("  {}", format_duration(self.now - build.start)),

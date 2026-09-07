@@ -60,6 +60,7 @@ pub(crate) enum Announcement {
 pub(crate) enum ActivityResult {
   BuildLog(String),
   PostBuildLog(String),
+  SetPhase(String),
   Progress {
     done:     u64,
     expected: u64,
@@ -219,8 +220,14 @@ fn decode_result(result_type: ResultType, fields: &[Value]) -> ActivityResult {
         .map(ActivityResult::CorruptedPath)
         .unwrap_or(ActivityResult::Ignored)
     },
+    ResultType::SetPhase => {
+      fields
+        .first()
+        .and_then(Value::as_str)
+        .map(|phase| ActivityResult::SetPhase(phase.to_string()))
+        .unwrap_or(ActivityResult::Ignored)
+    },
     ResultType::FileLinked
-    | ResultType::SetPhase
     | ResultType::SetExpected
     | ResultType::FetchStatus => ActivityResult::Ignored,
   }

@@ -253,14 +253,23 @@ impl Renderer<'_> {
         (self.icons.planned, self.config.theme.planned, None)
       },
       BuildStatus::Building(build) => {
-        let suffix = self.config.show_timers.then(|| {
-          format!(
+        let mut suffix = self
+          .snapshot
+          .phase(id)
+          .map(|phase| format!("  ({phase})"))
+          .unwrap_or_default();
+        if self.config.show_timers {
+          suffix.push_str(&format!(
             "  {} {}",
             self.icons.clock,
             format_duration(self.now - build.start)
-          )
-        });
-        (self.icons.running, self.config.theme.running, suffix)
+          ));
+        }
+        (
+          self.icons.running,
+          self.config.theme.running,
+          (!suffix.is_empty()).then_some(suffix),
+        )
       },
       BuildStatus::Built { .. } => {
         (self.icons.done, self.config.theme.completed, None)

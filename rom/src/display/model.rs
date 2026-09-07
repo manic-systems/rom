@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use indexmap::IndexMap;
 
 use crate::state::{
+  BuildStatus,
   CompletedTransferInfo,
   DependencySummary,
   DerivationId,
@@ -63,6 +64,7 @@ pub(super) struct RenderSnapshot<'a> {
   pub start_time:          f64,
   pub error_count:         usize,
   pub counts:              SummaryCounts,
+  pub phases:              HashMap<DerivationId, &'a str>,
   pub transfers_by_drv:    HashMap<DerivationId, Vec<Transfer>>,
   pub unmatched_transfers: Vec<Transfer>,
 }
@@ -90,6 +92,19 @@ impl<'a> RenderSnapshot<'a> {
         failed:    0,
       },
     };
+    let phases = state
+      .derivations()
+      .iter()
+      .filter_map(|(&id, info)| {
+        let activity = match &info.build_status {
+          BuildStatus::Building(build)
+          | BuildStatus::Built { info: build, .. }
+          | BuildStatus::Failed { info: build, .. } => build.activity_id?,
+          BuildStatus::Unknown | BuildStatus::Planned => return None,
+        };
+        Some((id, state.activity_phase(activity)?))
+      })
+      .collect();
     let mut snapshot = Self {
       derivations: state.derivations(),
       summary,
@@ -97,6 +112,7 @@ impl<'a> RenderSnapshot<'a> {
       start_time: state.start_time(),
       error_count: state.error_count(),
       counts,
+      phases,
       transfers_by_drv: HashMap::new(),
       unmatched_transfers: Vec::new(),
     };
@@ -106,6 +122,10 @@ impl<'a> RenderSnapshot<'a> {
 
   pub fn derivation(&self, id: DerivationId) -> Option<&DerivationInfo> {
     self.derivations.get(&id)
+  }
+
+  pub fn phase(&self, id: DerivationId) -> Option<&str> {
+    self.phases.get(&id).copied()
   }
 
   fn collect_transfers(

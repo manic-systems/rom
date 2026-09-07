@@ -257,6 +257,7 @@ pub struct ActivityStatus {
   pub parent:     Option<ActivityId>,
   pub derivation: Option<DerivationId>,
   pub store_path: Option<StorePathId>,
+  pub phase:      Option<String>,
   pub progress:   Option<ActivityProgress>,
 }
 
@@ -694,6 +695,26 @@ impl State {
     id: ActivityId,
   ) -> Option<DerivationId> {
     self.activities.get(&id)?.derivation
+  }
+
+  pub(crate) fn set_activity_phase(
+    &mut self,
+    id: ActivityId,
+    phase: String,
+  ) -> bool {
+    let Some(activity) = self.activities.get_mut(&id) else {
+      return false;
+    };
+    if activity.phase.as_deref() == Some(&phase) {
+      return false;
+    }
+    activity.phase = Some(phase);
+    true
+  }
+
+  #[must_use]
+  pub(crate) fn activity_phase(&self, id: ActivityId) -> Option<&str> {
+    self.activities.get(&id)?.phase.as_deref()
   }
 
   pub(crate) fn update_activity_progress(
