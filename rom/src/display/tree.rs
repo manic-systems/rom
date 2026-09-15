@@ -30,6 +30,7 @@ enum RowId {
 
 struct PlannedRow {
   priority:  u8,
+  active:    bool,
   children:  Vec<RowId>,
   inline:    Vec<usize>,
   consumers: usize,
@@ -39,6 +40,7 @@ impl PlannedRow {
   const fn new(priority: u8) -> Self {
     Self {
       priority,
+      active: priority >= 3,
       children: Vec::new(),
       inline: Vec::new(),
       consumers: 0,
@@ -66,6 +68,8 @@ impl TreePlan {
 struct TreeSelection<'a> {
   plan:    &'a TreePlan,
   rows:    HashSet<RowId>,
+  roots:   Vec<RowId>,
+  parents: HashMap<RowId, Option<RowId>>,
   maximum: usize,
 }
 
@@ -97,6 +101,10 @@ impl Renderer<'_> {
       }
     }
     pending.extend(relevance.keys().copied());
+    let active = relevance
+      .iter()
+      .filter_map(|(&id, &priority)| (priority >= 3).then_some(id))
+      .collect::<HashSet<usize>>();
 
     // Reverse reachability computes the connected ancestor set in O(V + E).
     while let Some(id) = pending.pop_front() {
@@ -115,9 +123,9 @@ impl Renderer<'_> {
 
     let mut plan = TreePlan::default();
     for (&id, &priority) in &relevance {
-      plan
-        .rows
-        .insert(RowId::Build(id), PlannedRow::new(priority));
+      let mut row = PlannedRow::new(priority);
+      row.active = active.contains(&id);
+      plan.rows.insert(RowId::Build(id), row);
     }
     for &id in relevance.keys() {
       let Some(info) = self.snapshot.derivation(id) else {
@@ -158,6 +166,7 @@ impl Renderer<'_> {
             .entry(RowId::TransferGroup)
             .or_insert_with(|| PlannedRow::new(priority));
           group.priority = group.priority.max(priority);
+          group.active |= priority >= 3;
           group.children.push(id);
         },
       }
@@ -189,20 +198,21 @@ impl Renderer<'_> {
     }
 
     self.seen.clear();
-    let focus_active = self.focus_active(plan);
-    let truncated = plan.line_count() > maximum
-      || (focus_active && plan.rows.values().any(|row| row.priority < 3));
+    let mut selection = self.select_rows(plan, maximum);
+    let truncated = selection.rows.len() < plan.rows.len();
     let content_limit = if truncated && maximum > 1 {
       maximum - 1
     } else {
       maximum
     };
-    let selection = self.select_rows(plan, content_limit);
+    if content_limit != maximum {
+      selection = self.select_rows(plan, content_limit);
+    }
     let mut lines = vec![Line::from(vec![
       self.span("┏━ ", self.config.theme.connector),
       self.span("Builds", self.config.theme.text),
     ])];
-    for &root in &plan.roots {
+    for &root in &selection.roots {
       self.push_row(&mut lines, root, &[], false, &selection);
       if lines.len() >= content_limit {
         break;
@@ -218,7 +228,7 @@ impl Renderer<'_> {
     lines
   }
 
-  /// Select connected build/group rows first, then share remaining rows fairly
+  /// Select active build/group rows first, then share remaining rows fairly
   /// among transfer children. Completed grace rows never displace active work.
   fn select_rows<'a>(
     &self,
@@ -228,6 +238,8 @@ impl Renderer<'_> {
     let mut selection = TreeSelection {
       plan,
       rows: HashSet::new(),
+      roots: Vec::new(),
+      parents: HashMap::new(),
       maximum,
     };
     let focus_active = self.focus_active(plan);
@@ -235,37 +247,79 @@ impl Renderer<'_> {
     let mut sequence = 0_usize;
     for &root in &plan.roots {
       frontier.push((plan.row(root).priority, Reverse(sequence), root));
+      selection.parents.insert(root, None);
       sequence += 1;
     }
 
-    let mut remaining = maximum.saturating_sub(1); // Builds header
-    let mut detail_groups = Vec::new();
-    while remaining > 0 {
-      let Some((priority, _, id)) = frontier.pop() else {
-        break;
-      };
-      if focus_active && priority < 3 {
-        break;
-      }
-      if !selection.rows.insert(id) {
-        continue;
-      }
+    let mut order = Vec::new();
+    while let Some((_, _, id)) = frontier.pop() {
+      order.push(id);
       let row = plan.row(id);
-      let mut details = Vec::new();
       for &child in &row.children {
+        if selection.parents.contains_key(&child) {
+          continue;
+        }
+        selection.parents.insert(child, Some(id));
         match child {
           RowId::Build(_) => {
             frontier.push((plan.row(child).priority, Reverse(sequence), child));
             sequence += 1;
           },
-          RowId::Transfer(_) => details.push(child),
-          RowId::TransferGroup => {},
+          RowId::Transfer(_) | RowId::TransferGroup => {},
         }
       }
+    }
+
+    let mut remaining = maximum.saturating_sub(1); // Builds header
+    selection.rows.extend(
+      order
+        .iter()
+        .copied()
+        .filter(|id| !focus_active || plan.row(*id).active)
+        .take(remaining),
+    );
+    remaining -= selection.rows.len();
+    if focus_active {
+      for &id in &order {
+        if !selection.rows.contains(&id) {
+          continue;
+        }
+        let mut ancestors = Vec::new();
+        let mut parent = selection.parents[&id];
+        while let Some(ancestor) = parent {
+          if selection.rows.contains(&ancestor) {
+            break;
+          }
+          ancestors.push(ancestor);
+          parent = selection.parents[&ancestor];
+        }
+        if ancestors.len() <= remaining {
+          remaining -= ancestors.len();
+          selection.rows.extend(ancestors);
+        }
+      }
+    }
+
+    let mut detail_groups = Vec::new();
+    for &id in &order {
+      if !selection.rows.contains(&id) {
+        continue;
+      }
+      if selection.parents[&id]
+        .is_none_or(|parent| !selection.rows.contains(&parent))
+      {
+        selection.roots.push(id);
+      }
+      let details = plan
+        .row(id)
+        .children
+        .iter()
+        .copied()
+        .filter(|child| matches!(child, RowId::Transfer(_)))
+        .collect::<Vec<RowId>>();
       if !details.is_empty() {
         detail_groups.push(details);
       }
-      remaining -= 1;
     }
 
     for completed in [false, true] {
@@ -296,7 +350,7 @@ impl Renderer<'_> {
   }
 
   fn focus_active(&self, plan: &TreePlan) -> bool {
-    plan.rows.values().any(|row| row.priority >= 3)
+    plan.rows.values().any(|row| row.active)
   }
 
   fn push_row(
@@ -347,6 +401,11 @@ impl Renderer<'_> {
     let row = selection.plan.row(RowId::Build(id));
 
     let mut spans = self.prefix(ancestors, last);
+    if selection.parents[&RowId::Build(id)]
+      .is_some_and(|parent| !selection.rows.contains(&parent))
+    {
+      spans.push(self.span("… ", self.config.theme.muted));
+    }
     let (icon, color, suffix) = match &info.build_status {
       BuildStatus::Unknown => {
         (self.icons.planned, self.config.theme.muted, None)
@@ -409,6 +468,7 @@ impl Renderer<'_> {
       .iter()
       .copied()
       .filter(|child| selection.rows.contains(child))
+      .filter(|child| selection.parents[child] == Some(RowId::Build(id)))
       .filter(|child| {
         !matches!(child, RowId::Build(child) if self.seen.contains(child))
       })
