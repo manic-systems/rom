@@ -9,7 +9,7 @@
 \e[0;34m┏━ \e[0;97mBuilds\e[0m
 \e[0;34m┣━ ⏸ a-1.0\e[0m
 \e[0;34m┣━ ⏸ b-1.0\e[0m
-\e[0;34m┗━ \e[0;32mFinished after 0s\e[0m
+\e[0;34m┗━ Input ended with 2 planned builds after 0s\e[0m
 === log ===
 these 2 derivations will be built:\e[0m
   /nix/store/00000000000000000000000000000001-a-1.0.drv\e[0m
