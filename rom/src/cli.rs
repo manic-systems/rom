@@ -9,7 +9,7 @@ use std::{
   time::{Duration, Instant},
 };
 
-use clap::Parser;
+use pound::Parse;
 use tracing_subscriber::EnvFilter;
 
 use crate::{
@@ -31,69 +31,57 @@ use crate::{
   },
 };
 
-#[derive(Debug, Parser)]
-#[command(name = "rom", version, about = "Pretty build graphs for Nix and Lix")]
+#[derive(Debug, Parse)]
+#[pound(name = "rom", version)]
 pub struct Cli {
-  #[command(subcommand)]
+  #[pound(subcommand)]
   pub command: Option<Commands>,
 
   /// Treat every input record as unprefixed internal JSON.
-  #[arg(long, global = true)]
+  #[pound(long, global)]
   pub json: bool,
 
   /// Suppress decoded logs and presentations, but never passthrough or errors.
-  #[arg(long, global = true)]
+  #[pound(long, global)]
   pub silent: bool,
 
   /// Output format: tree, plain, dashboard.
-  #[arg(long, global = true, default_value = "tree")]
+  #[pound(long, global, default = "tree")]
   pub format: String,
 
   /// Legend style: compact, table, verbose.
-  #[arg(long, global = true, default_value = "table")]
+  #[pound(long, global, default = "table")]
   pub legend: String,
 
   /// Final summary style: concise, table, full.
-  #[arg(long, global = true, default_value = "concise")]
+  #[pound(long, global, default = "concise")]
   pub summary: String,
 
   /// Builder-log prefix: short, full, none.
-  #[arg(long, global = true, default_value = "short")]
+  #[pound(long, global, default = "short")]
   pub log_prefix: String,
 
   /// Maximum decoded builder log lines per activity.
-  #[arg(long, global = true)]
+  #[pound(long, global)]
   pub log_lines: Option<usize>,
 
   /// Nix-family evaluator to use. Auto-detected by default.
-  #[arg(long, global = true)]
+  #[pound(long, global)]
   pub platform: Option<String>,
 
   /// Increase Nix and ROM diagnostic verbosity.
-  #[arg(short = 'v', action = clap::ArgAction::Count, global = true)]
+  #[pound(short = 'v', count, global)]
   pub verbose: u8,
 }
 
-#[derive(Debug, clap::Subcommand)]
+#[derive(Debug, Parse)]
 pub enum Commands {
-  /// Run nix/lix build with monitoring.
-  Build {
-    packages:  Vec<String>,
-    #[arg(last = true)]
-    nix_flags: Vec<String>,
-  },
-  /// Realize inputs, then enter nix/lix shell.
-  Shell {
-    packages:  Vec<String>,
-    #[arg(last = true)]
-    nix_flags: Vec<String>,
-  },
-  /// Realize inputs, then enter nix/lix develop.
-  Develop {
-    packages:  Vec<String>,
-    #[arg(last = true)]
-    nix_flags: Vec<String>,
-  },
+  /// Run nix/lix build with monitoring. Pass Nix flags after --.
+  Build { packages: Vec<String> },
+  /// Realize inputs, then enter nix/lix shell. Pass Nix flags after --.
+  Shell { packages: Vec<String> },
+  /// Realize inputs, then enter nix/lix develop. Pass Nix flags after --.
+  Develop { packages: Vec<String> },
 }
 
 struct WrapperConfig {
@@ -103,7 +91,31 @@ struct WrapperConfig {
 }
 
 pub fn run() -> eyre::Result<()> {
-  let cli = Cli::parse();
+  let mut process_args = std::env::args_os();
+  let program = process_args
+    .next()
+    .and_then(|path| {
+      PathBuf::from(path).file_name()?.to_str().map(str::to_owned)
+    })
+    .unwrap_or_else(|| "rom".to_string());
+  let mut arguments = process_args
+    .map(|argument| {
+      argument
+        .into_string()
+        .map_err(|_| eyre::eyre!("argument is not valid UTF-8"))
+    })
+    .collect::<eyre::Result<Vec<_>>>()?;
+  match program.as_str() {
+    "rom-build" => arguments.insert(0, "build".to_string()),
+    "rom-shell" => arguments.insert(0, "shell".to_string()),
+    "rom-develop" => arguments.insert(0, "develop".to_string()),
+    _ => {},
+  }
+  let (rom_args, nix_flags) = parse_args_with_separator(&arguments);
+  let cli = Cli::parse_from(rom_args.iter().map(String::as_str));
+  if cli.command.is_none() && !nix_flags.is_empty() {
+    eyre::bail!("Nix flags require a build, shell, or develop subcommand");
+  }
   let default_filter = match cli.verbose {
     0 => "rom=warn",
     1 => "rom=info",
@@ -153,36 +165,8 @@ pub fn run() -> eyre::Result<()> {
     monitor,
   };
 
-  let program = std::env::args()
-    .next()
-    .and_then(|path| {
-      PathBuf::from(path).file_name()?.to_str().map(str::to_owned)
-    })
-    .unwrap_or_else(|| "rom".to_string());
-
-  match (program.as_str(), cli.command) {
-    ("rom-build", _) => {
-      let args: Vec<_> = std::env::args().skip(1).collect();
-      let (packages, flags) = parse_args_with_separator(&args);
-      build(packages, flags, &config)
-    },
-    ("rom-shell", _) => {
-      let args: Vec<_> = std::env::args().skip(1).collect();
-      let (packages, flags) = parse_args_with_separator(&args);
-      shell(packages, flags, &config)
-    },
-    ("rom-develop", _) => {
-      let args: Vec<_> = std::env::args().skip(1).collect();
-      let (packages, flags) = parse_args_with_separator(&args);
-      develop(packages, flags, &config)
-    },
-    (
-      _,
-      Some(Commands::Build {
-        packages,
-        nix_flags,
-      }),
-    ) => {
+  match cli.command {
+    Some(Commands::Build { packages }) => {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
@@ -191,13 +175,7 @@ pub fn run() -> eyre::Result<()> {
         build(packages, nix_flags, &config)
       }
     },
-    (
-      _,
-      Some(Commands::Shell {
-        packages,
-        nix_flags,
-      }),
-    ) => {
+    Some(Commands::Shell { packages }) => {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
@@ -206,13 +184,7 @@ pub fn run() -> eyre::Result<()> {
         shell(packages, nix_flags, &config)
       }
     },
-    (
-      _,
-      Some(Commands::Develop {
-        packages,
-        nix_flags,
-      }),
-    ) => {
+    Some(Commands::Develop { packages }) => {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
@@ -221,7 +193,7 @@ pub fn run() -> eyre::Result<()> {
         develop(packages, nix_flags, &config)
       }
     },
-    (_, None) => run_input(io::stdin(), config.monitor.clone()),
+    None => run_input(io::stdin(), config.monitor.clone()),
   }
 }
 
@@ -611,7 +583,7 @@ fn drive(
 ) -> eyre::Result<()> {
   let Config { engine, render } = config;
   let silent = engine.silent;
-  let history = BuildReportCache::new(BuildReportCache::default_cache_path());
+  let history = BuildReportCache::new(BuildReportCache::default_cache_path()?);
   let mut stream = StreamEngine::new(engine);
   stream.engine_mut().set_resolver(FilesystemResolver);
   stream.engine_mut().load_history(&history);

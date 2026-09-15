@@ -32,7 +32,7 @@ fn test_calculate_median_empty() {
 #[test]
 fn test_format_parse_utc_time() {
   let time = SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_000_000);
-  let formatted = format_utc_time(time);
+  let formatted = format_utc_time(time).unwrap();
   let parsed = parse_utc_time(&formatted).unwrap();
 
   let diff = parsed

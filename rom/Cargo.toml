@@ -18,7 +18,7 @@ path = "src/lib.rs"
 [features]
 default = ["cli"]
 cli = [
-  "dep:clap",
+  "dep:pound",
   "dep:eyre",
   "dep:libc",
   "dep:signal-hook",
@@ -28,20 +28,19 @@ cli = [
 [dependencies]
 cognos.workspace = true
 
-clap = { workspace = true, optional = true }
+pound = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
 crossterm.workspace = true
 ratatui-core.workspace = true
 indexmap.workspace = true
 csv.workspace = true
-chrono.workspace = true
+jiff.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 tracing-subscriber = { workspace = true, optional = true }
 eyre = { workspace = true, optional = true }
-dirs.workspace = true
-has-nerd-font.workspace = true
+etcetera.workspace = true
 unicode-width.workspace = true
 libc = { workspace = true, optional = true }
 signal-hook = { workspace = true, optional = true }
