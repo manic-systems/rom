@@ -323,22 +323,21 @@ impl Renderer<'_> {
     );
     remaining -= selection.rows.len();
     if focus_active {
-      for &id in &order {
-        if !selection.rows.contains(&id) {
+      let mut ancestors: VecDeque<_> = order
+        .iter()
+        .filter(|id| selection.rows.contains(id))
+        .filter_map(|id| selection.parents[id])
+        .collect();
+      while remaining > 0 {
+        let Some(ancestor) = ancestors.pop_front() else {
+          break;
+        };
+        if !selection.rows.insert(ancestor) {
           continue;
         }
-        let mut ancestors = Vec::new();
-        let mut parent = selection.parents[&id];
-        while let Some(ancestor) = parent {
-          if selection.rows.contains(&ancestor) {
-            break;
-          }
-          ancestors.push(ancestor);
-          parent = selection.parents[&ancestor];
-        }
-        if ancestors.len() <= remaining {
-          remaining -= ancestors.len();
-          selection.rows.extend(ancestors);
+        remaining -= 1;
+        if let Some(parent) = selection.parents[&ancestor] {
+          ancestors.push_back(parent);
         }
       }
     }
