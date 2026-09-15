@@ -406,11 +406,11 @@ fn run_input<R: Read + Send + 'static>(
   config: Config,
 ) -> eyre::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
-  let result = drive(receiver, config, true);
+  drive(receiver, config, true)?;
   reader_thread
     .join()
     .map_err(|_| RomError::process("input reader panicked"))??;
-  result
+  Ok(())
 }
 
 fn byte_reader<R: Read + Send + 'static>(
