@@ -96,7 +96,10 @@ impl Renderer<'_> {
         BuildStatus::Failed { .. } => 4,
         BuildStatus::Building(_) => 3,
         BuildStatus::Planned => 2,
-        BuildStatus::Unknown | BuildStatus::Built { .. } => 0,
+        BuildStatus::Available => 1,
+        BuildStatus::Unknown
+        | BuildStatus::Built { .. }
+        | BuildStatus::DependencyFailed => 0,
       };
       relevance[id] = priority;
     }
@@ -475,11 +478,14 @@ impl Renderer<'_> {
           (!suffix.is_empty()).then_some(suffix),
         )
       },
-      BuildStatus::Built { .. } => {
+      BuildStatus::Built { .. } | BuildStatus::Available => {
         (self.icons.done, self.config.theme.completed, None)
       },
       BuildStatus::Failed { .. } => {
         (self.icons.failed, self.config.theme.failed, None)
+      },
+      BuildStatus::DependencyFailed => {
+        (self.icons.failed, self.config.theme.muted, None)
       },
     };
     spans.push(self.span(format!("{icon} "), color));
