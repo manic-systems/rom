@@ -6,7 +6,7 @@ use std::{
   path::{Path, PathBuf},
 };
 
-use cognos::{DecodedAction, Id};
+use cognos::{DecodedAction, Id, UnsupportedRecord};
 
 use crate::{
   cache::BuildReportCache,
@@ -89,12 +89,13 @@ fn diagnostic(message: String) -> Processed {
 /// It owns no terminal, threads, async runtime, or global clock. All adapters
 /// feed it bytes and supply a timestamp.
 pub struct Engine {
-  state:           State,
-  config:          EngineConfig,
-  log_counts:      HashMap<Id, usize>,
-  suppressed_logs: HashSet<Id>,
-  resolved_drvs:   HashSet<PathBuf>,
-  resolver:        Option<Box<dyn DerivationResolver>>,
+  state:                State,
+  config:               EngineConfig,
+  log_counts:           HashMap<Id, usize>,
+  suppressed_logs:      HashSet<Id>,
+  reported_unsupported: HashSet<UnsupportedRecord>,
+  resolved_drvs:        HashSet<PathBuf>,
+  resolver:             Option<Box<dyn DerivationResolver>>,
 }
 
 impl Engine {
@@ -105,6 +106,7 @@ impl Engine {
       config,
       log_counts: HashMap::new(),
       suppressed_logs: HashSet::new(),
+      reported_unsupported: HashSet::new(),
       resolved_drvs: HashSet::new(),
       resolver: None,
     }
@@ -163,13 +165,18 @@ impl Engine {
     let action = match cognos::decode_action(json) {
       Ok(DecodedAction::Known(action)) => action,
       Ok(DecodedAction::Unsupported(record)) => {
+        if self.reported_unsupported.contains(&record) {
+          return Ok(Processed::default());
+        }
         let kind = record
           .kind
           .map_or_else(String::new, |kind| format!(" type {kind}"));
-        return Ok(diagnostic(format!(
+        let message = format!(
           "rom: ignored unsupported internal-JSON {}{kind}",
           record.action.escape_debug()
-        )));
+        );
+        self.reported_unsupported.insert(record);
+        return Ok(diagnostic(message));
       },
       Err(error) => return Err(RomError::Json(error)),
     };

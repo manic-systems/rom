@@ -214,7 +214,8 @@ fn decode_result(result_type: ResultType, fields: &[Value]) -> ActivityResult {
     },
     ResultType::FileLinked
     | ResultType::SetExpected
-    | ResultType::FetchStatus => ActivityResult::Ignored,
+    | ResultType::FetchStatus
+    | ResultType::FetchToStore => ActivityResult::Ignored,
   }
 }
 
