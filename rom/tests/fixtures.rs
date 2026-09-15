@@ -16,13 +16,13 @@ enum Event {
   Write {
     at_ms: u64,
     #[serde(default)]
-    text:  Option<String>,
+    text: Option<String>,
     #[serde(default)]
     bytes: Option<Vec<u8>>,
   },
   Checkpoint {
     at_ms: u64,
-    name:  String,
+    name: String,
   },
   Eof {
     at_ms: u64,

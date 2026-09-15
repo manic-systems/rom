@@ -134,7 +134,7 @@ impl Default for Theme {
     Self {
       connector:      Color::Blue,
       text:           Color::White,
-      muted:          Color::DarkGray,
+      muted:          Color::White,
       planned:        Color::Blue,
       running:        Color::Yellow,
       completed:      Color::Green,
