@@ -50,14 +50,19 @@ impl PlannedRow {
 
 #[derive(Default)]
 pub(super) struct TreePlan {
-  rows:  HashMap<RowId, PlannedRow>,
-  roots: Vec<RowId>,
+  rows:   HashMap<RowId, PlannedRow>,
+  roots:  Vec<RowId>,
+  hidden: usize,
 }
 
 impl TreePlan {
   pub(super) fn line_count(&self) -> usize {
     // The Builds header is not represented by a row.
-    self.rows.len().saturating_add(1)
+    self
+      .rows
+      .len()
+      .saturating_add(self.hidden)
+      .saturating_add(1)
   }
 
   fn row(&self, id: RowId) -> &PlannedRow {
@@ -77,7 +82,7 @@ impl Renderer<'_> {
   /// Build one typed row graph. Selection and rendering operate on these same
   /// rows, so transfer placement cannot be lost in parallel index maps.
   pub(super) fn tree_plan(&self) -> TreePlan {
-    let mut relevance = HashMap::new();
+    let mut relevance = vec![0_u8; self.snapshot.derivations.len()];
     let mut pending = VecDeque::new();
 
     for (&id, info) in self.snapshot.derivations {
@@ -87,47 +92,63 @@ impl Renderer<'_> {
         BuildStatus::Planned => 2,
         BuildStatus::Unknown | BuildStatus::Built { .. } => 0,
       };
-      if priority > 0 {
-        relevance.insert(id, priority);
-      }
+      relevance[id] = priority;
     }
     for item in &self.snapshot.placed_transfers {
       if let Some(id) = item.placement.derivation() {
         let priority = if item.transfer.completed { 1 } else { 3 };
-        relevance
-          .entry(id)
-          .and_modify(|current| *current = (*current).max(priority))
-          .or_insert(priority);
+        relevance[id] = relevance[id].max(priority);
       }
     }
-    pending.extend(relevance.keys().copied());
+    pending.extend(
+      relevance
+        .iter()
+        .enumerate()
+        .filter_map(|(id, &priority)| (priority > 0).then_some(id)),
+    );
     let active = relevance
       .iter()
-      .filter_map(|(&id, &priority)| (priority >= 3).then_some(id))
-      .collect::<HashSet<usize>>();
+      .map(|&priority| priority >= 3)
+      .collect::<Vec<bool>>();
+    let focus_active = active.iter().any(|&active| active)
+      || self
+        .snapshot
+        .placed_transfers
+        .iter()
+        .any(|item| !item.transfer.completed);
 
     // Reverse reachability computes the connected ancestor set in O(V + E).
     while let Some(id) = pending.pop_front() {
-      let priority = relevance[&id];
+      let priority = relevance[id];
       let Some(info) = self.snapshot.derivation(id) else {
         continue;
       };
       for &parent in &info.derivation_parents {
-        let previous = relevance.get(&parent).copied().unwrap_or(0);
+        let previous = relevance[parent];
         if priority > previous {
-          relevance.insert(parent, priority);
+          relevance[parent] = priority;
           pending.push_back(parent);
         }
       }
     }
 
     let mut plan = TreePlan::default();
-    for (&id, &priority) in &relevance {
+    for (id, &priority) in relevance.iter().enumerate() {
+      if priority == 0 {
+        continue;
+      }
+      if focus_active && priority < 3 {
+        plan.hidden += 1;
+        continue;
+      }
       let mut row = PlannedRow::new(priority);
-      row.active = active.contains(&id);
+      row.active = active[id];
       plan.rows.insert(RowId::Build(id), row);
     }
-    for &id in relevance.keys() {
+    for (id, &priority) in relevance.iter().enumerate() {
+      if priority == 0 || (focus_active && priority < 3) {
+        continue;
+      }
       let Some(info) = self.snapshot.derivation(id) else {
         continue;
       };
@@ -152,6 +173,10 @@ impl Renderer<'_> {
           consumer,
           consumer_count,
         } => {
+          if !plan.rows.contains_key(&RowId::Build(consumer)) {
+            plan.hidden += 1;
+            continue;
+          }
           let id = RowId::Transfer(index);
           let mut row = PlannedRow::new(priority);
           row.consumers = consumer_count;
@@ -198,15 +223,19 @@ impl Renderer<'_> {
     }
 
     self.seen.clear();
-    let mut selection = self.select_rows(plan, maximum);
-    let truncated = selection.rows.len() < plan.rows.len();
-    let content_limit = if truncated && maximum > 1 {
+    let mut truncated = plan.line_count() > maximum || plan.hidden > 0;
+    let mut content_limit = if truncated && maximum > 1 {
       maximum - 1
     } else {
       maximum
     };
-    if content_limit != maximum {
-      selection = self.select_rows(plan, content_limit);
+    let mut selection = self.select_rows(plan, content_limit);
+    if !truncated && selection.rows.len() + 1 < plan.line_count() {
+      truncated = true;
+      if maximum > 1 {
+        content_limit = maximum - 1;
+        selection = self.select_rows(plan, content_limit);
+      }
     }
     let mut lines = vec![Line::from(vec![
       self.span("┏━ ", self.config.theme.connector),
@@ -242,6 +271,9 @@ impl Renderer<'_> {
       parents: HashMap::new(),
       maximum,
     };
+    if maximum <= 1 {
+      return selection;
+    }
     let focus_active = self.focus_active(plan);
     let mut frontier = BinaryHeap::new();
     let mut sequence = 0_usize;
@@ -252,9 +284,11 @@ impl Renderer<'_> {
     }
 
     let mut order = Vec::new();
+    let mut candidates = 0;
     while let Some((_, _, id)) = frontier.pop() {
       order.push(id);
       let row = plan.row(id);
+      candidates += usize::from(!focus_active || row.active);
       for &child in &row.children {
         if selection.parents.contains_key(&child) {
           continue;
@@ -267,6 +301,9 @@ impl Renderer<'_> {
           },
           RowId::Transfer(_) | RowId::TransferGroup => {},
         }
+      }
+      if candidates >= maximum - 1 {
+        break;
       }
     }
 
