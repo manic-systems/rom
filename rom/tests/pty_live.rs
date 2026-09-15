@@ -14,10 +14,11 @@ use std::{
 
 const BEGIN_SYNC: &[u8] = b"\x1b[?2026h";
 const END_SYNC: &[u8] = b"\x1b[?2026l";
+const CLEAR_LINE: &[u8] = b"\x1b[2K";
 
 #[test]
 fn fixture_reaches_a_styled_first_live_frame_through_the_real_cli() {
-  let transcript = replay_fixture(false, 80, 24);
+  let transcript = replay_fixture("download-progress", false, 80, 24);
   assert_eq!(count(&transcript, BEGIN_SYNC), count(&transcript, END_SYNC));
   assert!(count(&transcript, BEGIN_SYNC) > 0);
   assert!(transcript.windows(7).any(|w| w == b"\x1b[1;35m"));
@@ -55,8 +56,33 @@ fn fixture_reaches_a_styled_first_live_frame_through_the_real_cli() {
 }
 
 #[test]
+fn shrinking_graph_stays_anchored_to_the_bottom() {
+  let transcript = replay_fixture("fetch-to-store", false, 80, 24);
+  let frames = synchronized_transactions(&transcript);
+  // Each repaint clears the previous region one row at a time and then draws
+  // logs and the new frame. Drawing fewer rows than were cleared would leave
+  // blank rows under the graph. Only the final frame may shrink.
+  let repaints: Vec<_> = frames
+    .iter()
+    .filter_map(|frame| {
+      let cleared = count(frame, CLEAR_LINE);
+      let drawn = find_last(frame, CLEAR_LINE)
+        .map(|end| count(&frame[end..], b"\n") + 1)?;
+      Some((cleared, drawn))
+    })
+    .collect();
+  assert!(repaints.len() > 2, "too few live repaints to check");
+  for (cleared, drawn) in &repaints[..repaints.len() - 1] {
+    assert!(
+      drawn >= cleared,
+      "repaint drew {drawn} rows over {cleared} cleared rows"
+    );
+  }
+}
+
+#[test]
 fn multiplexer_gets_a_safe_initial_graph_without_live_controls() {
-  let transcript = replay_fixture(true, 80, 24);
+  let transcript = replay_fixture("download-progress", true, 80, 24);
   assert_eq!(count(&transcript, BEGIN_SYNC), 0);
   assert_eq!(count(&transcript, END_SYNC), 0);
   assert!(!transcript.windows(4).any(|window| window == b"\x1b[2K"));
@@ -68,7 +94,7 @@ fn multiplexer_gets_a_safe_initial_graph_without_live_controls() {
 #[test]
 fn undersized_terminal_falls_back_without_live_control_artifacts() {
   for (columns, rows) in [(19, 8), (80, 7)] {
-    let transcript = replay_fixture(false, columns, rows);
+    let transcript = replay_fixture("download-progress", false, columns, rows);
     assert_eq!(count(&transcript, BEGIN_SYNC), 0);
     assert_eq!(count(&transcript, END_SYNC), 0);
     assert!(!transcript.windows(4).any(|window| window == b"\x1b[2K"));
@@ -78,7 +104,12 @@ fn undersized_terminal_falls_back_without_live_control_artifacts() {
   }
 }
 
-fn replay_fixture(multiplexer: bool, columns: u16, rows: u16) -> Vec<u8> {
+fn replay_fixture(
+  log: &str,
+  multiplexer: bool,
+  columns: u16,
+  rows: u16,
+) -> Vec<u8> {
   let (master, slave) = open_pty(columns, rows).unwrap();
   let slave = unsafe { File::from_raw_fd(slave) };
   let mut command = Command::new(env!("CARGO_BIN_EXE_rom"));
@@ -113,7 +144,12 @@ fn replay_fixture(multiplexer: bool, columns: u16, rows: u16) -> Vec<u8> {
   drop(command);
   let reader = thread::spawn(move || read_terminal(master));
 
-  let fixture = include_str!("fixtures/download-progress.log");
+  let fixture = std::fs::read_to_string(
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+      .join("tests/fixtures")
+      .join(format!("{log}.log")),
+  )
+  .unwrap();
   let mut stdin = child.stdin.take().unwrap();
   let started = Instant::now();
   for line in fixture.lines() {
@@ -200,4 +236,11 @@ fn count(haystack: &[u8], needle: &[u8]) -> usize {
     .windows(needle.len())
     .filter(|window| *window == needle)
     .count()
+}
+
+fn find_last(haystack: &[u8], needle: &[u8]) -> Option<usize> {
+  haystack
+    .windows(needle.len())
+    .rposition(|window| window == needle)
+    .map(|index| index + needle.len())
 }
