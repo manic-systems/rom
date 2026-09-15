@@ -143,7 +143,7 @@ cargo test --test pty_live
 Expectations are changed only through an explicit Miri-style blessing pass:
 
 ```console
-ROM_BLESS_EXPECTED=1 cargo test fixture_download_progress
+ROM_BLESS=1 cargo test fixture_download_progress
 git diff -- rom/tests/fixtures
 ```
 
