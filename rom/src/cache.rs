@@ -1,14 +1,15 @@
 use std::{
   collections::HashMap,
   fs::{self, File, OpenOptions},
-  io::{BufReader, BufWriter},
+  io::{self, BufReader, BufWriter},
   path::PathBuf,
   sync::atomic::{AtomicU64, Ordering},
   time::SystemTime,
 };
 
-use chrono::{DateTime, NaiveDateTime, Utc};
 use csv::{Reader, Writer};
+use etcetera::{BaseStrategy, HomeDirError, choose_base_strategy};
+use jiff::{Timestamp, civil::DateTime, tz::Offset};
 use serde::{Deserialize, Serialize};
 
 use crate::state::BuildReport;
@@ -39,14 +40,15 @@ impl BuildReportCache {
   }
 
   /// Get the default cache file path
-  #[must_use]
-  pub fn default_cache_path() -> PathBuf {
-    dirs::state_dir()
-      .unwrap_or_else(|| {
-        dirs::home_dir().unwrap_or_default().join(".local/state")
-      })
-      .join("rom")
-      .join("build-reports-v1.csv")
+  pub fn default_cache_path() -> Result<PathBuf, HomeDirError> {
+    let strategy = choose_base_strategy()?;
+    Ok(
+      strategy
+        .state_dir()
+        .unwrap_or_else(|| strategy.data_dir())
+        .join("rom")
+        .join("build-reports-v1.csv"),
+    )
   }
 
   /// Load build reports from CSV
@@ -135,7 +137,8 @@ impl BuildReportCache {
         let row = BuildReportRow {
           hostname:        hostname.clone(),
           derivation_name: derivation_name.clone(),
-          utc_time:        format_utc_time(report.completed_at),
+          utc_time:        format_utc_time(report.completed_at)
+            .map_err(io::Error::other)?,
           build_seconds:   report.duration_secs as u64,
         };
         csv_writer.serialize(row)?;
@@ -178,21 +181,16 @@ impl BuildReportCache {
   }
 }
 
-pub fn parse_utc_time(s: &str) -> Option<SystemTime> {
-  let ndt = NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").ok()?;
-  let dt: DateTime<Utc> = ndt.and_utc();
-  let secs = dt.timestamp();
-  if secs < 0 {
-    return None;
-  }
-  Some(SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(secs as u64))
+pub fn parse_utc_time(input: &str) -> Option<SystemTime> {
+  let datetime = DateTime::strptime("%Y-%m-%d %H:%M:%S", input).ok()?;
+  let timestamp = Offset::UTC.to_timestamp(datetime).ok()?;
+  Some(timestamp.into())
 }
 
-pub fn format_utc_time(time: SystemTime) -> String {
-  let duration = time
-    .duration_since(SystemTime::UNIX_EPOCH)
-    .unwrap_or_default();
-  let dt = DateTime::<Utc>::from_timestamp(duration.as_secs() as i64, 0)
-    .unwrap_or_default();
-  dt.format("%Y-%m-%d %H:%M:%S").to_string()
+pub fn format_utc_time(time: SystemTime) -> Result<String, jiff::Error> {
+  Ok(
+    Timestamp::try_from(time)?
+      .strftime("%Y-%m-%d %H:%M:%S")
+      .to_string(),
+  )
 }

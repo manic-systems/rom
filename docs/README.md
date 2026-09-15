@@ -48,8 +48,9 @@ byte-exact, so producer-supplied escape bytes in passthrough remain untouched.
 
 The existing tree, plain, and dashboard formats remain available, along with
 compact/table/verbose legends, concise/table/full summaries, log-prefix modes,
-timers, automatic Nerd Font detection, and the `NERD_FONTS=0` or `NERD_FONTS=1`
-override.
+timers, and the `NERD_FONTS=0` or `NERD_FONTS=1` override. Nerd Font icons are
+selected automatically for Ghostty, WezTerm, Kitty, and Superset. For other
+terminals with a patched font, set `NERD_FONTS=1`.
 
 Downloads and uploads are first-class activities. Known-size transfers use the
 block bar `█▛▌▖`, with semantic colors supplied by the active `Theme`.
@@ -98,7 +99,7 @@ let update = engine.process_record_at(
 )?;
 ```
 
-Library-only consumers can disable ROM's default `cli` feature to omit Clap, the
+Library-only consumers can disable ROM's default `cli` feature to omit pound, the
 tracing subscriber, and Unix process-signal dependencies.
 
 `StreamEngine` adds incremental framing without accumulating arbitrarily long

@@ -13,7 +13,7 @@ homepage = "https://github.com/manic-systems/rom"
 [workspace.dependencies]
 cognos = { path = "./crates/cognos", version = "1.0.1" }     # cognos is versioned independently
 
-clap = { version = "4.6.1", features = ["derive"] }
+pound = "0.1.7"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 serde_repr = "0.1.20"
@@ -21,14 +21,13 @@ crossterm = "0.29.0"
 ratatui-core = { version = "0.1.0", features = ["scrolling-regions"] }
 indexmap = { version = "2.14.0", features = ["serde"] }
 csv = "1.4.0"
-chrono = "0.4.44"
+jiff = { version = "0.2.37", default-features = false, features = ["std"] }
 thiserror = "2.0.18"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 eyre = "0.6.12"
-dirs = "6.0.0"
+etcetera = "0.11.0"
 tempfile = "3.27.0"
-has-nerd-font = "0.20260228.0"
 unicode-width = "0.2.2"
 libc = "0.2.183"
 nix-derivation = "0.6.1"
