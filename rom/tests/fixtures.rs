@@ -67,14 +67,14 @@ fn read_events(root: &Path) -> Vec<Event> {
 }
 
 fn assert_or_bless(path: &Path, actual: &str) {
-  if std::env::var_os("ROM_BLESS_EXPECTED").is_some() {
+  if std::env::var_os("ROM_BLESS").is_some() {
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, format!("{actual}\n")).unwrap();
     return;
   }
   let expected = fs::read_to_string(path).unwrap_or_else(|_| {
     panic!(
-      "missing expectation {}; run ROM_BLESS_EXPECTED=1 cargo test fixture_",
+      "missing expectation {}; run ROM_BLESS=1 cargo test fixture_",
       path.display()
     )
   });
