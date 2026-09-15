@@ -18,6 +18,7 @@ const BEGIN_SYNC: &[u8] = b"\x1b[?2026h";
 const END_SYNC: &[u8] = b"\x1b[?2026l";
 const MIN_LIVE_COLUMNS: u16 = 20;
 const MIN_LIVE_ROWS: u16 = 8;
+const MAX_PENDING_BYTES: usize = 64 * 1024;
 
 /// Why live presentation was or was not admitted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -60,6 +61,7 @@ pub struct LiveTerminal<W: Write> {
   retired:      bool,
   finished:     bool,
   pending:      Vec<u8>,
+  partial_line: bool,
 }
 
 impl<W: Write> LiveTerminal<W> {
@@ -72,6 +74,7 @@ impl<W: Write> LiveTerminal<W> {
       retired: false,
       finished: false,
       pending: Vec::new(),
+      partial_line: false,
     }
   }
 
@@ -93,10 +96,19 @@ impl<W: Write> LiveTerminal<W> {
       return Ok(false);
     }
     if !self.pending.is_empty() && !self.pending.ends_with(b"\n") {
-      if final_render {
-        self.retire()?;
+      self.partial_line = true;
+      self.clear_graph()?;
+      self.writer.flush()?;
+    }
+    if self.partial_line {
+      if self.pending.ends_with(b"\n") {
+        self.partial_line = false;
+      } else if final_render {
+        self.pending.extend_from_slice(b"\r\n");
+        self.partial_line = false;
+      } else {
+        return Ok(false);
       }
-      return Ok(false);
     }
     for _ in 0..3 {
       let (columns, rows) = crossterm::terminal::size()?;
@@ -156,11 +168,23 @@ impl<W: Write> LiveTerminal<W> {
     }
     if self.retired {
       self.writer.write_all(input)?;
-      self.writer.flush()
-    } else {
-      self.pending.extend_from_slice(input);
-      Ok(())
+      return self.writer.flush();
     }
+    let mut offset = 0;
+    while offset < input.len() {
+      let count =
+        (MAX_PENDING_BYTES - self.pending.len()).min(input.len() - offset);
+      self
+        .pending
+        .extend_from_slice(&input[offset..offset + count]);
+      offset += count;
+      if self.pending.len() == MAX_PENDING_BYTES {
+        self.partial_line = !self.pending.ends_with(b"\n");
+        self.clear_graph()?;
+        self.writer.flush()?;
+      }
+    }
+    Ok(())
   }
 
   pub fn retire(&mut self) -> io::Result<()> {
