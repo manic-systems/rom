@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use cognos::{Activities, Host, Id, Verbosity};
+use cognos::{Activities, Host, Id};
 
 use crate::{
   cache::BuildReportCache,
@@ -62,7 +62,7 @@ pub(crate) fn apply_event_at(
       effects.changed |= apply_message(state, &message, now, &mut effects);
       effects.log = Some(LogEffect {
         activity: None,
-        force:    matches!(message.level, Verbosity::Error),
+        force:    message.is_error,
         styled:   message.styled,
         plain:    message.plain,
       });
@@ -247,9 +247,7 @@ fn apply_message(
     }
   }
 
-  if matches!(message.level, Verbosity::Error)
-    && (message.plain.contains("error:") || message.plain.contains("failed"))
-  {
+  if message.is_error {
     state.record_error(message.plain.clone());
     changed = true;
     if let Some(derivation) = &message.derivation {
