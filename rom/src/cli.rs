@@ -4,8 +4,12 @@ use std::{
   collections::HashSet,
   io::{self, IsTerminal, Read, Write},
   path::PathBuf,
-  process::{Command, Stdio},
-  sync::mpsc::{self, Receiver, RecvTimeoutError},
+  process::{Command, ExitCode, Stdio},
+  sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+    mpsc::{self, Receiver, RecvTimeoutError},
+  },
   thread,
   time::{Duration, Instant},
 };
@@ -92,7 +96,7 @@ struct WrapperConfig {
   monitor:  Config,
 }
 
-pub fn run() -> eyre::Result<()> {
+pub fn run() -> eyre::Result<ExitCode> {
   let mut process_args = std::env::args_os();
   let program = process_args
     .next()
@@ -180,6 +184,7 @@ pub fn run() -> eyre::Result<()> {
         && config.monitor.engine.input_mode == InputMode::Json
       {
         run_input(io::stdin(), config.monitor.clone())
+          .map(|()| ExitCode::SUCCESS)
       } else {
         build(packages, nix_flags, &config)
       }
@@ -189,6 +194,7 @@ pub fn run() -> eyre::Result<()> {
         && config.monitor.engine.input_mode == InputMode::Json
       {
         run_input(io::stdin(), config.monitor.clone())
+          .map(|()| ExitCode::SUCCESS)
       } else {
         shell(packages, nix_flags, &config)
       }
@@ -198,11 +204,14 @@ pub fn run() -> eyre::Result<()> {
         && config.monitor.engine.input_mode == InputMode::Json
       {
         run_input(io::stdin(), config.monitor.clone())
+          .map(|()| ExitCode::SUCCESS)
       } else {
         develop(packages, nix_flags, &config)
       }
     },
-    None => run_input(io::stdin(), config.monitor.clone()),
+    None => {
+      run_input(io::stdin(), config.monitor.clone()).map(|()| ExitCode::SUCCESS)
+    },
   }
 }
 
@@ -234,7 +243,7 @@ fn build(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<()> {
+) -> eyre::Result<ExitCode> {
   require_packages("build", &packages)?;
   let mut arguments = vec![
     "build".to_string(),
@@ -244,18 +253,18 @@ fn build(
   ];
   arguments.extend(packages);
   arguments.extend(nix_flags);
-  exit_with(run_monitored_command(
+  Ok(exit_code(run_monitored_command(
     config.platform.binary(),
     arguments,
     config,
-  )?)
+  )?))
 }
 
 fn shell(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<()> {
+) -> eyre::Result<ExitCode> {
   require_packages("shell", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
@@ -268,39 +277,43 @@ fn shell(
   let code =
     run_monitored_command(config.platform.binary(), monitored, config)?;
   if code != 0 {
-    return exit_with(code);
+    return Ok(exit_code(code));
   }
   let mut arguments = vec!["shell".to_string()];
   arguments.extend(packages);
   arguments.extend(nix_flags);
-  exit_with(run_inherited(config.platform.binary(), &arguments)?)
+  Ok(exit_code(run_inherited(
+    config.platform.binary(),
+    &arguments,
+  )?))
 }
 
 fn develop(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<()> {
+) -> eyre::Result<ExitCode> {
   require_packages("develop", &packages)?;
+  let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
     "develop".to_string(),
     nix_verbosity_flag(config.verbose),
     "--log-format".to_string(),
     "internal-json".to_string(),
-    "--command".to_string(),
-    "true".to_string(),
   ];
-  monitored.extend(packages.clone());
-  monitored.extend(nix_flags.clone());
+  monitored.extend(replace_command_with_exit(&original));
   let code =
     run_monitored_command(config.platform.binary(), monitored, config)?;
   if code != 0 {
-    return exit_with(code);
+    return Ok(exit_code(code));
   }
   let mut arguments = vec!["develop".to_string()];
   arguments.extend(packages);
   arguments.extend(nix_flags);
-  exit_with(run_inherited(config.platform.binary(), &arguments)?)
+  Ok(exit_code(run_inherited(
+    config.platform.binary(),
+    &arguments,
+  )?))
 }
 
 fn run_inherited(command: &str, arguments: &[String]) -> io::Result<i32> {
@@ -308,11 +321,11 @@ fn run_inherited(command: &str, arguments: &[String]) -> io::Result<i32> {
   Ok(exit_status_code(status))
 }
 
-fn exit_with(code: i32) -> eyre::Result<()> {
-  if code != 0 {
-    std::process::exit(code);
-  }
-  Ok(())
+/// Converts a child's exit status to ours, keeping the low byte as `exit`
+/// does.
+fn exit_code(code: i32) -> ExitCode {
+  let [low, ..] = code.to_le_bytes();
+  ExitCode::from(low)
 }
 
 fn run_monitored_command(
@@ -332,6 +345,10 @@ fn run_monitored_command(
   let mut child = command.spawn().map_err(RomError::Io)?;
   #[cfg(unix)]
   let signal_forwarder = SignalForwarder::start(child.id())?;
+  #[cfg(unix)]
+  let interrupted = Arc::clone(&signal_forwarder.interrupted);
+  #[cfg(not(unix))]
+  let interrupted = Arc::new(AtomicBool::new(false));
   let stdout = child
     .stdout
     .take()
@@ -350,7 +367,7 @@ fn run_monitored_command(
   let (receiver, reader_thread) = byte_reader(stderr);
   let mut monitor_config = config.monitor.clone();
   monitor_config.engine.input_mode = InputMode::Auto;
-  let result = drive(receiver, monitor_config, false);
+  let result = drive(receiver, monitor_config, false, &interrupted);
   if result.is_err() {
     terminate_process(&mut child);
   }
@@ -382,8 +399,9 @@ fn terminate_process(child: &mut std::process::Child) {
 
 #[cfg(unix)]
 struct SignalForwarder {
-  handle:  signal_hook::iterator::Handle,
-  _thread: thread::JoinHandle<()>,
+  handle:      signal_hook::iterator::Handle,
+  interrupted: Arc<AtomicBool>,
+  _thread:     thread::JoinHandle<()>,
 }
 
 #[cfg(unix)]
@@ -393,16 +411,32 @@ impl SignalForwarder {
     let mut signals =
       signal_hook::iterator::Signals::new([SIGINT, SIGTERM, SIGHUP])?;
     let handle = signals.handle();
+    let interrupted = Arc::new(AtomicBool::new(false));
+    let seen = Arc::clone(&interrupted);
     let thread = thread::spawn(move || {
       for signal in signals.forever() {
+        // A second signal arrives when the first did not end rom quickly
+        // enough, so it stops everything instead of being forwarded again.
+        let repeated = seen.swap(true, Ordering::SeqCst);
         // SAFETY: the child was spawned as the leader of this process group.
         unsafe {
-          libc::kill(-(process_group as i32), signal);
+          libc::kill(
+            -(process_group as i32),
+            if repeated { libc::SIGKILL } else { signal },
+          );
+        }
+        if repeated {
+          // exit skips the live view's teardown, which shows the cursor again
+          if io::stderr().is_terminal() {
+            let _ = crossterm::execute!(io::stderr(), crossterm::cursor::Show);
+          }
+          std::process::exit(128 + signal);
         }
       }
     });
     Ok(Self {
       handle,
+      interrupted,
       _thread: thread,
     })
   }
@@ -417,11 +451,11 @@ fn run_input<R: Read + Send + 'static>(
   config: Config,
 ) -> eyre::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
-  let result = drive(receiver, config, true);
+  drive(receiver, config, true, &AtomicBool::new(false))?;
   reader_thread
     .join()
     .map_err(|_| RomError::process("input reader panicked"))??;
-  result
+  Ok(())
 }
 
 fn byte_reader<R: Read + Send + 'static>(
@@ -589,6 +623,7 @@ fn drive(
   receiver: Receiver<io::Result<Vec<u8>>>,
   config: Config,
   semantic_failure_is_error: bool,
+  interrupted: &AtomicBool,
 ) -> eyre::Result<()> {
   let Config { engine, render } = config;
   let silent = engine.silent;
@@ -634,7 +669,7 @@ fn drive(
   let final_output = stream.finish_at(current_time())?;
   presenter.output(final_output.output, &render)?;
   if !silent {
-    for id in available_derivations(stream.engine().state())? {
+    for id in available_derivations(stream.engine().state(), interrupted)? {
       stream.engine_mut().mark_available(id);
     }
     let _ = presenter.render(&stream, &render, current_time(), true)?;
@@ -652,7 +687,10 @@ fn drive(
   Ok(())
 }
 
-fn available_derivations(state: &State) -> io::Result<Vec<DerivationId>> {
+fn available_derivations(
+  state: &State,
+  interrupted: &AtomicBool,
+) -> io::Result<Vec<DerivationId>> {
   let mut relevant: HashSet<_> = state
     .derivations()
     .iter()
@@ -684,7 +722,18 @@ fn available_derivations(state: &State) -> io::Result<Vec<DerivationId>> {
   let mut pending: Vec<_> = candidates.chunks(128).collect();
   let mut available = Vec::new();
   while let Some(batch) = pending.pop() {
-    let output = Command::new("nix")
+    if interrupted.load(Ordering::SeqCst) {
+      break;
+    }
+    let mut query = Command::new("nix");
+    // Its own group keeps a terminal Ctrl-C from killing the query, which
+    // would read as a missing output and split the batch further.
+    #[cfg(unix)]
+    {
+      use std::os::unix::process::CommandExt;
+      query.process_group(0);
+    }
+    let output = query
       .args([
         "path-info",
         "--offline",
@@ -718,15 +767,11 @@ fn available_derivations(state: &State) -> io::Result<Vec<DerivationId>> {
 #[must_use]
 pub fn replace_command_with_exit(arguments: &[String]) -> Vec<String> {
   let mut result = Vec::new();
-  let mut skip = false;
   for argument in arguments {
-    if skip {
-      skip = false;
-    } else if argument == "--command" || argument == "-c" {
-      skip = true;
-    } else {
-      result.push(argument.clone());
+    if argument == "--command" || argument == "-c" {
+      break;
     }
+    result.push(argument.clone());
   }
   result.extend(["--command", "sh", "-c", "exit"].map(str::to_string));
   result
