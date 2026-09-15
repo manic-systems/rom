@@ -1,5 +1,5 @@
 use std::{
-  collections::HashMap,
+  collections::{HashMap, HashSet},
   fs::{self, File, OpenOptions},
   io::{self, BufReader, BufWriter},
   path::PathBuf,
@@ -9,7 +9,7 @@ use std::{
 
 use csv::{Reader, Writer};
 use etcetera::{BaseStrategy, HomeDirError, choose_base_strategy};
-use jiff::{Timestamp, civil::DateTime, tz::Offset};
+use jiff::Timestamp;
 use serde::{Deserialize, Serialize};
 
 use crate::state::BuildReport;
@@ -112,6 +112,32 @@ impl BuildReportCache {
       fs::create_dir_all(parent)?;
     }
 
+    let lock_path = self.cache_path.with_extension("lock");
+    let lock_file = OpenOptions::new()
+      .read(true)
+      .write(true)
+      .create(true)
+      .truncate(false)
+      .open(&lock_path)?;
+    lock_file.lock()?;
+
+    let mut merged = self.load();
+    for ((hostname, derivation_name), entries) in reports {
+      let key = (hostname.clone(), derivation_name.clone());
+      merged
+        .entry(key)
+        .or_default()
+        .extend(entries.iter().cloned());
+    }
+    for entries in merged.values_mut() {
+      let mut seen = HashSet::new();
+      entries.retain(|report| {
+        seen.insert((report.completed_at, report.duration_secs as u64))
+      });
+      entries.sort_by_key(|entry| std::cmp::Reverse(entry.completed_at));
+      entries.truncate(HISTORY_LIMIT);
+    }
+
     // Write to a temp file in the same directory, then rename atomically.
     let sequence = TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed);
     let tmp_path = self.cache_path.with_extension(format!(
@@ -125,36 +151,35 @@ impl BuildReportCache {
       .create_new(true)
       .open(&tmp_path)?;
 
-    let writer = BufWriter::new(file);
-    let mut csv_writer = Writer::from_writer(writer);
+    let result: io::Result<()> = (|| {
+      let writer = BufWriter::new(file);
+      let mut csv_writer = Writer::from_writer(writer);
 
-    // Flatten and write all reports
-    for ((hostname, derivation_name), entries) in reports {
-      let mut entries = entries.clone();
-      entries.sort_by_key(|entry| std::cmp::Reverse(entry.completed_at));
-      entries.truncate(HISTORY_LIMIT);
-      for report in entries {
-        let row = BuildReportRow {
-          hostname:        hostname.clone(),
-          derivation_name: derivation_name.clone(),
-          utc_time:        format_utc_time(report.completed_at)
-            .map_err(io::Error::other)?,
-          build_seconds:   report.duration_secs as u64,
-        };
-        csv_writer.serialize(row)?;
+      // Flatten and write all reports
+      for ((hostname, derivation_name), entries) in &merged {
+        for report in entries {
+          let row = BuildReportRow {
+            hostname:        hostname.clone(),
+            derivation_name: derivation_name.clone(),
+            utc_time:        format_utc_time(report.completed_at)
+              .map_err(io::Error::other)?,
+            build_seconds:   report.duration_secs as u64,
+          };
+          csv_writer.serialize(row)?;
+        }
       }
-    }
 
-    csv_writer.flush()?;
-    drop(csv_writer);
+      csv_writer.flush()?;
+      drop(csv_writer);
 
-    // Atomic replace
-    if let Err(error) = fs::rename(&tmp_path, &self.cache_path) {
+      // Atomic replace
+      fs::rename(&tmp_path, &self.cache_path)?;
+      Ok(())
+    })();
+    if result.is_err() {
       let _ = fs::remove_file(&tmp_path);
-      return Err(error);
     }
-
-    Ok(())
+    result
   }
 
   /// Calculate median build time from historical reports
@@ -182,15 +207,9 @@ impl BuildReportCache {
 }
 
 pub fn parse_utc_time(input: &str) -> Option<SystemTime> {
-  let datetime = DateTime::strptime("%Y-%m-%d %H:%M:%S", input).ok()?;
-  let timestamp = Offset::UTC.to_timestamp(datetime).ok()?;
-  Some(timestamp.into())
+  Some(input.parse::<Timestamp>().ok()?.into())
 }
 
 pub fn format_utc_time(time: SystemTime) -> Result<String, jiff::Error> {
-  Ok(
-    Timestamp::try_from(time)?
-      .strftime("%Y-%m-%d %H:%M:%S")
-      .to_string(),
-  )
+  Ok(Timestamp::try_from(time)?.to_string())
 }
