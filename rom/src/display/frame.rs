@@ -4,6 +4,7 @@ use ratatui_core::{
   buffer::Buffer,
   style::{Color, Modifier},
 };
+use unicode_width::UnicodeWidthStr;
 
 use crate::{
   state::State,
@@ -25,10 +26,13 @@ impl Frame {
     (0..self.height)
       .map(|y| {
         let mut line = String::new();
-        for x in 0..area.width {
-          if let Some(cell) = self.buffer.cell((x, y)) {
-            line.push_str(cell.symbol());
-          }
+        let mut column = 0;
+        while column < usize::from(area.width) {
+          let Some(cell) = self.buffer.cell((column as u16, y)) else {
+            break;
+          };
+          line.push_str(cell.symbol());
+          column += cell.symbol().width().max(1);
         }
         line.trim_end().to_string()
       })
@@ -54,9 +58,10 @@ impl Frame {
       });
       let mut style = (Color::Reset, Color::Reset, Modifier::empty());
       if let Some(last) = last {
-        for x in 0..=last {
-          let Some(cell) = self.buffer.cell((x, y)) else {
-            continue;
+        let mut column = 0;
+        while column <= usize::from(last) {
+          let Some(cell) = self.buffer.cell((column as u16, y)) else {
+            break;
           };
           let next_style = (cell.fg, cell.bg, cell.modifier);
           if next_style != style {
@@ -68,6 +73,7 @@ impl Frame {
             style = next_style;
           }
           output.push_str(cell.symbol());
+          column += cell.symbol().width().max(1);
         }
       }
       if style != (Color::Reset, Color::Reset, Modifier::empty()) {
