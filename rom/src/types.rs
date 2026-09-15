@@ -1,5 +1,6 @@
 //! Public configuration and presentation types.
 
+use cognos::Verbosity;
 use ratatui_core::style::Color;
 
 /// How ROM interprets structured input records.
@@ -152,6 +153,7 @@ impl Default for Theme {
 #[derive(Debug, Clone)]
 pub struct EngineConfig {
   pub silent:           bool,
+  pub verbosity:        Verbosity,
   pub input_mode:       InputMode,
   pub log_prefix_style: LogPrefixStyle,
   /// Maximum decoded builder log lines per activity.
@@ -180,6 +182,7 @@ impl Default for EngineConfig {
   fn default() -> Self {
     Self {
       silent:           false,
+      verbosity:        Verbosity::Info,
       input_mode:       InputMode::Auto,
       log_prefix_style: LogPrefixStyle::Short,
       log_line_limit:   None,
