@@ -9,7 +9,7 @@ use crossterm::{
 };
 
 use crate::{
-  display::{Frame, render_frame, write_final},
+  display::{render_frame, write_final},
   state::State,
   types::RenderConfig,
 };
@@ -18,6 +18,8 @@ const BEGIN_SYNC: &[u8] = b"\x1b[?2026h";
 const END_SYNC: &[u8] = b"\x1b[?2026l";
 const MIN_LIVE_COLUMNS: u16 = 20;
 const MIN_LIVE_ROWS: u16 = 8;
+const MAX_PENDING_BYTES: usize = 64 * 1024;
+const PARTIAL_LINE_GRACE: f64 = 0.5;
 
 /// Why live presentation was or was not admitted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -54,12 +56,15 @@ const fn admission_from(is_terminal: bool, multiplexer: bool) -> Admission {
 
 /// Owns the live graph region and serializes all terminal output.
 pub struct LiveTerminal<W: Write> {
-  writer:       W,
-  graph_height: u16,
-  initialized:  bool,
-  retired:      bool,
-  finished:     bool,
-  pending:      Vec<u8>,
+  writer:        W,
+  graph_height:  u16,
+  initialized:   bool,
+  retired:       bool,
+  finished:      bool,
+  pending:       Vec<u8>,
+  partial_line:  bool,
+  partial_since: Option<f64>,
+  frame:         String,
 }
 
 impl<W: Write> LiveTerminal<W> {
@@ -72,6 +77,9 @@ impl<W: Write> LiveTerminal<W> {
       retired: false,
       finished: false,
       pending: Vec::new(),
+      partial_line: false,
+      partial_since: None,
+      frame: String::new(),
     }
   }
 
@@ -92,11 +100,28 @@ impl<W: Write> LiveTerminal<W> {
     if self.retired {
       return Ok(false);
     }
-    if !self.pending.is_empty() && !self.pending.ends_with(b"\n") {
-      if final_render {
-        self.retire()?;
+    let mut complete = complete_lines(&self.pending);
+    if final_render && complete < self.pending.len() {
+      self.pending.extend_from_slice(b"\r\n");
+      complete = self.pending.len();
+    }
+    if self.partial_line {
+      if complete == 0 {
+        return Ok(false);
       }
-      return Ok(false);
+      self.partial_line = false;
+    }
+    if complete == self.pending.len() {
+      self.partial_since = None;
+    } else {
+      let since = *self.partial_since.get_or_insert(now);
+      if now - since >= PARTIAL_LINE_GRACE {
+        self.partial_since = None;
+        self.partial_line = true;
+        self.clear_graph()?;
+        self.writer.flush()?;
+        return Ok(false);
+      }
     }
     for _ in 0..3 {
       let (columns, rows) = crossterm::terminal::size()?;
@@ -106,14 +131,28 @@ impl<W: Write> LiveTerminal<W> {
       }
       let frame =
         render_frame(state, config, now, columns - 1, rows - 1, final_render);
-      let bytes = self.compose(&frame)?;
+      // A shorter frame would leave blank rows under it, lifting the graph off
+      // the bottom of the screen. Keep the region's height until new log lines
+      // take over the freed rows; the final frame needs no anchoring.
+      let logs = &self.pending[..complete];
+      let log_lines = logs.iter().filter(|&&byte| byte == b'\n').count();
+      let reserved = if final_render {
+        0
+      } else {
+        usize::from(self.graph_height).saturating_sub(log_lines)
+      };
+      let padding = reserved.saturating_sub(usize::from(frame.height));
+      let text =
+        "\r\n".repeat(padding) + &frame.ansi_text().replace('\n', "\r\n");
+      let bytes = self.compose(logs, &text)?;
       if crossterm::terminal::size()? != (columns, rows) {
         continue;
       }
       self.writer.write_all(&bytes)?;
       self.writer.flush()?;
-      self.pending.clear();
-      self.graph_height = frame.height.min(rows - 1);
+      self.pending.drain(..complete);
+      self.frame = text;
+      self.graph_height = (frame.height + padding as u16).min(rows - 1);
       self.initialized = true;
       return Ok(true);
     }
@@ -121,15 +160,14 @@ impl<W: Write> LiveTerminal<W> {
     Ok(false)
   }
 
-  fn compose(&self, frame: &Frame) -> io::Result<Vec<u8>> {
+  fn compose(&self, logs: &[u8], frame: &str) -> io::Result<Vec<u8>> {
     let mut bytes = Vec::new();
     bytes.extend_from_slice(BEGIN_SYNC);
     queue!(bytes, Hide)?;
     self.queue_clear_graph(&mut bytes)?;
-    bytes.extend_from_slice(&self.pending);
+    bytes.extend_from_slice(logs);
     queue!(bytes, MoveToColumn(0))?;
-    bytes
-      .extend_from_slice(&frame.ansi_text().replace('\n', "\r\n").into_bytes());
+    bytes.extend_from_slice(frame.as_bytes());
     queue!(bytes, Show)?;
     bytes.extend_from_slice(END_SYNC);
     Ok(bytes)
@@ -156,11 +194,34 @@ impl<W: Write> LiveTerminal<W> {
     }
     if self.retired {
       self.writer.write_all(input)?;
-      self.writer.flush()
-    } else {
-      self.pending.extend_from_slice(input);
-      Ok(())
+      return self.writer.flush();
     }
+    let mut offset = 0;
+    while offset < input.len() {
+      let count =
+        (MAX_PENDING_BYTES - self.pending.len()).min(input.len() - offset);
+      self
+        .pending
+        .extend_from_slice(&input[offset..offset + count]);
+      offset += count;
+      if self.pending.len() == MAX_PENDING_BYTES {
+        self.overflow()?;
+      }
+    }
+    Ok(())
+  }
+
+  fn overflow(&mut self) -> io::Result<()> {
+    let complete = complete_lines(&self.pending);
+    if !self.initialized || complete == 0 {
+      self.partial_line = !self.pending.ends_with(b"\n");
+      self.clear_graph()?;
+      return self.writer.flush();
+    }
+    let bytes = self.compose(&self.pending[..complete], &self.frame)?;
+    self.writer.write_all(&bytes)?;
+    self.pending.drain(..complete);
+    self.writer.flush()
   }
 
   pub fn retire(&mut self) -> io::Result<()> {
@@ -226,6 +287,13 @@ impl<W: Write> LiveTerminal<W> {
   }
 }
 
+fn complete_lines(bytes: &[u8]) -> usize {
+  bytes
+    .iter()
+    .rposition(|&byte| byte == b'\n')
+    .map_or(0, |index| index + 1)
+}
+
 const fn live_geometry(columns: u16, rows: u16) -> bool {
   columns >= MIN_LIVE_COLUMNS && rows >= MIN_LIVE_ROWS
 }
@@ -258,7 +326,7 @@ mod tests {
     let config = RenderConfig::default();
     let frame = render_frame(&State::new(), &config, 0.0, 39, 8, true);
     let terminal = LiveTerminal::new(Vec::<u8>::new());
-    let bytes = terminal.compose(&frame).unwrap();
+    let bytes = terminal.compose(&[], &frame.ansi_text()).unwrap();
     assert_eq!(count(&bytes, BEGIN_SYNC), 1);
     assert_eq!(count(&bytes, END_SYNC), 1);
     assert!(!bytes.windows(4).any(|window| window == b"\x1b[2J"));
@@ -285,7 +353,7 @@ mod tests {
     );
     assert!(frame.text().starts_with("┏━ Builds\n┣━"));
     let terminal = LiveTerminal::new(Vec::<u8>::new());
-    let bytes = terminal.compose(&frame).unwrap();
+    let bytes = terminal.compose(&[], &frame.ansi_text()).unwrap();
     assert_eq!(count(&bytes, BEGIN_SYNC), 1);
     assert_eq!(count(&bytes, END_SYNC), 1);
     assert!(bytes.windows(4).any(|window| window == b"demo"));
@@ -301,7 +369,9 @@ mod tests {
     terminal
       .pending
       .extend_from_slice(b"a deliberately very long wrapped log line\n");
-    let bytes = terminal.compose(&frame).unwrap();
+    let bytes = terminal
+      .compose(&terminal.pending, &frame.ansi_text())
+      .unwrap();
     let log = find(&bytes, b"deliberately").unwrap();
     let graph = find(&bytes, b"Finished").unwrap();
     assert!(log < graph);
