@@ -82,7 +82,13 @@ impl Renderer<'_> {
   /// Build one typed row graph. Selection and rendering operate on these same
   /// rows, so transfer placement cannot be lost in parallel index maps.
   pub(super) fn tree_plan(&self) -> TreePlan {
-    let mut relevance = vec![0_u8; self.snapshot.derivations.len()];
+    let slots = self
+      .snapshot
+      .derivations
+      .keys()
+      .max()
+      .map_or(0, |id| id + 1);
+    let mut relevance = vec![0_u8; slots];
     let mut pending = VecDeque::new();
 
     for (&id, info) in self.snapshot.derivations {
