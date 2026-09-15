@@ -43,7 +43,7 @@ pub(crate) enum ActivitySubject {
 
 #[derive(Debug, Clone)]
 pub(crate) struct MessageEvent {
-  pub level:        Verbosity,
+  pub is_error:     bool,
   pub styled:       String,
   pub plain:        String,
   pub announcement: Option<Announcement>,
@@ -93,10 +93,20 @@ impl Event {
         ..
       } => {
         let plain = raw_msg.unwrap_or_else(|| msg.clone());
+        let mut diagnostic = msg.as_str();
+        while let Some(styled) = diagnostic.strip_prefix("\x1b[") {
+          let Some((_, rest)) = styled.split_once('m') else {
+            break;
+          };
+          diagnostic = rest;
+        }
+        let is_error = matches!(level, Verbosity::Error)
+          && !diagnostic.starts_with("trace: ")
+          && !diagnostic.starts_with("warning:");
         Self::Message(MessageEvent {
           announcement: announcement(level, &plain),
           derivation: extract_derivation(&plain),
-          level,
+          is_error,
           styled: msg,
           plain,
         })
