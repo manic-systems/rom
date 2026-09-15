@@ -13,7 +13,7 @@ use crate::{
   display::{format_log, write_final},
   error::{Result, RomError},
   event::Event,
-  state::{Derivation, State, current_time},
+  state::{Derivation, DerivationId, State, current_time},
   types::{Config, EngineConfig, InputMode, LogLine, RenderConfig},
   update::{self, LogEffect},
 };
@@ -115,6 +115,10 @@ impl Engine {
   #[must_use]
   pub const fn state(&self) -> &State {
     &self.state
+  }
+
+  pub fn mark_available(&mut self, id: DerivationId) -> bool {
+    self.state.mark_available(id)
   }
 
   pub fn set_resolver(&mut self, resolver: impl DerivationResolver + 'static) {

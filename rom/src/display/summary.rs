@@ -326,6 +326,13 @@ impl Renderer<'_> {
         format!("Input ended with {active} unfinished {noun} after {elapsed}"),
         self.config.theme.running,
       )
+    } else if self.snapshot.counts.builds.waiting > 0 {
+      let waiting = self.snapshot.counts.builds.waiting;
+      let noun = if waiting == 1 { "build" } else { "builds" };
+      (
+        format!("Input ended with {waiting} planned {noun} after {elapsed}"),
+        self.config.theme.planned,
+      )
     } else {
       (
         format!("Finished after {elapsed}"),
