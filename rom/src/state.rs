@@ -142,8 +142,15 @@ pub enum BuildStatus {
   Unknown,
   Planned,
   Building(BuildInfo),
-  Built { info: BuildInfo, end: f64 },
-  Failed { info: BuildInfo, fail: BuildFail },
+  Built {
+    info:         BuildInfo,
+    end:          f64,
+    completed_at: SystemTime,
+  },
+  Failed {
+    info: BuildInfo,
+    fail: BuildFail,
+  },
 }
 
 /// Derivation information
@@ -302,19 +309,6 @@ impl State {
       .map(Vec::as_slice)
   }
 
-  pub(crate) fn record_build_report(
-    &mut self,
-    host: &Host,
-    derivation: &str,
-    report: BuildReport,
-  ) {
-    self
-      .build_cache
-      .entry((host.name().to_string(), derivation.to_string()))
-      .or_default()
-      .push(report);
-  }
-
   pub(crate) fn get_or_create_store_path_id(
     &mut self,
     path: StorePath,
@@ -358,6 +352,114 @@ impl State {
     self.derivation_ids.insert(drv, id);
 
     id
+  }
+
+  pub(crate) fn resolve_derivation(
+    &mut self,
+    original: Derivation,
+    resolved: Derivation,
+  ) -> DerivationId {
+    if !self.derivation_ids.contains_key(&original)
+      && let Some(&id) = self.derivation_ids.get(&resolved)
+    {
+      self.derivation_ids.insert(original, id);
+      return id;
+    }
+    let original_id = self.get_or_create_derivation_id(original);
+    if let Some(resolved_id) = self.derivation_ids.insert(resolved, original_id)
+      && resolved_id != original_id
+    {
+      self.merge_derivations(original_id, resolved_id);
+    }
+    original_id
+  }
+
+  fn merge_derivations(
+    &mut self,
+    original: DerivationId,
+    resolved: DerivationId,
+  ) {
+    let resolved_info = self
+      .derivation_infos
+      .shift_remove(&resolved)
+      .expect("resolved derivation exists");
+    let original_info = &mut self.derivation_infos[&original];
+    if matches!(
+      original_info.build_status,
+      BuildStatus::Unknown | BuildStatus::Planned
+    ) && !matches!(resolved_info.build_status, BuildStatus::Unknown)
+    {
+      original_info.build_status = resolved_info.build_status;
+    }
+    for child in resolved_info.input_derivations {
+      if !original_info.input_derivations.contains(&child) {
+        original_info.input_derivations.push(child);
+      }
+    }
+    original_info
+      .derivation_parents
+      .extend(resolved_info.derivation_parents);
+    original_info.pname = original_info.pname.take().or(resolved_info.pname);
+    original_info.platform =
+      original_info.platform.take().or(resolved_info.platform);
+
+    for id in self.derivation_ids.values_mut() {
+      if *id == resolved {
+        *id = original;
+      }
+    }
+    for (&id, info) in &mut self.derivation_infos {
+      let has_original = info.input_derivations.contains(&original);
+      info.input_derivations.retain_mut(|child| {
+        if *child == resolved {
+          *child = original;
+          !has_original && *child != id
+        } else {
+          *child != id
+        }
+      });
+      if info.derivation_parents.remove(&resolved) && original != id {
+        info.derivation_parents.insert(original);
+      }
+      info.derivation_parents.remove(&id);
+    }
+    for info in self.store_path_infos.values_mut() {
+      if info.producer == Some(resolved) {
+        info.producer = Some(original);
+      }
+      if info.input_for.remove(&resolved) {
+        info.input_for.insert(original);
+      }
+    }
+    for activity in self.activities.values_mut() {
+      if activity.derivation == Some(resolved) {
+        activity.derivation = Some(original);
+      }
+    }
+    for transfer in self
+      .full_summary
+      .running_downloads
+      .values_mut()
+      .chain(self.full_summary.running_uploads.values_mut())
+    {
+      if transfer.parent == Some(resolved) {
+        transfer.parent = Some(original);
+      }
+    }
+    for transfer in self
+      .full_summary
+      .completed_downloads
+      .values_mut()
+      .chain(self.full_summary.completed_uploads.values_mut())
+    {
+      if transfer.parent == Some(resolved) {
+        transfer.parent = Some(original);
+      }
+    }
+    self
+      .forest_roots
+      .retain(|&id| id != resolved && id != original);
+    self.ensure_root(original);
   }
 
   /// Apply derivation metadata returned by an injected resolver.
@@ -502,6 +604,71 @@ impl State {
       self.ensure_root(id);
     }
     id
+  }
+
+  pub(crate) fn complete_build(&mut self, id: DerivationId, now: f64) -> bool {
+    let Some(info) = self.derivation_infos.get_mut(&id) else {
+      return false;
+    };
+    if !matches!(info.build_status, BuildStatus::Building(_)) {
+      return false;
+    }
+    let BuildStatus::Building(build) =
+      std::mem::replace(&mut info.build_status, BuildStatus::Unknown)
+    else {
+      unreachable!("build status was checked");
+    };
+    let completed_at = SystemTime::now();
+    self
+      .build_cache
+      .entry((build.host.name().to_string(), info.name.name.clone()))
+      .or_default()
+      .push(BuildReport {
+        duration_secs: now - build.start,
+        completed_at,
+      });
+    info.build_status = BuildStatus::Built {
+      info: build,
+      end: now,
+      completed_at,
+    };
+    true
+  }
+
+  pub(crate) fn fail_build(&mut self, id: DerivationId, fail: BuildFail) {
+    let Some(info) = self.derivation_infos.get_mut(&id) else {
+      return;
+    };
+    if !matches!(
+      info.build_status,
+      BuildStatus::Building(_) | BuildStatus::Built { .. }
+    ) {
+      return;
+    }
+    let previous =
+      std::mem::replace(&mut info.build_status, BuildStatus::Unknown);
+    let build = match previous {
+      BuildStatus::Building(build) => build,
+      BuildStatus::Built {
+        info: build,
+        completed_at,
+        ..
+      } => {
+        if let Some(reports) = self
+          .build_cache
+          .get_mut(&(build.host.name().to_string(), info.name.name.clone()))
+        {
+          reports.retain(|report| report.completed_at != completed_at);
+        }
+        build
+      },
+      BuildStatus::Unknown
+      | BuildStatus::Planned
+      | BuildStatus::Failed { .. } => {
+        unreachable!("build status was checked");
+      },
+    };
+    info.build_status = BuildStatus::Failed { info: build, fail };
   }
 
   pub(crate) fn start_download(
