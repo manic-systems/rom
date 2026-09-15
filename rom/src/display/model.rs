@@ -8,6 +8,7 @@ use crate::state::{
   DependencySummary,
   DerivationId,
   DerivationInfo,
+  SourceFetch,
   State,
   StorePathId,
   StorePathInfo,
@@ -88,6 +89,12 @@ pub(super) struct Builds<'a> {
   pub failed:    Vec<(DerivationId, &'a BuildInfo, &'a BuildFail)>,
 }
 
+/// Seconds a source copy must run before it is shown.
+///
+/// Evaluation copies many already-cached sources in milliseconds; showing each
+/// would flash rows in and out of the graph.
+const SOURCE_FETCH_DELAY: f64 = 1.0;
+
 /// Immutable presentation input derived once for a complete frame.
 pub(super) struct RenderSnapshot<'a> {
   pub derivations:      &'a IndexMap<DerivationId, DerivationInfo>,
@@ -98,6 +105,7 @@ pub(super) struct RenderSnapshot<'a> {
   pub error_count:      usize,
   pub counts:           SummaryCounts,
   pub placed_transfers: Vec<PresentedTransfer>,
+  pub source_fetches:   Vec<&'a SourceFetch>,
 }
 
 impl<'a> RenderSnapshot<'a> {
@@ -148,6 +156,10 @@ impl<'a> RenderSnapshot<'a> {
       error_count: state.error_count(),
       counts,
       placed_transfers: Vec::new(),
+      source_fetches: state
+        .source_fetches()
+        .filter(|fetch| now - fetch.start >= SOURCE_FETCH_DELAY)
+        .collect(),
     };
     snapshot.collect_transfers(state.store_paths(), now);
     snapshot

@@ -138,6 +138,10 @@ impl Renderer<'_> {
       spans.extend(self.transfer_suffix(transfer, spans_width(&spans)));
       lines.push(fit_line(spans, self.width));
     }
+    for fetch in &self.snapshot.source_fetches {
+      let prefix = vec![self.span("  ", self.config.theme.text)];
+      lines.push(self.source_fetch_line(prefix, fetch));
+    }
     lines
   }
 

@@ -19,6 +19,7 @@ pub enum Activities {
   PostBuildHook = 110,
   BuildWaiting  = 111,
   FetchTree     = 112,
+  FetchToStore  = 113,
 }
 
 /// Result types used in `result` actions. Numerically overlap with
@@ -44,6 +45,8 @@ pub enum ResultType {
   PostBuildLogLine = 107,
   /// One string: fetch status message
   FetchStatus      = 108,
+  /// One string: resulting store path from a fetch-to-store activity
+  FetchToStore     = 109,
 }
 
 #[derive(
@@ -116,7 +119,7 @@ pub enum Actions {
   },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UnsupportedRecord {
   pub action: String,
   pub kind:   Option<u64>,
@@ -145,11 +148,11 @@ pub fn decode_action(json: &[u8]) -> Result<DecodedAction, serde_json::Error> {
   let level = envelope.level.as_ref().and_then(serde_json::Value::as_u64);
   let unsupported = match envelope.action.as_str() {
     "start" => {
-      kind.is_some_and(|kind| !matches!(kind, 0 | 100..=112))
+      kind.is_some_and(|kind| !matches!(kind, 0 | 100..=113))
         || level.is_some_and(|level| level > 7)
     },
     "msg" => level.is_some_and(|level| level > 7),
-    "result" => kind.is_some_and(|kind| !matches!(kind, 100..=108)),
+    "result" => kind.is_some_and(|kind| !matches!(kind, 100..=109)),
     "stop" => false,
     _ => true,
   };
@@ -422,10 +425,10 @@ mod tests {
 
   #[test]
   fn decode_distinguishes_unsupported_protocol_from_malformed_records() {
-    match decode_action(br#"{"action":"start","type":113}"#).unwrap() {
+    match decode_action(br#"{"action":"start","type":114}"#).unwrap() {
       DecodedAction::Unsupported(record) => {
         assert_eq!(record.action, "start");
-        assert_eq!(record.kind, Some(113));
+        assert_eq!(record.kind, Some(114));
       },
       DecodedAction::Known(_) => panic!("unknown activity was accepted"),
     }

@@ -242,6 +242,13 @@ fn fetch_to_store() {
   replay("fetch-to-store", "fetch-to-store", |_| {});
 }
 
+#[test]
+fn fetch_to_store_plain() {
+  replay("fetch-to-store-plain", "fetch-to-store", |view| {
+    view.render.format = DisplayFormat::Plain;
+  });
+}
+
 // Input handling and log policy.
 #[test]
 fn passthrough() {
