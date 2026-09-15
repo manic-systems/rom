@@ -25,6 +25,10 @@ pub(crate) struct StartEvent {
 
 #[derive(Debug, Clone)]
 pub(crate) enum ActivitySubject {
+  ResolvedDerivation {
+    original: Derivation,
+    resolved: Derivation,
+  },
   Build {
     derivation: Option<Derivation>,
     host:       Host,
@@ -140,6 +144,17 @@ fn decode_subject(
   fields: &[Value],
 ) -> ActivitySubject {
   match activity {
+    Activities::BuildWaiting => {
+      let [Value::String(original), Value::String(resolved)] = fields else {
+        return ActivitySubject::None;
+      };
+      match Derivation::parse(original).zip(Derivation::parse(resolved)) {
+        Some((original, resolved)) => {
+          ActivitySubject::ResolvedDerivation { original, resolved }
+        },
+        None => ActivitySubject::None,
+      }
+    },
     Activities::Build => {
       ActivitySubject::Build {
         derivation: fields

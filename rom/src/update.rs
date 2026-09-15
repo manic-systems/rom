@@ -115,6 +115,12 @@ fn apply_start(
   let mut store_path = None;
 
   match start.subject {
+    ActivitySubject::ResolvedDerivation { original, resolved } => {
+      effects.resolve.push(original.path.clone());
+      effects.resolve.push(resolved.path.clone());
+      derivation = Some(state.resolve_derivation(original, resolved));
+      effects.changed = true;
+    },
     ActivitySubject::Build {
       derivation: Some(drv),
       host,
