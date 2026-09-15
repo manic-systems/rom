@@ -12,17 +12,18 @@ impl Renderer<'_> {
   pub(super) fn plain(&self) -> Vec<Line<'static>> {
     let counts = self.snapshot.counts.builds;
     let mut header = vec![
-      self.span("━ ", self.config.theme.connector),
+      self.span("─ ", self.config.theme.connector),
       self.span("Builds", self.config.theme.text),
     ];
     if self.config.show_timers {
       header.push(self.span(
         format!(
-          "  {} {}",
+          "  {}{}{}",
           self.icons.clock,
+          self.icons.gap,
           format_duration(self.now - self.snapshot.start_time)
         ),
-        self.config.theme.muted,
+        self.config.theme.timer,
       ));
     }
     for (icon, count, label, color) in [
@@ -52,7 +53,8 @@ impl Renderer<'_> {
       ),
     ] {
       if count > 0 {
-        header.push(self.span(format!("  {icon} {count} {label}"), color));
+        let gap = self.icons.gap;
+        header.push(self.span(format!("  {icon}{gap}{count} {label}"), color));
       }
     }
     let mut lines = vec![fit_line(header, self.width)];
@@ -71,7 +73,7 @@ impl Renderer<'_> {
       let mut spans = vec![
         self.span("  ", self.config.theme.text),
         self.span(
-          format!("{} {name}", self.icons.running),
+          format!("{}{}{name}", self.icons.running, self.icons.gap),
           self.config.theme.running,
         ),
       ];
@@ -81,18 +83,19 @@ impl Renderer<'_> {
       if self.config.show_timers {
         spans.push(self.span(
           format!("  {}", format_duration(self.now - build.start)),
-          self.config.theme.muted,
+          self.config.theme.timer,
         ));
       }
       if let Some(estimate) = build.estimate {
         let elapsed = (self.now - build.start).max(0.0) as u64;
         spans.push(self.span(
           format!(
-            "  {} {}",
+            "  {}{}{}",
             self.icons.estimate,
+            self.icons.gap,
             format_duration(estimate.saturating_sub(elapsed) as f64)
           ),
-          self.config.theme.muted,
+          self.config.theme.timer,
         ));
       }
       let host = build.host.name();
@@ -120,7 +123,7 @@ impl Renderer<'_> {
         vec![
           self.span("  ", self.config.theme.text),
           self.span(
-            format!("{} {name}", self.icons.failed),
+            format!("{}{}{name}", self.icons.failed, self.icons.gap),
             self.config.theme.failed,
           ),
         ],
@@ -197,14 +200,14 @@ impl Renderer<'_> {
     };
     let mut lines = vec![fit_line(
       vec![
-        self.span("┏━ ", self.config.theme.connector),
+        self.span("╭─ ", self.config.theme.connector),
         self.span(format!("Build Dashboard: {title}"), self.config.theme.text),
       ],
       self.width,
     )];
     lines.push(fit_line(
       vec![
-        self.span("┃  ", self.config.theme.connector),
+        self.span("│  ", self.config.theme.connector),
         self.span("Host      │ ", self.config.theme.muted),
         self.span(host.to_string(), self.config.theme.host),
       ],
@@ -212,19 +215,22 @@ impl Renderer<'_> {
     ));
     lines.push(fit_line(
       vec![
-        self.span("┃  ", self.config.theme.connector),
+        self.span("│  ", self.config.theme.connector),
         self.span("Status    │ ", self.config.theme.muted),
-        self.span(format!("{status_icon} {status}"), status_color),
+        self.span(
+          format!("{status_icon}{}{status}", self.icons.gap),
+          status_color,
+        ),
       ],
       self.width,
     ));
     lines.push(fit_line(
       vec![
-        self.span("┃  ", self.config.theme.connector),
+        self.span("│  ", self.config.theme.connector),
         self.span("Duration  │ ", self.config.theme.muted),
         self.span(
           format_duration(self.now - self.snapshot.start_time),
-          self.config.theme.muted,
+          self.config.theme.timer,
         ),
       ],
       self.width,
@@ -233,7 +239,7 @@ impl Renderer<'_> {
     if transfers.peek().is_some() {
       let transfer = aggregate_transfers(transfers);
       let mut spans = vec![
-        self.span("┃  ", self.config.theme.connector),
+        self.span("│  ", self.config.theme.connector),
         self.span("Transfer  │", self.config.theme.muted),
       ];
       spans.extend(self.transfer_suffix(&transfer, spans_width(&spans)));
@@ -241,7 +247,7 @@ impl Renderer<'_> {
     }
     lines.push(fit_line(
       vec![
-        self.span("┗━ ", self.config.theme.connector),
+        self.span("╰─ ", self.config.theme.connector),
         self.span("Summary   │ ", self.config.theme.muted),
         self.span(
           format!(

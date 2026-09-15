@@ -109,7 +109,11 @@ impl LogPrefixStyle {
 pub struct Theme {
   pub connector:      Color,
   pub text:           Color,
+  /// Secondary text, such as build phases.
   pub muted:          Color,
+  /// Timers and estimates.
+  pub timer:          Color,
+  /// Planned work.
   pub planned:        Color,
   pub running:        Color,
   pub completed:      Color,
@@ -133,14 +137,16 @@ pub enum IconMode {
 impl Default for Theme {
   fn default() -> Self {
     Self {
-      connector:      Color::Blue,
-      text:           Color::White,
+      connector:      Color::DarkGray,
+      // The terminal's own foreground, readable on light and dark themes.
+      text:           Color::Reset,
       muted:          Color::DarkGray,
+      timer:          Color::Gray,
       planned:        Color::Blue,
       running:        Color::Yellow,
       completed:      Color::Green,
       failed:         Color::Red,
-      log_prefix:     Color::Blue,
+      log_prefix:     Color::Indexed(67),
       host:           Color::Magenta,
       download:       Color::Cyan,
       upload:         Color::Magenta,

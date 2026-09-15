@@ -3,6 +3,7 @@ use std::{
   collections::{BinaryHeap, HashMap, HashSet, VecDeque},
 };
 
+use cognos::Host;
 use ratatui_core::text::{Line, Span};
 use unicode_width::UnicodeWidthStr;
 
@@ -294,8 +295,9 @@ impl Renderer<'_> {
         selection = self.select_rows(plan, content_limit);
       }
     }
+    // The status box below continues the tree's line, so no row closes it.
     let mut lines = vec![Line::from(vec![
-      self.span("┏━ ", self.config.theme.connector),
+      self.span("╭─ ", self.config.theme.connector),
       self.span("Builds", self.config.theme.text),
     ])];
     for &root in &selection.roots {
@@ -318,7 +320,7 @@ impl Renderer<'_> {
         (running, rest) => format!("… {running} active, {rest} more"),
       };
       lines.push(Line::from(vec![
-        self.span("┣━ ", self.config.theme.connector),
+        self.span("├─ ", self.config.theme.connector),
         self.span(label, self.config.theme.muted),
       ]));
     }
@@ -576,31 +578,43 @@ impl Renderer<'_> {
     }
     let (icon, color, suffix) = match &info.build_status {
       BuildStatus::Unknown => {
-        (self.icons.planned, self.config.theme.muted, None)
+        (self.icons.planned, self.config.theme.muted, Vec::new())
       },
       BuildStatus::Planned => {
-        (self.icons.planned, self.config.theme.planned, None)
+        (self.icons.planned, self.config.theme.planned, Vec::new())
       },
       BuildStatus::Building(build) => {
-        let mut suffix = build
-          .phase
-          .as_ref()
-          .map(|phase| format!("  ({phase})"))
-          .unwrap_or_default();
+        let mut suffix = Vec::new();
+        if let Some(phase) = &build.phase {
+          let label = format!("  ({phase})");
+          suffix.push(self.span(label, self.config.theme.muted));
+        }
         if self.config.show_timers {
-          suffix.push_str(&format!(
-            "  {} {}",
-            self.icons.clock,
-            format_duration(self.now - build.start)
+          suffix.push(self.span(
+            format!(
+              "  {}{}{}",
+              self.icons.clock,
+              self.icons.gap,
+              format_duration(self.now - build.start)
+            ),
+            self.config.theme.timer,
           ));
+        }
+        if let Host::Remote(machine) = &build.host {
+          let label = format!(" @{machine}");
+          suffix.push(self.span(label, self.config.theme.host));
         }
         if let Some(estimate) = build.estimate
           && !self.snapshot.shared_names.contains(info.name.name.as_str())
         {
-          suffix.push_str(&format!(
-            "  ({} {})",
-            self.icons.estimate,
-            format_duration(estimate as f64)
+          suffix.push(self.span(
+            format!(
+              "  ({}{}{})",
+              self.icons.estimate,
+              self.icons.gap,
+              format_duration(estimate as f64)
+            ),
+            self.config.theme.timer,
           ));
         }
         let mut seen = HashSet::new();
@@ -623,31 +637,22 @@ impl Renderer<'_> {
           }
         }
         if unseen > 0 {
-          suffix.push_str(&format!("  (+{unseen} waiting)"));
+          let label = format!("  (+{unseen} waiting)");
+          suffix.push(self.span(label, self.config.theme.planned));
         }
-        (
-          self.icons.running,
-          self.config.theme.running,
-          (!suffix.is_empty()).then_some(suffix),
-        )
+        (self.icons.running, self.config.theme.running, suffix)
       },
       BuildStatus::Built { .. } | BuildStatus::Available => {
-        (self.icons.done, self.config.theme.completed, None)
+        (self.icons.done, self.config.theme.completed, Vec::new())
       },
       BuildStatus::Failed { .. } => {
-        (self.icons.failed, self.config.theme.failed, None)
+        (self.icons.failed, self.config.theme.failed, Vec::new())
       },
       BuildStatus::DependencyFailed => {
-        (self.icons.failed, self.config.theme.muted, None)
+        (self.icons.failed, self.config.theme.muted, Vec::new())
       },
     };
-    let host = match &info.build_status {
-      BuildStatus::Building(build) if build.host.name() != "localhost" => {
-        Some(format!(" @{}", build.host.name()))
-      },
-      _ => None,
-    };
-    spans.push(self.span(format!("{icon} "), color));
+    spans.push(self.span(format!("{icon}{}", self.icons.gap), color));
     let transfer = (!row.inline.is_empty()).then(|| {
       aggregate_transfers(
         row
@@ -658,10 +663,7 @@ impl Renderer<'_> {
     });
     let has_transfer = transfer.is_some();
     let reserve = transfer.as_ref().map_or_else(
-      || {
-        suffix.as_ref().map_or(0, |value| value.width())
-          + host.as_ref().map_or(0, |value| value.width())
-      },
+      || spans_width(&suffix),
       |item| if item.total.is_some() { 12 } else { 8 },
     );
     let name_width =
@@ -671,12 +673,7 @@ impl Renderer<'_> {
       spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
     }
     if !has_transfer {
-      if let Some(suffix) = suffix {
-        spans.push(self.span(suffix, self.config.theme.muted));
-      }
-      if let Some(host) = host {
-        spans.push(self.span(host, self.config.theme.host));
-      }
+      spans.extend(suffix);
     }
 
     let mut children: Vec<_> = row
@@ -773,12 +770,12 @@ impl Renderer<'_> {
     let mut spans = Vec::new();
     for &continues in ancestors {
       spans.push(self.span(
-        if continues { "┃  " } else { "   " },
+        if continues { "│  " } else { "   " },
         self.config.theme.connector,
       ));
     }
     spans.push(self.span(
-      if last { "┗━ " } else { "┣━ " },
+      if last { "╰─ " } else { "├─ " },
       self.config.theme.connector,
     ));
     spans
@@ -837,7 +834,8 @@ impl Renderer<'_> {
     let elapsed = format_duration(self.now - transfer.start);
     let essential = percent.map_or(8, |value| 7 + value.to_string().len());
     let available = usize::from(self.width).saturating_sub(occupied);
-    let mut spans = vec![self.span(format!("  {arrow} "), color)];
+    let mut spans =
+      vec![self.span(format!("  {arrow}{}", self.icons.gap), color)];
     if let Some(value) = percent {
       let bar_width = available.saturating_sub(essential).min(32);
       if bar_width >= 4 {
@@ -858,7 +856,7 @@ impl Renderer<'_> {
       spans.push(self.span(format!("  {bytes}"), self.config.theme.muted));
     }
     if available > essential + bytes.len() + elapsed.len() + 5 {
-      spans.push(self.span(format!("  {elapsed}"), self.config.theme.muted));
+      spans.push(self.span(format!("  {elapsed}"), self.config.theme.timer));
     }
     if transfer.host != "localhost"
       && available
