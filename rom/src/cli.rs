@@ -273,16 +273,14 @@ fn develop(
   config: &WrapperConfig,
 ) -> eyre::Result<()> {
   require_packages("develop", &packages)?;
+  let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
     "develop".to_string(),
     nix_verbosity_flag(config.verbose),
     "--log-format".to_string(),
     "internal-json".to_string(),
-    "--command".to_string(),
-    "true".to_string(),
   ];
-  monitored.extend(packages.clone());
-  monitored.extend(nix_flags.clone());
+  monitored.extend(replace_command_with_exit(&original));
   let code =
     run_monitored_command(config.platform.binary(), monitored, config)?;
   if code != 0 {
@@ -643,15 +641,11 @@ fn drive(
 #[must_use]
 pub fn replace_command_with_exit(arguments: &[String]) -> Vec<String> {
   let mut result = Vec::new();
-  let mut skip = false;
   for argument in arguments {
-    if skip {
-      skip = false;
-    } else if argument == "--command" || argument == "-c" {
-      skip = true;
-    } else {
-      result.push(argument.clone());
+    if argument == "--command" || argument == "-c" {
+      break;
     }
+    result.push(argument.clone());
   }
   result.extend(["--command", "sh", "-c", "exit"].map(str::to_string));
   result
