@@ -18,9 +18,6 @@ use crate::{
     ActivityStatus,
     BuildFail,
     BuildInfo,
-    BuildReport,
-    BuildStatus,
-    DerivationId,
     FailType,
     State,
     TransferInfo,
@@ -212,7 +209,7 @@ fn apply_stop(state: &mut State, id: Id, now: f64) -> bool {
     Activities::Build => {
       activity
         .derivation
-        .is_some_and(|derivation| complete_build(state, derivation, now))
+        .is_some_and(|derivation| state.complete_build(derivation, now))
     },
     Activities::Substitute => {
       activity
@@ -252,45 +249,13 @@ fn apply_message(
     changed = true;
     if let Some(derivation) = &message.derivation {
       let id = state.get_or_create_derivation_id(derivation.clone());
-      let build = state.get_derivation_info(id).and_then(|info| {
-        if let BuildStatus::Building(build) = &info.build_status {
-          Some(build.clone())
-        } else {
-          None
-        }
+      state.fail_build(id, BuildFail {
+        at:        now,
+        fail_type: parse_fail_type(&message.plain),
       });
-      if let Some(build) = build {
-        state.update_build_status(id, BuildStatus::Failed {
-          info: build,
-          fail: BuildFail {
-            at:        now,
-            fail_type: parse_fail_type(&message.plain),
-          },
-        });
-      }
     }
   }
   changed
-}
-
-fn complete_build(state: &mut State, id: DerivationId, now: f64) -> bool {
-  let Some((build, name)) = state.get_derivation_info(id).and_then(|info| {
-    if let BuildStatus::Building(build) = &info.build_status {
-      Some((build.clone(), info.name.name.clone()))
-    } else {
-      None
-    }
-  }) else {
-    return false;
-  };
-  let start = build.start;
-  let host = build.host.clone();
-  state.update_build_status(id, BuildStatus::Built {
-    info: build,
-    end:  now,
-  });
-  record_build_completion(state, &name, start, now, &host);
-  true
 }
 
 fn get_build_estimate(
@@ -301,20 +266,6 @@ fn get_build_estimate(
   BuildReportCache::calculate_median(
     state.build_reports(host, derivation_name)?,
   )
-}
-
-fn record_build_completion(
-  state: &mut State,
-  derivation_name: &str,
-  start: f64,
-  end: f64,
-  host: &Host,
-) {
-  let report = BuildReport {
-    duration_secs: end - start,
-    completed_at:  std::time::SystemTime::now(),
-  };
-  state.record_build_report(host, derivation_name, report);
 }
 
 fn parse_fail_type(message: &str) -> FailType {

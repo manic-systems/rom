@@ -142,8 +142,15 @@ pub enum BuildStatus {
   Unknown,
   Planned,
   Building(BuildInfo),
-  Built { info: BuildInfo, end: f64 },
-  Failed { info: BuildInfo, fail: BuildFail },
+  Built {
+    info:         BuildInfo,
+    end:          f64,
+    completed_at: SystemTime,
+  },
+  Failed {
+    info: BuildInfo,
+    fail: BuildFail,
+  },
 }
 
 /// Derivation information
@@ -300,19 +307,6 @@ impl State {
       .build_cache
       .get(&(host.name().to_string(), derivation.to_string()))
       .map(Vec::as_slice)
-  }
-
-  pub(crate) fn record_build_report(
-    &mut self,
-    host: &Host,
-    derivation: &str,
-    report: BuildReport,
-  ) {
-    self
-      .build_cache
-      .entry((host.name().to_string(), derivation.to_string()))
-      .or_default()
-      .push(report);
   }
 
   pub(crate) fn get_or_create_store_path_id(
@@ -502,6 +496,71 @@ impl State {
       self.ensure_root(id);
     }
     id
+  }
+
+  pub(crate) fn complete_build(&mut self, id: DerivationId, now: f64) -> bool {
+    let Some(info) = self.derivation_infos.get_mut(&id) else {
+      return false;
+    };
+    if !matches!(info.build_status, BuildStatus::Building(_)) {
+      return false;
+    }
+    let BuildStatus::Building(build) =
+      std::mem::replace(&mut info.build_status, BuildStatus::Unknown)
+    else {
+      unreachable!("build status was checked");
+    };
+    let completed_at = SystemTime::now();
+    self
+      .build_cache
+      .entry((build.host.name().to_string(), info.name.name.clone()))
+      .or_default()
+      .push(BuildReport {
+        duration_secs: now - build.start,
+        completed_at,
+      });
+    info.build_status = BuildStatus::Built {
+      info: build,
+      end: now,
+      completed_at,
+    };
+    true
+  }
+
+  pub(crate) fn fail_build(&mut self, id: DerivationId, fail: BuildFail) {
+    let Some(info) = self.derivation_infos.get_mut(&id) else {
+      return;
+    };
+    if !matches!(
+      info.build_status,
+      BuildStatus::Building(_) | BuildStatus::Built { .. }
+    ) {
+      return;
+    }
+    let previous =
+      std::mem::replace(&mut info.build_status, BuildStatus::Unknown);
+    let build = match previous {
+      BuildStatus::Building(build) => build,
+      BuildStatus::Built {
+        info: build,
+        completed_at,
+        ..
+      } => {
+        if let Some(reports) = self
+          .build_cache
+          .get_mut(&(build.host.name().to_string(), info.name.name.clone()))
+        {
+          reports.retain(|report| report.completed_at != completed_at);
+        }
+        build
+      },
+      BuildStatus::Unknown
+      | BuildStatus::Planned
+      | BuildStatus::Failed { .. } => {
+        unreachable!("build status was checked");
+      },
+    };
+    info.build_status = BuildStatus::Failed { info: build, fail };
   }
 
   pub(crate) fn start_download(
