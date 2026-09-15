@@ -19,6 +19,7 @@ use crate::{
     BuildFail,
     BuildInfo,
     FailType,
+    SourceFetch,
     State,
     TransferInfo,
   },
@@ -197,6 +198,16 @@ fn apply_start(
     | ActivitySubject::Substitute { path: None, .. }
     | ActivitySubject::CopyPath { path: None, .. }
     | ActivitySubject::None => {},
+    // Evaluation hashes many small paths in quick succession; showing each
+    // one would flash rows in and out, so only real copies are tracked.
+    ActivitySubject::FetchToStore { hashing: true, .. } => {},
+    ActivitySubject::FetchToStore {
+      source,
+      hashing: false,
+    } => {
+      state.start_source_fetch(start.id, SourceFetch { source, start: now });
+      effects.changed = true;
+    },
   }
 
   state.insert_activity(start.id, ActivityStatus {
@@ -227,6 +238,7 @@ fn apply_stop(state: &mut State, id: Id, now: f64) -> bool {
         .store_path
         .is_some_and(|path| state.complete_transfer(path, now))
     },
+    Activities::FetchToStore => state.finish_source_fetch(id),
     _ => false,
   }
 }
