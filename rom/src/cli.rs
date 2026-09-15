@@ -1,6 +1,7 @@
 //! Command-line interface and Nix/Lix process adapters.
 
 use std::{
+  collections::HashSet,
   io::{self, IsTerminal, Read, Write},
   path::PathBuf,
   process::{Command, Stdio},
@@ -17,7 +18,7 @@ use crate::{
   display::{format_log, render_frame, write_final},
   error::RomError,
   monitor::{FilesystemResolver, Output, Processed, StreamEngine},
-  state::current_time,
+  state::{BuildStatus, DerivationId, State, current_time},
   terminal::{Admission, LiveTerminal},
   types::{
     Config,
@@ -623,6 +624,9 @@ fn drive(
   let final_output = stream.finish_at(current_time())?;
   presenter.output(final_output.output, &render)?;
   if !silent {
+    for id in available_derivations(stream.engine().state())? {
+      stream.engine_mut().mark_available(id);
+    }
     let _ = presenter.render(&stream, &render, current_time(), true)?;
     presenter.final_append(&stream, &render, silent, current_time())?;
   }
@@ -636,6 +640,69 @@ fn drive(
     return Err(RomError::Incomplete.into());
   }
   Ok(())
+}
+
+fn available_derivations(state: &State) -> io::Result<Vec<DerivationId>> {
+  let mut relevant: HashSet<_> = state
+    .derivations()
+    .iter()
+    .filter_map(|(&id, info)| {
+      matches!(info.build_status, BuildStatus::Planned).then_some(id)
+    })
+    .collect();
+  let mut ancestors: Vec<_> = relevant.iter().copied().collect();
+  while let Some(id) = ancestors.pop() {
+    for &parent in &state.derivations()[&id].derivation_parents {
+      if relevant.insert(parent) {
+        ancestors.push(parent);
+      }
+    }
+  }
+  let candidates: Vec<_> = state
+    .derivations()
+    .iter()
+    .filter(|(id, info)| {
+      relevant.contains(id)
+        && matches!(
+          info.build_status,
+          BuildStatus::Unknown | BuildStatus::Planned
+        )
+        && info.name.path.is_file()
+    })
+    .map(|(&id, info)| (id, &info.name.path))
+    .collect();
+  let mut pending: Vec<_> = candidates.chunks(128).collect();
+  let mut available = Vec::new();
+  while let Some(batch) = pending.pop() {
+    let output = Command::new("nix")
+      .args([
+        "path-info",
+        "--offline",
+        "--extra-experimental-features",
+        "nix-command",
+      ])
+      .arg("--")
+      .args(
+        batch
+          .iter()
+          .map(|(_, path)| format!("{}^*", path.display())),
+      )
+      .stdin(Stdio::null())
+      .output()?;
+    if output.status.success() {
+      available.extend(batch.iter().map(|(id, _)| *id));
+    } else if batch.len() > 1 {
+      let (left, right) = batch.split_at(batch.len() / 2);
+      pending.extend([right, left]);
+    } else {
+      tracing::debug!(
+        "could not confirm outputs for {}: {}",
+        batch[0].1.display(),
+        String::from_utf8_lossy(&output.stderr).trim()
+      );
+    }
+  }
+  Ok(available)
 }
 
 #[must_use]

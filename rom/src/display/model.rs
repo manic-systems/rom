@@ -104,10 +104,12 @@ impl<'a> RenderSnapshot<'a> {
   pub fn new(state: &'a State, now: f64) -> Self {
     let summary = state.summary();
     let mut builds = Builds::default();
+    let mut available = 0;
     for (&id, info) in state.derivations() {
       match &info.build_status {
         BuildStatus::Unknown => {},
         BuildStatus::Planned => builds.planned.push(id),
+        BuildStatus::Available => available += 1,
         BuildStatus::Building(build) => builds.running.push((id, build)),
         BuildStatus::Built { info, .. } => builds.completed.push((id, info)),
         BuildStatus::Failed { info, fail } => {
@@ -118,7 +120,7 @@ impl<'a> RenderSnapshot<'a> {
     let counts = SummaryCounts {
       builds:    StatusCounts {
         running:   builds.running.len(),
-        completed: builds.completed.len(),
+        completed: builds.completed.len() + available,
         waiting:   builds.planned.len(),
         failed:    builds.failed.len(),
       },
@@ -263,7 +265,7 @@ impl<'a> RenderSnapshot<'a> {
             BuildStatus::Planned => 1,
             BuildStatus::Failed { .. } => 2,
             BuildStatus::Unknown => 3,
-            BuildStatus::Built { .. } => 4,
+            BuildStatus::Built { .. } | BuildStatus::Available => 4,
           }
         });
         (priority, *id)

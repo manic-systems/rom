@@ -141,6 +141,7 @@ pub enum FailType {
 pub enum BuildStatus {
   Unknown,
   Planned,
+  Available,
   Building(BuildInfo),
   Built {
     info:         BuildInfo,
@@ -385,8 +386,14 @@ impl State {
       .expect("resolved derivation exists");
     let original_info = &mut self.derivation_infos[&original];
     if matches!(
-      original_info.build_status,
-      BuildStatus::Unknown | BuildStatus::Planned
+      (&original_info.build_status, &resolved_info.build_status),
+      (BuildStatus::Unknown | BuildStatus::Planned, _)
+        | (
+          BuildStatus::Available,
+          BuildStatus::Building(_)
+            | BuildStatus::Built { .. }
+            | BuildStatus::Failed { .. }
+        )
     ) && !matches!(resolved_info.build_status, BuildStatus::Unknown)
     {
       original_info.build_status = resolved_info.build_status;
@@ -590,6 +597,20 @@ impl State {
     }
   }
 
+  pub(crate) fn mark_available(&mut self, id: DerivationId) -> bool {
+    let Some(info) = self.derivation_infos.get_mut(&id) else {
+      return false;
+    };
+    if !matches!(
+      info.build_status,
+      BuildStatus::Unknown | BuildStatus::Planned
+    ) {
+      return false;
+    }
+    info.build_status = BuildStatus::Available;
+    true
+  }
+
   pub(crate) fn start_build(
     &mut self,
     derivation: Derivation,
@@ -664,6 +685,7 @@ impl State {
       },
       BuildStatus::Unknown
       | BuildStatus::Planned
+      | BuildStatus::Available
       | BuildStatus::Failed { .. } => {
         unreachable!("build status was checked");
       },
@@ -764,7 +786,9 @@ impl State {
       BuildStatus::Building(build)
       | BuildStatus::Built { info: build, .. }
       | BuildStatus::Failed { info: build, .. } => build,
-      BuildStatus::Unknown | BuildStatus::Planned => return false,
+      BuildStatus::Unknown | BuildStatus::Planned | BuildStatus::Available => {
+        return false;
+      },
     };
     if build.phase.as_deref() == Some(&phase) {
       return false;
