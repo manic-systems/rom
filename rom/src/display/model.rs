@@ -104,23 +104,27 @@ impl<'a> RenderSnapshot<'a> {
   pub fn new(state: &'a State, now: f64) -> Self {
     let summary = state.summary();
     let mut builds = Builds::default();
+    let mut available = 0;
+    let mut dependency_failed = 0;
     for (&id, info) in state.derivations() {
       match &info.build_status {
         BuildStatus::Unknown => {},
         BuildStatus::Planned => builds.planned.push(id),
+        BuildStatus::Available => available += 1,
         BuildStatus::Building(build) => builds.running.push((id, build)),
         BuildStatus::Built { info, .. } => builds.completed.push((id, info)),
         BuildStatus::Failed { info, fail } => {
           builds.failed.push((id, info, fail));
         },
+        BuildStatus::DependencyFailed => dependency_failed += 1,
       }
     }
     let counts = SummaryCounts {
       builds:    StatusCounts {
         running:   builds.running.len(),
-        completed: builds.completed.len(),
+        completed: builds.completed.len() + available,
         waiting:   builds.planned.len(),
-        failed:    builds.failed.len(),
+        failed:    builds.failed.len() + dependency_failed,
       },
       downloads: StatusCounts {
         running:   summary.running_downloads.len(),
@@ -263,7 +267,9 @@ impl<'a> RenderSnapshot<'a> {
             BuildStatus::Planned => 1,
             BuildStatus::Failed { .. } => 2,
             BuildStatus::Unknown => 3,
-            BuildStatus::Built { .. } => 4,
+            BuildStatus::Built { .. }
+            | BuildStatus::Available
+            | BuildStatus::DependencyFailed => 4,
           }
         });
         (priority, *id)

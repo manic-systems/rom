@@ -298,7 +298,7 @@ impl Renderer<'_> {
   }
 
   pub(super) fn final_status(&self) -> (String, Color) {
-    let failed = self.snapshot.counts.builds.failed;
+    let failed = self.snapshot.builds.failed.len();
     let active = self.snapshot.counts.builds.running
       + self.snapshot.counts.downloads.running
       + self.snapshot.counts.uploads.running;
@@ -325,6 +325,13 @@ impl Renderer<'_> {
       (
         format!("Input ended with {active} unfinished {noun} after {elapsed}"),
         self.config.theme.running,
+      )
+    } else if self.snapshot.counts.builds.waiting > 0 {
+      let waiting = self.snapshot.counts.builds.waiting;
+      let noun = if waiting == 1 { "build" } else { "builds" };
+      (
+        format!("Input ended with {waiting} planned {noun} after {elapsed}"),
+        self.config.theme.planned,
       )
     } else {
       (

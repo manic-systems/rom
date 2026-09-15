@@ -255,10 +255,16 @@ fn apply_message(
     changed = true;
     if let Some(derivation) = &message.derivation {
       let id = state.get_or_create_derivation_id(derivation.clone());
-      state.fail_build(id, BuildFail {
-        at:        now,
-        fail_type: parse_fail_type(&message.plain),
-      });
+      if message.plain.contains("dependency failed")
+        || message.plain.contains("dependencies failed")
+      {
+        state.fail_dependency(id);
+      } else {
+        state.fail_build(id, BuildFail {
+          at:        now,
+          fail_type: parse_fail_type(&message.plain),
+        });
+      }
     }
   }
   changed
@@ -279,8 +285,6 @@ fn parse_fail_type(message: &str) -> FailType {
     FailType::Timeout
   } else if message.contains("hash mismatch") || message.contains("hash") {
     FailType::HashMismatch
-  } else if message.contains("dependency failed") {
-    FailType::DependencyFailed
   } else {
     FailType::Unknown
   }
