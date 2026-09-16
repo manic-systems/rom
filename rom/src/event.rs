@@ -96,7 +96,6 @@ impl Event {
         raw_msg,
         ..
       } => {
-        let plain = raw_msg.unwrap_or_else(|| msg.clone());
         let mut diagnostic = msg.as_str();
         while let Some(styled) = diagnostic.strip_prefix("\x1b[") {
           let Some((_, rest)) = styled.split_once('m') else {
@@ -105,8 +104,10 @@ impl Event {
           diagnostic = rest;
         }
         let is_error = matches!(level, Verbosity::Error)
+          && (raw_msg.is_some() || diagnostic.starts_with("error:"))
           && !diagnostic.starts_with("trace: ")
           && !diagnostic.starts_with("warning:");
+        let plain = raw_msg.unwrap_or_else(|| msg.clone());
         Self::Message(MessageEvent {
           announcement: announcement(level, &plain),
           derivation: extract_derivation(&plain),
