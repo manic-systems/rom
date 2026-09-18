@@ -47,6 +47,7 @@ pub(crate) enum ActivitySubject {
 
 #[derive(Debug, Clone)]
 pub(crate) struct MessageEvent {
+  pub level:        Verbosity,
   pub is_error:     bool,
   pub styled:       String,
   pub plain:        String,
@@ -109,6 +110,7 @@ impl Event {
           && !diagnostic.starts_with("warning:");
         let plain = raw_msg.unwrap_or_else(|| msg.clone());
         Self::Message(MessageEvent {
+          level,
           announcement: announcement(level, &plain),
           derivation: extract_derivation(&plain),
           is_error,
