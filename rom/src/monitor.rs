@@ -185,14 +185,23 @@ impl Engine {
       Err(error) => return Err(RomError::Json(error)),
     };
     let event = Event::decode(action);
+
+    let show_log = match &event {
+      Event::Message(message) => message.level <= self.config.verbosity,
+      Event::Start(_) | Event::Stop { .. } | Event::Result { .. } => true,
+    };
+
     let mut output = Vec::new();
     let effects = update::apply_event_at(&mut self.state, event, now);
-    if let Some(log) = effects.log
+
+    if show_log
+      && let Some(log) = effects.log
       && (!self.config.silent || log.force)
       && let Some(log) = self.render_log(log)
     {
       output.push(Output::Log(log));
     }
+
     let mut changed = effects.changed;
     if let Some(resolver) = self.resolver.as_ref() {
       for path in effects.resolve {

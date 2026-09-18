@@ -10,6 +10,7 @@ use std::{
   time::{Duration, Instant},
 };
 
+use cognos::Verbosity;
 use pound::Parse;
 use tracing_subscriber::EnvFilter;
 
@@ -135,6 +136,13 @@ pub fn run() -> eyre::Result<()> {
   let monitor = Config {
     engine: EngineConfig {
       silent: cli.silent,
+      verbosity: match cli.verbose {
+        0 => Verbosity::Info,
+        1 => Verbosity::Talkative,
+        2 => Verbosity::Chatty,
+        3 => Verbosity::Debug,
+        4.. => Verbosity::Vomit,
+      },
       input_mode: if cli.json {
         InputMode::Json
       } else {
