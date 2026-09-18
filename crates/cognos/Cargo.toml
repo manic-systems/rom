@@ -12,4 +12,3 @@ readme = true
 serde.workspace = true
 serde_repr.workspace = true
 serde_json.workspace = true
-nix-derivation.workspace = true
