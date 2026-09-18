@@ -516,6 +516,35 @@ impl State {
       }
     }
     self.ensure_root(drv_id);
+
+    let started = self.get_derivation_info(drv_id).is_some_and(|info| {
+      matches!(
+        info.build_status,
+        BuildStatus::Building(_)
+          | BuildStatus::Built { .. }
+          | BuildStatus::Failed { .. }
+      )
+    });
+    if started {
+      self.settle_inputs(drv_id);
+    }
+  }
+
+  /// Nix starts a build only once its inputs are valid. A planned input with
+  /// no build of its own was realised by another process holding its lock.
+  fn settle_inputs(&mut self, id: DerivationId) {
+    let Some(info) = self.derivation_infos.get_mut(&id) else {
+      return;
+    };
+    let inputs = std::mem::take(&mut info.input_derivations);
+    for input in &inputs {
+      if let Some(input_info) = self.derivation_infos.get_mut(input)
+        && matches!(input_info.build_status, BuildStatus::Planned)
+      {
+        input_info.build_status = BuildStatus::Available;
+      }
+    }
+    self.derivation_infos[&id].input_derivations = inputs;
   }
 
   pub(crate) fn ensure_root(&mut self, id: DerivationId) {
@@ -619,6 +648,7 @@ impl State {
   ) -> DerivationId {
     let id = self.get_or_create_derivation_id(derivation);
     self.update_build_status(id, BuildStatus::Building(build));
+    self.settle_inputs(id);
     if let Some(parent) = parent {
       self.link_dependency(parent, id);
     } else {
