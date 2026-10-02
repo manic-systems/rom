@@ -5,7 +5,11 @@ use std::{
   io::{self, IsTerminal, Read, Write},
   path::PathBuf,
   process::{Command, Stdio},
-  sync::mpsc::{self, Receiver, RecvTimeoutError},
+  sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+    mpsc::{self, Receiver, RecvTimeoutError},
+  },
   thread,
   time::{Duration, Instant},
 };
@@ -330,6 +334,10 @@ fn run_monitored_command(
   let mut child = command.spawn().map_err(RomError::Io)?;
   #[cfg(unix)]
   let signal_forwarder = SignalForwarder::start(child.id())?;
+  #[cfg(unix)]
+  let interrupted = Arc::clone(&signal_forwarder.interrupted);
+  #[cfg(not(unix))]
+  let interrupted = Arc::new(AtomicBool::new(false));
   let stdout = child
     .stdout
     .take()
@@ -348,7 +356,7 @@ fn run_monitored_command(
   let (receiver, reader_thread) = byte_reader(stderr);
   let mut monitor_config = config.monitor.clone();
   monitor_config.engine.input_mode = InputMode::Auto;
-  let result = drive(receiver, monitor_config, false);
+  let result = drive(receiver, monitor_config, false, &interrupted);
   if result.is_err() {
     terminate_process(&mut child);
   }
@@ -380,8 +388,9 @@ fn terminate_process(child: &mut std::process::Child) {
 
 #[cfg(unix)]
 struct SignalForwarder {
-  handle:  signal_hook::iterator::Handle,
-  _thread: thread::JoinHandle<()>,
+  handle:      signal_hook::iterator::Handle,
+  interrupted: Arc<AtomicBool>,
+  _thread:     thread::JoinHandle<()>,
 }
 
 #[cfg(unix)]
@@ -391,16 +400,32 @@ impl SignalForwarder {
     let mut signals =
       signal_hook::iterator::Signals::new([SIGINT, SIGTERM, SIGHUP])?;
     let handle = signals.handle();
+    let interrupted = Arc::new(AtomicBool::new(false));
+    let seen = Arc::clone(&interrupted);
     let thread = thread::spawn(move || {
       for signal in signals.forever() {
+        // A second signal arrives when the first did not end rom quickly
+        // enough, so it stops everything instead of being forwarded again.
+        let repeated = seen.swap(true, Ordering::SeqCst);
         // SAFETY: the child was spawned as the leader of this process group.
         unsafe {
-          libc::kill(-(process_group as i32), signal);
+          libc::kill(
+            -(process_group as i32),
+            if repeated { libc::SIGKILL } else { signal },
+          );
+        }
+        if repeated {
+          // exit skips the live view's teardown, which shows the cursor again
+          if io::stderr().is_terminal() {
+            let _ = crossterm::execute!(io::stderr(), crossterm::cursor::Show);
+          }
+          std::process::exit(128 + signal);
         }
       }
     });
     Ok(Self {
       handle,
+      interrupted,
       _thread: thread,
     })
   }
@@ -415,7 +440,7 @@ fn run_input<R: Read + Send + 'static>(
   config: Config,
 ) -> eyre::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
-  drive(receiver, config, true)?;
+  drive(receiver, config, true, &AtomicBool::new(false))?;
   reader_thread
     .join()
     .map_err(|_| RomError::process("input reader panicked"))??;
@@ -587,6 +612,7 @@ fn drive(
   receiver: Receiver<io::Result<Vec<u8>>>,
   config: Config,
   semantic_failure_is_error: bool,
+  interrupted: &AtomicBool,
 ) -> eyre::Result<()> {
   let Config { engine, render } = config;
   let silent = engine.silent;
@@ -632,7 +658,7 @@ fn drive(
   let final_output = stream.finish_at(current_time())?;
   presenter.output(final_output.output, &render)?;
   if !silent {
-    for id in available_derivations(stream.engine().state())? {
+    for id in available_derivations(stream.engine().state(), interrupted)? {
       stream.engine_mut().mark_available(id);
     }
     let _ = presenter.render(&stream, &render, current_time(), true)?;
@@ -650,7 +676,10 @@ fn drive(
   Ok(())
 }
 
-fn available_derivations(state: &State) -> io::Result<Vec<DerivationId>> {
+fn available_derivations(
+  state: &State,
+  interrupted: &AtomicBool,
+) -> io::Result<Vec<DerivationId>> {
   let mut relevant: HashSet<_> = state
     .derivations()
     .iter()
@@ -682,7 +711,18 @@ fn available_derivations(state: &State) -> io::Result<Vec<DerivationId>> {
   let mut pending: Vec<_> = candidates.chunks(128).collect();
   let mut available = Vec::new();
   while let Some(batch) = pending.pop() {
-    let output = Command::new("nix")
+    if interrupted.load(Ordering::SeqCst) {
+      break;
+    }
+    let mut query = Command::new("nix");
+    // Its own group keeps a terminal Ctrl-C from killing the query, which
+    // would read as a missing output and split the batch further.
+    #[cfg(unix)]
+    {
+      use std::os::unix::process::CommandExt;
+      query.process_group(0);
+    }
+    let output = query
       .args([
         "path-info",
         "--offline",
