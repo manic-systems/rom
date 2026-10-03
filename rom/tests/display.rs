@@ -182,13 +182,13 @@ fn deeply_nested_live_graph_is_bounded_before_rendering() {
       .text();
   let lines: Vec<_> = text.lines().collect();
   assert_eq!(lines.len(), 18, "{text}");
-  assert!(lines[14].contains("… 1987 hidden"), "{text}");
+  assert!(lines[14].contains("… 1987 more"), "{text}");
   assert!(lines[15].starts_with("┣━ Status"), "{text}");
   assert!(lines.last().unwrap().starts_with("┗━ Elapsed"), "{text}");
 }
 
 #[test]
-fn active_work_does_not_spend_rows_on_unrelated_waiting_roots() {
+fn waiting_roots_fill_rows_left_after_active_work() {
   let mut engine = Engine::new(EngineConfig::default());
   for id in 1..=20 {
     let record = format!(
@@ -207,9 +207,10 @@ fn active_work_does_not_spend_rows_on_unrelated_waiting_roots() {
   let text =
     render_frame(engine.state(), &RenderConfig::default(), 2.0, 79, 23, false)
       .text();
-  assert!(text.contains("active"), "{text}");
-  assert!(!text.contains("waiting-1"), "{text}");
-  assert!(text.contains("… 20 hidden"), "{text}");
+  let lines: Vec<_> = text.lines().collect();
+  assert!(lines[1].contains("active"), "{text}");
+  assert!(text.contains("waiting-1"), "{text}");
+  assert!(text.contains("… 8 more"), "{text}");
 }
 
 #[test]

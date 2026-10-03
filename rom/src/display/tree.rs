@@ -29,11 +29,12 @@ enum RowId {
 }
 
 struct PlannedRow {
-  priority:  u8,
-  active:    bool,
-  children:  Vec<RowId>,
-  inline:    Vec<usize>,
-  consumers: usize,
+  priority:     u8,
+  active:       bool,
+  active_below: usize,
+  children:     Vec<RowId>,
+  inline:       Vec<usize>,
+  consumers:    usize,
 }
 
 impl PlannedRow {
@@ -41,6 +42,7 @@ impl PlannedRow {
     Self {
       priority,
       active: priority >= 3,
+      active_below: 0,
       children: Vec::new(),
       inline: Vec::new(),
       consumers: 0,
@@ -117,12 +119,6 @@ impl Renderer<'_> {
       .iter()
       .map(|&priority| priority >= 3)
       .collect::<Vec<bool>>();
-    let focus_active = active.iter().any(|&active| active)
-      || self
-        .snapshot
-        .placed_transfers
-        .iter()
-        .any(|item| !item.transfer.completed);
 
     // Reverse reachability computes the connected ancestor set in O(V + E).
     while let Some(id) = pending.pop_front() {
@@ -131,6 +127,18 @@ impl Renderer<'_> {
         continue;
       };
       for &parent in &info.derivation_parents {
+        // A realised parent never waits on its inputs, so only active work
+        // keeps it on the path.
+        let realised =
+          self.snapshot.derivation(parent).is_some_and(|derivation| {
+            matches!(
+              derivation.build_status,
+              BuildStatus::Available | BuildStatus::Built { .. }
+            )
+          });
+        if priority < 3 && realised {
+          continue;
+        }
         let previous = relevance[parent];
         if priority > previous {
           relevance[parent] = priority;
@@ -144,16 +152,29 @@ impl Renderer<'_> {
       if priority == 0 {
         continue;
       }
-      if focus_active && priority < 3 {
-        plan.hidden += 1;
-        continue;
-      }
       let mut row = PlannedRow::new(priority);
       row.active = active[id];
       plan.rows.insert(RowId::Build(id), row);
     }
+    for id in (0..slots).filter(|&id| active[id]) {
+      let mut seen = HashSet::new();
+      let mut above = vec![id];
+      while let Some(current) = above.pop() {
+        let Some(info) = self.snapshot.derivation(current) else {
+          continue;
+        };
+        for &parent in &info.derivation_parents {
+          if seen.insert(parent)
+            && let Some(row) = plan.rows.get_mut(&RowId::Build(parent))
+          {
+            row.active_below += 1;
+            above.push(parent);
+          }
+        }
+      }
+    }
     for (id, &priority) in relevance.iter().enumerate() {
-      if priority == 0 || (focus_active && priority < 3) {
+      if priority == 0 {
         continue;
       }
       let Some(info) = self.snapshot.derivation(id) else {
@@ -213,7 +234,13 @@ impl Renderer<'_> {
       .filter(|root| plan.rows.contains_key(root))
       .collect();
     let rows = &plan.rows;
-    plan.roots.sort_by_key(|root| Reverse(rows[root].priority));
+    plan.roots.sort_by_key(|root| {
+      (
+        Reverse(rows[root].priority),
+        Reverse(rows[root].active_below),
+        Reverse(rows[root].children.len()),
+      )
+    });
     if plan.rows.contains_key(&RowId::TransferGroup) {
       plan.roots.push(RowId::TransferGroup);
     }
@@ -256,9 +283,20 @@ impl Renderer<'_> {
     }
     if truncated && maximum > 1 {
       let hidden = plan.line_count().saturating_sub(lines.len());
+      let active = plan
+        .rows
+        .iter()
+        .filter(|(id, row)| row.active && !selection.rows.contains(id))
+        .count()
+        .min(hidden);
+      let label = match (active, hidden - active) {
+        (0, rest) => format!("… {rest} more"),
+        (running, 0) => format!("… {running} active"),
+        (running, rest) => format!("… {running} active, {rest} more"),
+      };
       lines.push(Line::from(vec![
         self.span("┣━ ", self.config.theme.connector),
-        self.span(format!("… {hidden} hidden"), self.config.theme.muted),
+        self.span(label, self.config.theme.muted),
       ]));
     }
     lines
@@ -285,14 +323,15 @@ impl Renderer<'_> {
     let mut frontier = BinaryHeap::new();
     let mut sequence = 0_usize;
     for &root in &plan.roots {
-      frontier.push((plan.row(root).priority, Reverse(sequence), root));
+      let row = plan.row(root);
+      frontier.push((row.priority, row.active_below, Reverse(sequence), root));
       selection.parents.insert(root, None);
       sequence += 1;
     }
 
     let mut order = Vec::new();
     let mut candidates = 0;
-    while let Some((_, _, id)) = frontier.pop() {
+    while let Some((_, _, _, id)) = frontier.pop() {
       order.push(id);
       let row = plan.row(id);
       candidates += usize::from(!focus_active || row.active);
@@ -303,7 +342,13 @@ impl Renderer<'_> {
         selection.parents.insert(child, Some(id));
         match child {
           RowId::Build(_) => {
-            frontier.push((plan.row(child).priority, Reverse(sequence), child));
+            let row = plan.row(child);
+            frontier.push((
+              row.priority,
+              row.active_below,
+              Reverse(sequence),
+              child,
+            ));
             sequence += 1;
           },
           RowId::Transfer(_) | RowId::TransferGroup => {},
@@ -343,53 +388,103 @@ impl Renderer<'_> {
       }
     }
 
-    let mut detail_groups = Vec::new();
-    for &id in &order {
-      if !selection.rows.contains(&id) {
-        continue;
-      }
-      if selection.parents[&id]
-        .is_none_or(|parent| !selection.rows.contains(&parent))
-      {
-        selection.roots.push(id);
-      }
-      let details = plan
+    let fill_transfers =
+      |rows: &mut HashSet<RowId>, remaining: &mut usize, completed: bool| {
+        let mut groups: VecDeque<_> = order
+          .iter()
+          .filter(|id| rows.contains(id))
+          .map(|&id| {
+            plan.row(id).children.iter().copied().filter(|child| {
+              let RowId::Transfer(index) = child else {
+                return false;
+              };
+              self.snapshot.placed_transfers[*index].transfer.completed
+                == completed
+            })
+          })
+          .collect();
+        while *remaining > 0 {
+          let Some(mut group) = groups.pop_front() else {
+            break;
+          };
+          if let Some(id) = group.next() {
+            rows.insert(id);
+            *remaining -= 1;
+            groups.push_back(group);
+          }
+        }
+      };
+    fill_transfers(&mut selection.rows, &mut remaining, false);
+    let anchored = selection.rows.clone();
+    let waiting = |id: RowId| !focus_active || plan.row(id).priority >= 2;
+
+    let mut nearby = order
+      .iter()
+      .copied()
+      .filter(|id| selection.rows.contains(id))
+      .collect::<VecDeque<RowId>>();
+    while remaining > 0
+      && let Some(id) = nearby.pop_front()
+    {
+      let mut children: Vec<_> = plan
         .row(id)
         .children
         .iter()
         .copied()
-        .filter(|child| matches!(child, RowId::Transfer(_)))
-        .collect::<Vec<RowId>>();
-      if !details.is_empty() {
-        detail_groups.push(details);
-      }
-    }
-
-    for completed in [false, true] {
-      let mut groups: VecDeque<_> = detail_groups
-        .iter()
-        .map(|rows| {
-          rows.iter().copied().filter(|id| {
-            let RowId::Transfer(index) = id else {
-              return false;
-            };
-            self.snapshot.placed_transfers[*index].transfer.completed
-              == completed
-          })
-        })
+        .filter(|&child| matches!(child, RowId::Build(_)) && waiting(child))
+        .filter(|child| selection.parents.get(child) == Some(&Some(id)))
         .collect();
-      while remaining > 0 {
-        let Some(mut group) = groups.pop_front() else {
-          break;
-        };
-        if let Some(id) = group.next() {
-          selection.rows.insert(id);
+      children.sort_by_key(|child| {
+        (Reverse(plan.row(*child).priority), !self.ready(*child))
+      });
+      for child in children.into_iter().take(remaining) {
+        if selection.rows.insert(child) {
           remaining -= 1;
-          groups.push_back(group);
+          nearby.push_back(child);
         }
       }
     }
+    for &id in &order {
+      if remaining == 0 {
+        break;
+      }
+      let blocked_elsewhere = focus_active && plan.row(id).priority >= 3;
+      let attached = selection.parents[&id]
+        .is_none_or(|parent| selection.rows.contains(&parent));
+      if waiting(id)
+        && attached
+        && !blocked_elsewhere
+        && selection.rows.insert(id)
+      {
+        remaining -= 1;
+      }
+    }
+    fill_transfers(&mut selection.rows, &mut remaining, true);
+
+    selection.roots.extend(order.iter().copied().filter(|id| {
+      selection.rows.contains(id)
+        && selection.parents[id]
+          .is_none_or(|parent| !selection.rows.contains(&parent))
+    }));
+    selection.roots.sort_by_key(|root| !anchored.contains(root));
     selection
+  }
+
+  /// A waiting build whose inputs are all done or running starts next.
+  fn ready(&self, id: RowId) -> bool {
+    let RowId::Build(id) = id else {
+      return false;
+    };
+    self.snapshot.derivation(id).is_some_and(|info| {
+      info.input_derivations.iter().all(|&input| {
+        self.snapshot.derivation(input).is_none_or(|input| {
+          !matches!(
+            input.build_status,
+            BuildStatus::Planned | BuildStatus::Unknown
+          )
+        })
+      })
+    })
   }
 
   fn focus_active(&self, plan: &TreePlan) -> bool {
@@ -468,6 +563,28 @@ impl Renderer<'_> {
             self.icons.clock,
             format_duration(self.now - build.start)
           ));
+        }
+        let mut seen = HashSet::new();
+        let mut above = vec![id];
+        let mut unseen = 0;
+        while let Some(current) = above.pop() {
+          let Some(node) = self.snapshot.derivation(current) else {
+            continue;
+          };
+          for &parent in &node.derivation_parents {
+            let waiting =
+              self.snapshot.derivation(parent).is_some_and(|derivation| {
+                matches!(derivation.build_status, BuildStatus::Planned)
+              });
+            if waiting && seen.insert(parent) {
+              unseen +=
+                usize::from(!selection.rows.contains(&RowId::Build(parent)));
+              above.push(parent);
+            }
+          }
+        }
+        if unseen > 0 {
+          suffix.push_str(&format!("  (+{unseen} waiting)"));
         }
         (
           self.icons.running,

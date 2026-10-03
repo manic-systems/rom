@@ -382,7 +382,7 @@ fn source_rows_obey_the_live_graph_budget() {
     .position(|line| line.starts_with("┣━ Status"))
     .unwrap();
   assert_eq!(legend, 15, "{text}");
-  assert!(lines[legend - 1].contains("hidden"), "{text}");
+  assert!(lines[legend - 1].contains("… 19 active"), "{text}");
   assert!(
     lines.iter().any(|line| line.contains("source-00")),
     "{text}"
