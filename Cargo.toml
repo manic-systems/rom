@@ -12,27 +12,35 @@ license = "EUPL-1.2"
 homepage = "https://github.com/manic-systems/rom"
 
 [workspace.dependencies]
-cognos = { path = "./crates/cognos", version = "1.0.1" }     # cognos is versioned independently
+cognos = { path = "./crates/cognos", version = "1.0.1" }  # cognos is versioned independently
 
-pound = "0.1.7"
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
-serde_repr = "0.1.20"
 crossterm = "0.29.0"
-ratatui-core = { version = "0.1.0", features = ["scrolling-regions"] }
-indexmap = { version = "2.14.0", features = ["serde"] }
+csv = "1.4.0"
+etcetera = "0.11.0"
+indexmap = { version = "2.14.2", features = ["serde"] }
+jiff = { version = "0.2.37", default-features = false, features = ["std"] }
+libc = "0.2.189"
+misstep = { version = "0.3.0", features = ["pretty"] }
+pound = "0.1.8"
+ratatui-core = { version = "0.1.2", features = ["scrolling-regions"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+serde_repr = "0.1.21"
+crossterm = "0.29.0"
+ratatui-core = { version = "0.1.2", features = ["scrolling-regions"] }
+indexmap = { version = "2.14.2", features = ["serde"] }
 csv = "1.4.0"
 jiff = { version = "0.2.37", default-features = false, features = ["std"] }
-thiserror = "2.0.18"
+thiserror = "2.0.20"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-eyre = "0.6.12"
+eyre = "0.6.14"
 etcetera = "0.11.0"
 tempfile = "3.27.0"
 unicode-width = "0.2.2"
-libc = "0.2.183"
+libc = "0.2.189"
 nix-derivation = "0.6.1"
-signal-hook = "0.3.18"
+signal-hook = "0.4.4"
 
 [profile.release]
 codegen-units = 1
