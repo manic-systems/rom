@@ -2,6 +2,7 @@
 
 use std::{
   collections::HashSet,
+  env::{self, VarError},
   io::{self, IsTerminal, Read, Write},
   path::PathBuf,
   process::{Command, ExitCode, Stdio},
@@ -17,7 +18,13 @@ use std::{
 use cognos::Verbosity;
 use misstep::{OptionExt, ResultExt};
 use pound::Parse;
-use tracing_subscriber::EnvFilter;
+use tracing::level_filters::LevelFilter;
+use tracing_subscriber::{
+  filter::Targets,
+  fmt,
+  layer::SubscriberExt,
+  util::SubscriberInitExt,
+};
 
 use crate::{
   cache::BuildReportCache,
@@ -130,7 +137,7 @@ struct WrapperConfig {
 /// Returns an error if an argument is not valid UTF-8, the Nix process cannot
 /// be run, or the build fails or ends with unfinished work.
 pub fn run() -> misstep::Result<ExitCode> {
-  let mut process_args = std::env::args_os();
+  let mut process_args = env::args_os();
   let program = process_args
     .next()
     .and_then(|path| {
@@ -151,19 +158,25 @@ pub fn run() -> misstep::Result<ExitCode> {
     _ => {},
   }
   let cli = Cli::parse_from(arguments.iter().map(String::as_str));
-  let default_filter = match cli.verbose {
-    0 => "rom=warn",
-    1 => "rom=info",
-    2 => "rom=debug",
-    _ => "rom=trace",
+  let filter = match env::var("RUST_LOG") {
+    Ok(directives) => {
+      directives
+        .parse::<Targets>()
+        .with_context(|| format!("parsing RUST_LOG={directives:?}"))?
+    },
+    Err(VarError::NotPresent) => {
+      Targets::new().with_target("rom", match cli.verbose {
+        0 => LevelFilter::WARN,
+        1 => LevelFilter::INFO,
+        2 => LevelFilter::DEBUG,
+        _ => LevelFilter::TRACE,
+      })
+    },
+    Err(error) => Err(error).context("reading RUST_LOG")?,
   };
-  tracing_subscriber::fmt()
-    .with_env_filter(
-      EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(default_filter)),
-    )
-    .with_target(false)
-    .with_writer(io::stderr)
+  tracing_subscriber::registry()
+    .with(fmt::layer().with_target(false).with_writer(io::stderr))
+    .with(filter)
     .init();
 
   let monitor = Config {
