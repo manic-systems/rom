@@ -5,32 +5,32 @@ members = ["crates/cognos", "rom"]
 [workspace.package]
 version = "0.2.1"
 edition = "2024"
-description = "Pretty build graphs for your pretty Nix builds"
 rust-version = "1.95.0"
-license = "EUPL-1.2"
+description = "Pretty build graphs for your pretty Nix builds"
 homepage = "https://github.com/manic-systems/rom"
+license = "EUPL-1.2"
 
 [workspace.dependencies]
-cognos = { path = "./crates/cognos", version = "1.0.1" }     # cognos is versioned independently
+cognos = { path = "./crates/cognos", version = "1.0.1" }  # cognos is versioned independently
 
-pound = "0.5.3"
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
-serde_repr = "0.1.20"
-crossterm = "0.29.0"
-ratatui-core = { version = "0.1.0", features = ["scrolling-regions"] }
-indexmap = { version = "2.14.0", features = ["serde"] }
+crossterm = { version = "0.29.0", default-features = false }
 csv = "1.4.0"
-jiff = { version = "0.2.37", default-features = false, features = ["std"] }
-tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-misstep = { version = "0.4.1", features = ["pretty"] }
-flub = "0.1.0"
 etcetera = "0.11.0"
+flub = "0.1.0"
+indexmap = "2.14.2"
+jiff = { version = "0.2.37", default-features = false, features = ["std"] }
+libc = "0.2.189"
+misstep = { version = "0.4.1", features = ["pretty"] }
+pound = "0.5.3"
+ratatui-core = "0.1.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+serde_repr = "0.1.21"
+signal-hook = "0.4.4"
 tempfile = "3.27.0"
+tracing = { version = "0.1.44", default-features = false, features = ["std"] }
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["fmt"] }
 unicode-width = "0.2.2"
-libc = "0.2.183"
-signal-hook = "0.3.18"
 
 [workspace.lints.clippy]
 cargo = { level = "warn", priority = -1 }
@@ -105,6 +105,6 @@ wildcard_enum_match_arm = "allow"
 
 [profile.release]
 opt-level = 3
-lto = true
+strip = "symbols"
+lto = "thin"
 codegen-units = 1
-strip = true
