@@ -15,6 +15,7 @@ use std::{
 };
 
 use cognos::Verbosity;
+use misstep::{OptionExt, ResultExt};
 use pound::Parse;
 use tracing_subscriber::EnvFilter;
 
@@ -115,7 +116,7 @@ struct WrapperConfig {
 ///
 /// Returns an error if an argument is not valid UTF-8, the Nix process cannot
 /// be run, or the build fails or ends with unfinished work.
-pub fn run() -> eyre::Result<ExitCode> {
+pub fn run() -> misstep::Result<ExitCode> {
   let mut process_args = std::env::args_os();
   let program = process_args
     .next()
@@ -127,9 +128,9 @@ pub fn run() -> eyre::Result<ExitCode> {
     .map(|argument| {
       argument
         .into_string()
-        .map_err(|_| eyre::eyre!("argument is not valid UTF-8"))
+        .map_err(|_| misstep::report!("argument is not valid UTF-8"))
     })
-    .collect::<eyre::Result<Vec<_>>>()?;
+    .collect::<misstep::Result<Vec<_>>>()?;
   match program.as_str() {
     "rom-build" => arguments.insert(0, "build".to_owned()),
     "rom-shell" => arguments.insert(0, "shell".to_owned()),
@@ -139,7 +140,7 @@ pub fn run() -> eyre::Result<ExitCode> {
   let (rom_args, nix_flags) = parse_args_with_separator(&arguments);
   let cli = Cli::parse_from(rom_args.iter().map(String::as_str));
   if cli.command.is_none() && !nix_flags.is_empty() {
-    eyre::bail!("Nix flags require a build, shell, or develop subcommand");
+    misstep::bail!("Nix flags require a build, shell, or develop subcommand");
   }
   let default_filter = match cli.verbose {
     0 => "rom=warn",
@@ -172,18 +173,18 @@ pub fn run() -> eyre::Result<ExitCode> {
         InputMode::Auto
       },
       log_prefix_style: LogPrefixStyle::parse(&cli.log_prefix)
-        .ok_or_else(|| eyre::eyre!("unknown log prefix: {}", cli.log_prefix))?,
+        .with_context(|| format!("unknown log prefix: {}", cli.log_prefix))?,
       log_line_limit: cli.log_lines,
       ..EngineConfig::default()
     },
     render: RenderConfig {
       ansi: io::stderr().is_terminal(),
       format: DisplayFormat::parse(&cli.format)
-        .ok_or_else(|| eyre::eyre!("unknown format: {}", cli.format))?,
+        .with_context(|| format!("unknown format: {}", cli.format))?,
       legend_style: LegendStyle::parse(&cli.legend)
-        .ok_or_else(|| eyre::eyre!("unknown legend style: {}", cli.legend))?,
+        .with_context(|| format!("unknown legend style: {}", cli.legend))?,
       summary_style: SummaryStyle::parse(&cli.summary)
-        .ok_or_else(|| eyre::eyre!("unknown summary style: {}", cli.summary))?,
+        .with_context(|| format!("unknown summary style: {}", cli.summary))?,
       ..RenderConfig::default()
     },
   };
@@ -247,19 +248,15 @@ fn nix_verbosity_flag(verbose: u8) -> String {
   format!("-{}", "v".repeat(verbose.max(1) as usize))
 }
 
-fn require_packages(kind: &str, packages: &[String]) -> eyre::Result<()> {
-  if packages.is_empty() {
-    eyre::bail!("No package or flake specified for {kind}");
-  }
-  Ok(())
-}
-
 fn build(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<ExitCode> {
-  require_packages("build", &packages)?;
+) -> misstep::Result<ExitCode> {
+  misstep::ensure!(
+    !packages.is_empty(),
+    "No package or flake specified for build"
+  );
   let mut arguments = vec![
     "build".to_owned(),
     nix_verbosity_flag(config.verbose),
@@ -279,8 +276,11 @@ fn shell(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<ExitCode> {
-  require_packages("shell", &packages)?;
+) -> misstep::Result<ExitCode> {
+  misstep::ensure!(
+    !packages.is_empty(),
+    "No package or flake specified for shell"
+  );
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
     "shell".to_owned(),
@@ -307,8 +307,11 @@ fn develop(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<ExitCode> {
-  require_packages("develop", &packages)?;
+) -> misstep::Result<ExitCode> {
+  misstep::ensure!(
+    !packages.is_empty(),
+    "No package or flake specified for develop"
+  );
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
     "develop".to_owned(),
@@ -344,34 +347,30 @@ fn exit_code(code: i32) -> ExitCode {
 }
 
 fn run_monitored_command(
-  command: &str,
+  program: &str,
   arguments: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<i32> {
+) -> misstep::Result<i32> {
   #[cfg(unix)] use std::os::unix::process::CommandExt;
 
-  let mut command = Command::new(command);
+  let mut command = Command::new(program);
   command
     .args(arguments)
     .stdout(Stdio::piped())
     .stderr(Stdio::piped());
   #[cfg(unix)]
   command.process_group(0);
-  let mut child = command.spawn().map_err(RomError::Io)?;
+  let mut child = command
+    .spawn()
+    .with_context(|| format!("running {program}"))?;
   #[cfg(unix)]
   let signal_forwarder = SignalForwarder::start(child.id())?;
   #[cfg(unix)]
   let interrupted = Arc::clone(&signal_forwarder.interrupted);
   #[cfg(not(unix))]
   let interrupted = Arc::new(AtomicBool::new(false));
-  let stdout = child
-    .stdout
-    .take()
-    .ok_or_else(|| RomError::process("missing child stdout"))?;
-  let stderr = child
-    .stderr
-    .take()
-    .ok_or_else(|| RomError::process("missing child stderr"))?;
+  let stdout = child.stdout.take().context("missing child stdout")?;
+  let stderr = child.stderr.take().context("missing child stderr")?;
 
   let stdout_thread = thread::spawn(move || -> io::Result<()> {
     let mut source = stdout;
@@ -386,15 +385,19 @@ fn run_monitored_command(
   if result.is_err() {
     terminate_process(&mut child);
   }
-  let status = child.wait().map_err(RomError::Io)?;
+  let status = child
+    .wait()
+    .with_context(|| format!("waiting for {program}"))?;
   #[cfg(unix)]
   signal_forwarder.stop();
   reader_thread
     .join()
-    .map_err(|_| RomError::process("stderr reader panicked"))??;
+    .map_err(|_| misstep::report!("stderr reader panicked"))?
+    .context("reading child stderr")?;
   stdout_thread
     .join()
-    .map_err(|_| RomError::process("stdout relay panicked"))??;
+    .map_err(|_| misstep::report!("stdout relay panicked"))?
+    .context("relaying child stdout")?;
   result?;
   Ok(exit_status_code(status))
 }
@@ -475,12 +478,13 @@ impl SignalForwarder {
 fn run_input<R: Read + Send + 'static>(
   reader: R,
   config: Config,
-) -> eyre::Result<()> {
+) -> misstep::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
   drive(&receiver, config, true, &AtomicBool::new(false))?;
   reader_thread
     .join()
-    .map_err(|_| RomError::process("input reader panicked"))??;
+    .map_err(|_| misstep::report!("input reader panicked"))?
+    .context("reading standard input")?;
   Ok(())
 }
 
@@ -650,10 +654,13 @@ fn drive(
   config: Config,
   semantic_failure_is_error: bool,
   interrupted: &AtomicBool,
-) -> eyre::Result<()> {
+) -> misstep::Result<()> {
   let Config { engine, render } = config;
   let silent = engine.silent;
-  let history = BuildReportCache::new(BuildReportCache::default_cache_path()?);
+  let history = BuildReportCache::new(
+    BuildReportCache::default_cache_path()
+      .context("locating the build history")?,
+  );
   let mut stream = StreamEngine::new(engine);
   stream.engine_mut().set_resolver(FilesystemResolver);
   stream.engine_mut().load_history(&history);
@@ -676,7 +683,7 @@ fn drive(
         presenter.output(output, &render)?;
         dirty |= changed || has_output;
       },
-      Ok(Err(error)) => return Err(error.into()),
+      Ok(Err(error)) => Err(error).context("reading build output")?,
       Err(RecvTimeoutError::Disconnected) => break,
       Err(RecvTimeoutError::Timeout) => {},
     }
@@ -707,10 +714,10 @@ fn drive(
     tracing::debug!("failed to save build history: {error}");
   }
   if semantic_failure_is_error && stream.engine().state().has_errors() {
-    return Err(RomError::BuildFailed.into());
+    misstep::bail!(RomError::BuildFailed);
   }
   if semantic_failure_is_error && stream.engine().state().has_unfinished() {
-    return Err(RomError::Incomplete.into());
+    misstep::bail!(RomError::Incomplete);
   }
   Ok(())
 }

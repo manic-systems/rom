@@ -2,6 +2,6 @@
 
 use std::process::ExitCode;
 
-fn main() -> eyre::Result<ExitCode> {
+fn main() -> misstep::Result<ExitCode> {
   rom::run()
 }

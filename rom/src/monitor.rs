@@ -190,9 +190,7 @@ impl Engine {
     }
     let json = match self.config.input_mode {
       InputMode::Auto => {
-        record.strip_prefix(b"@nix ").ok_or_else(|| {
-          RomError::parse("internal error: non-protocol record reached decoder")
-        })?
+        record.strip_prefix(b"@nix ").ok_or(RomError::NotProtocol)?
       },
       InputMode::Json => record,
     };
@@ -403,10 +401,9 @@ impl StreamEngine {
           record.extend_from_slice(&rest[..take]);
           offset += take;
           if record.len() > self.engine.config.max_record_bytes {
-            return Err(RomError::parse(format!(
-              "internal-JSON record exceeds {} bytes",
-              self.engine.config.max_record_bytes
-            )));
+            return Err(RomError::RecordTooLarge {
+              limit: self.engine.config.max_record_bytes,
+            });
           }
           if newline.is_some() {
             let complete = std::mem::take(record);
