@@ -6,7 +6,7 @@ members = ["crates/cognos", "rom"]
 version = "0.2.1"
 edition = "2024"
 description = "Pretty build graphs for your pretty Nix builds"
-rust-version = "1.92.0"
+rust-version = "1.95.0"
 license = "EUPL-1.2"
 homepage = "https://github.com/manic-systems/rom"
 
@@ -22,10 +22,10 @@ ratatui-core = { version = "0.1.0", features = ["scrolling-regions"] }
 indexmap = { version = "2.14.0", features = ["serde"] }
 csv = "1.4.0"
 jiff = { version = "0.2.37", default-features = false, features = ["std"] }
-thiserror = "2.0.18"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-eyre = "0.6.12"
+misstep = { version = "0.4.1", features = ["pretty"] }
+flub = "0.1.0"
 etcetera = "0.11.0"
 tempfile = "3.27.0"
 unicode-width = "0.2.2"
