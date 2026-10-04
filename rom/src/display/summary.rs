@@ -298,7 +298,7 @@ impl Renderer<'_> {
   }
 
   pub(super) fn final_status(&self) -> (String, Color) {
-    let failed = self.snapshot.counts.builds.failed;
+    let failed = self.snapshot.builds.failed.len();
     let active = self.snapshot.counts.builds.running
       + self.snapshot.counts.downloads.running
       + self.snapshot.counts.uploads.running;

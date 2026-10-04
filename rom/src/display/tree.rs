@@ -99,7 +99,9 @@ impl Renderer<'_> {
         BuildStatus::Building(_) => 3,
         BuildStatus::Planned => 2,
         BuildStatus::Available => 1,
-        BuildStatus::Unknown | BuildStatus::Built { .. } => 0,
+        BuildStatus::Unknown
+        | BuildStatus::Built { .. }
+        | BuildStatus::DependencyFailed => 0,
       };
       relevance[id] = priority;
     }
@@ -127,16 +129,18 @@ impl Renderer<'_> {
         continue;
       };
       for &parent in &info.derivation_parents {
-        // A realised parent never waits on its inputs, so only active work
+        // A settled parent never waits on its inputs, so only active work
         // keeps it on the path.
-        let realised =
+        let settled =
           self.snapshot.derivation(parent).is_some_and(|derivation| {
             matches!(
               derivation.build_status,
-              BuildStatus::Available | BuildStatus::Built { .. }
+              BuildStatus::Available
+                | BuildStatus::Built { .. }
+                | BuildStatus::DependencyFailed
             )
           });
-        if priority < 3 && realised {
+        if priority < 3 && settled {
           continue;
         }
         let previous = relevance[parent];
@@ -597,6 +601,9 @@ impl Renderer<'_> {
       },
       BuildStatus::Failed { .. } => {
         (self.icons.failed, self.config.theme.failed, None)
+      },
+      BuildStatus::DependencyFailed => {
+        (self.icons.failed, self.config.theme.muted, None)
       },
     };
     spans.push(self.span(format!("{icon} "), color));

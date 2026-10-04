@@ -132,7 +132,6 @@ pub enum FailType {
   BuildFailed(i32),
   Timeout,
   HashMismatch,
-  DependencyFailed,
   Unknown,
 }
 
@@ -152,6 +151,7 @@ pub enum BuildStatus {
     info: BuildInfo,
     fail: BuildFail,
   },
+  DependencyFailed,
 }
 
 /// Derivation information
@@ -686,6 +686,18 @@ impl State {
     true
   }
 
+  pub(crate) fn fail_dependency(&mut self, id: DerivationId) {
+    let Some(info) = self.derivation_infos.get_mut(&id) else {
+      return;
+    };
+    if matches!(
+      info.build_status,
+      BuildStatus::Unknown | BuildStatus::Planned
+    ) {
+      info.build_status = BuildStatus::DependencyFailed;
+    }
+  }
+
   pub(crate) fn fail_build(&mut self, id: DerivationId, fail: BuildFail) {
     let Some(info) = self.derivation_infos.get_mut(&id) else {
       return;
@@ -716,7 +728,8 @@ impl State {
       BuildStatus::Unknown
       | BuildStatus::Planned
       | BuildStatus::Available
-      | BuildStatus::Failed { .. } => {
+      | BuildStatus::Failed { .. }
+      | BuildStatus::DependencyFailed => {
         unreachable!("build status was checked");
       },
     };
@@ -816,7 +829,10 @@ impl State {
       BuildStatus::Building(build)
       | BuildStatus::Built { info: build, .. }
       | BuildStatus::Failed { info: build, .. } => build,
-      BuildStatus::Unknown | BuildStatus::Planned | BuildStatus::Available => {
+      BuildStatus::Unknown
+      | BuildStatus::Planned
+      | BuildStatus::Available
+      | BuildStatus::DependencyFailed => {
         return false;
       },
     };
