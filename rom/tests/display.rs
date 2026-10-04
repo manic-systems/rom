@@ -171,7 +171,7 @@ fn deeply_nested_live_graph_is_bounded_before_rendering() {
   const NODES: usize = 2_000;
   let mut engine = Engine::new(EngineConfig::default());
   engine.set_resolver(ChainResolver { nodes: NODES });
-  for path in [chain_path(0), chain_path(NODES - 1)] {
+  for path in (0..NODES).map(chain_path) {
     let record =
       format!("@nix {{\"action\":\"msg\",\"level\":3,\"msg\":\"  {path}\"}}");
     engine.process_record_at(record.as_bytes(), 0.0).unwrap();

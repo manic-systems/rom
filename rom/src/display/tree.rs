@@ -129,13 +129,15 @@ impl Renderer<'_> {
         continue;
       };
       for &parent in &info.derivation_parents {
-        // A settled parent never waits on its inputs, so only active work
-        // keeps it on the path.
+        // Nix announces everything it will build, so an unannounced or
+        // settled parent never waits on its inputs and only active work keeps
+        // it on the path.
         let settled =
           self.snapshot.derivation(parent).is_some_and(|derivation| {
             matches!(
               derivation.build_status,
-              BuildStatus::Available
+              BuildStatus::Unknown
+                | BuildStatus::Available
                 | BuildStatus::Built { .. }
                 | BuildStatus::DependencyFailed
             )
@@ -229,13 +231,17 @@ impl Renderer<'_> {
       }
     }
 
-    plan.roots = self
-      .snapshot
-      .roots
-      .iter()
-      .copied()
+    plan.roots = (0..slots)
+      .filter(|&id| plan.rows.contains_key(&RowId::Build(id)))
+      .filter(|&id| {
+        self.snapshot.derivation(id).is_none_or(|info| {
+          !info
+            .derivation_parents
+            .iter()
+            .any(|&parent| plan.rows.contains_key(&RowId::Build(parent)))
+        })
+      })
       .map(RowId::Build)
-      .filter(|root| plan.rows.contains_key(root))
       .collect();
     let rows = &plan.rows;
     plan.roots.sort_by_key(|root| {
