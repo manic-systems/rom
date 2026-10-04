@@ -487,11 +487,8 @@ impl Renderer<'_> {
     };
     self.snapshot.derivation(id).is_some_and(|info| {
       info.input_derivations.iter().all(|&input| {
-        self.snapshot.derivation(input).is_none_or(|input| {
-          !matches!(
-            input.build_status,
-            BuildStatus::Planned | BuildStatus::Unknown
-          )
+        self.snapshot.derivation(input).is_none_or(|derivation| {
+          !matches!(derivation.build_status, BuildStatus::Planned)
         })
       })
     })
