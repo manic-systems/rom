@@ -1,7 +1,8 @@
 //! Render snapshot derived from state, shared by every display format.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashMap, HashSet};
 
+use cognos::Host;
 use indexmap::IndexMap;
 
 use crate::state::{
@@ -12,6 +13,8 @@ use crate::state::{
   DependencySummary,
   DerivationId,
   DerivationInfo,
+  Membership,
+  ProgressState,
   SourceFetch,
   State,
   StorePathId,
@@ -86,6 +89,25 @@ pub(super) struct SummaryCounts {
   pub uploads:   StatusCounts,
 }
 
+/// Progress of the units of one package.
+#[derive(Debug, Clone, Default)]
+pub(super) struct UnitCounts<'a> {
+  pub total:   usize,
+  pub done:    usize,
+  pub running: usize,
+  /// Running units per remote machine.
+  pub remote:  BTreeMap<&'a str, usize>,
+  pub failed:  usize,
+  /// When the earliest unit started.
+  pub start:   Option<f64>,
+}
+
+impl UnitCounts<'_> {
+  pub const fn unfinished(&self) -> bool {
+    self.done + self.failed < self.total
+  }
+}
+
 #[derive(Default)]
 pub(super) struct Builds<'a> {
   pub planned:   Vec<DerivationId>,
@@ -114,6 +136,8 @@ pub(super) struct RenderSnapshot<'a> {
   pub counts:           SummaryCounts,
   pub placed_transfers: Vec<PresentedTransfer>,
   pub source_fetches:   Vec<&'a SourceFetch>,
+  pub packages:         HashMap<DerivationId, UnitCounts<'a>>,
+  pub finished:         bool,
 }
 
 impl<'a> RenderSnapshot<'a> {
@@ -122,7 +146,48 @@ impl<'a> RenderSnapshot<'a> {
     let mut builds = Builds::default();
     let mut available = 0;
     let mut dependency_failed = 0;
+    let mut packages = HashMap::<DerivationId, UnitCounts>::new();
     for (&id, info) in state.derivations() {
+      // A producer counts through the unit it wrote, once that is known.
+      if let Membership::Unit(package) = info.membership
+        && info.writes.is_none()
+      {
+        let counts = packages.entry(package).or_default();
+        counts.total += 1;
+        let started = match &info.build_status {
+          BuildStatus::Unknown | BuildStatus::Planned => None,
+          BuildStatus::Available => {
+            counts.done += 1;
+            None
+          },
+          BuildStatus::Building(build) => {
+            counts.running += 1;
+            if let Host::Remote(machine) = &build.host {
+              *counts.remote.entry(machine.as_str()).or_default() += 1;
+            }
+            Some(build.start)
+          },
+          BuildStatus::Built { info: build, .. } => {
+            counts.done += 1;
+            Some(build.start)
+          },
+          BuildStatus::Failed { info: build, .. } => {
+            counts.failed += 1;
+            Some(build.start)
+          },
+          BuildStatus::DependencyFailed => {
+            counts.failed += 1;
+            None
+          },
+        };
+        if let Some(started) = started {
+          counts.start = Some(
+            counts
+              .start
+              .map_or(started, |earliest| earliest.min(started)),
+          );
+        }
+      }
       match &info.build_status {
         BuildStatus::Unknown => {},
         BuildStatus::Planned => builds.planned.push(id),
@@ -176,6 +241,8 @@ impl<'a> RenderSnapshot<'a> {
         .source_fetches()
         .filter(|fetch| elapsed(fetch.start, now) >= SOURCE_FETCH_DELAY)
         .collect(),
+      packages,
+      finished: state.progress_state() == ProgressState::Finished,
     };
     snapshot.collect_transfers(state.store_paths(), now);
     snapshot
