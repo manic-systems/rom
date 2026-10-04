@@ -568,6 +568,15 @@ impl Renderer<'_> {
             format_duration(self.now - build.start)
           ));
         }
+        if let Some(estimate) = build.estimate
+          && !self.snapshot.shared_names.contains(info.name.name.as_str())
+        {
+          suffix.push_str(&format!(
+            "  ({} {})",
+            self.icons.estimate,
+            format_duration(estimate as f64)
+          ));
+        }
         let mut seen = HashSet::new();
         let mut above = vec![id];
         let mut unseen = 0;

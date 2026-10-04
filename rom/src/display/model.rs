@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use indexmap::IndexMap;
 
 use crate::state::{
@@ -90,6 +92,9 @@ pub(super) struct Builds<'a> {
 
 /// Immutable presentation input derived once for a complete frame.
 pub(super) struct RenderSnapshot<'a> {
+  /// Names shared by several derivations, whose history mixes unrelated
+  /// builds and so gives no usable estimate.
+  pub shared_names:     HashSet<&'a str>,
   pub derivations:      &'a IndexMap<DerivationId, DerivationInfo>,
   pub summary:          &'a DependencySummary,
   pub builds:           Builds<'a>,
@@ -139,7 +144,15 @@ impl<'a> RenderSnapshot<'a> {
         failed:    0,
       },
     };
+    let mut seen_names = HashSet::new();
+    let shared_names = state
+      .derivations()
+      .values()
+      .map(|info| info.name.name.as_str())
+      .filter(|name| !seen_names.insert(*name))
+      .collect();
     let mut snapshot = Self {
+      shared_names,
       derivations: state.derivations(),
       summary,
       builds,
