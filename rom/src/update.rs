@@ -18,6 +18,7 @@ use crate::{
     ActivityStatus,
     BuildFail,
     BuildInfo,
+    DerivationId,
     FailType,
     State,
     TransferInfo,
@@ -29,6 +30,7 @@ pub(crate) struct Effects {
   pub changed: bool,
   pub log:     Option<LogEffect>,
   pub resolve: Vec<PathBuf>,
+  pub started: Option<DerivationId>,
   pub stopped: Option<Id>,
 }
 
@@ -141,6 +143,7 @@ fn apply_start(
         parent,
       );
       derivation = Some(id);
+      effects.started = Some(id);
       effects.changed = true;
     },
     ActivitySubject::Substitute {

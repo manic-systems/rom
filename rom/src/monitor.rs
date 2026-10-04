@@ -4,16 +4,19 @@ use std::{
   collections::{HashMap, HashSet},
   io::{BufRead, Write},
   path::{Path, PathBuf},
+  process::{Command, Stdio},
+  sync::atomic::{AtomicBool, Ordering},
 };
 
 use cognos::{DecodedAction, Id, UnsupportedRecord};
+use serde::Deserialize;
 
 use crate::{
   cache::BuildReportCache,
   display::{format_log, write_final},
   error::{Result, RomError},
   event::Event,
-  state::{Derivation, DerivationId, State, current_time},
+  state::{BuildStatus, Derivation, DerivationId, State, current_time},
   types::{Config, EngineConfig, InputMode, LogLine, RenderConfig},
   update::{self, LogEffect},
 };
@@ -25,6 +28,12 @@ pub trait DerivationResolver: Send + Sync {
     &self,
     path: &Path,
   ) -> std::result::Result<cognos::ParsedDerivation, String>;
+
+  /// The `.drv` a dynamic-derivation producer wrote to its `out`, once Nix
+  /// has realised it.
+  fn produced(&self, _producer: &Path) -> Option<PathBuf> {
+    None
+  }
 }
 
 /// Resolver used by the CLI for local store derivations.
@@ -36,6 +45,58 @@ impl DerivationResolver for FilesystemResolver {
     path: &Path,
   ) -> std::result::Result<cognos::ParsedDerivation, String> {
     cognos::parse_drv_file(path)
+  }
+
+  // Produced derivations have no deriver, so the realisation is the only
+  // record of which producer wrote them.
+  fn produced(&self, producer: &Path) -> Option<PathBuf> {
+    // The trace lists entries keyed by resolved derivations, including the
+    // producer's own CA inputs, then the installable's realised path.
+    #[derive(Deserialize)]
+    struct Entry {
+      #[serde(rename = "opaquePath")]
+      opaque_path: Option<PathBuf>,
+    }
+
+    static UNAVAILABLE: AtomicBool = AtomicBool::new(false);
+    let disable = |reason: &str| {
+      if !UNAVAILABLE.swap(true, Ordering::Relaxed) {
+        tracing::warn!(
+          "cannot link dynamic derivations to consumers: {reason}"
+        );
+      }
+    };
+    if UNAVAILABLE.load(Ordering::Relaxed) {
+      return None;
+    }
+
+    let output = Command::new("nix")
+      .args(["store", "build-trace", "info", "--json", "--max-jobs", "0"])
+      .arg(format!("{}^out", producer.display()))
+      .stdin(Stdio::null())
+      .output();
+    let output = match output {
+      Ok(output) => output,
+      Err(error) => {
+        disable(&error.to_string());
+        return None;
+      },
+    };
+    if !output.status.success() {
+      let stderr = String::from_utf8_lossy(&output.stderr);
+      if !stderr.contains("unbuilt derivation") {
+        disable(stderr.trim());
+      }
+      return None;
+    }
+    let entries: Vec<Entry> = match serde_json::from_slice(&output.stdout) {
+      Ok(entries) => entries,
+      Err(error) => {
+        disable(&error.to_string());
+        return None;
+      },
+    };
+    entries.into_iter().find_map(|entry| entry.opaque_path)
   }
 }
 
@@ -95,6 +156,7 @@ pub struct Engine {
   suppressed_logs:      HashSet<Id>,
   reported_unsupported: HashSet<UnsupportedRecord>,
   resolved_drvs:        HashSet<PathBuf>,
+  producers:            HashMap<DerivationId, Producer>,
   resolver:             Option<Box<dyn DerivationResolver>>,
 }
 
@@ -108,6 +170,7 @@ impl Engine {
       suppressed_logs: HashSet::new(),
       reported_unsupported: HashSet::new(),
       resolved_drvs: HashSet::new(),
+      producers: HashMap::new(),
       resolver: None,
     }
   }
@@ -204,13 +267,23 @@ impl Engine {
 
     let mut changed = effects.changed;
     if let Some(resolver) = self.resolver.as_ref() {
+      let mut tree = DerivationTree {
+        state:     &mut self.state,
+        resolver:  resolver.as_ref(),
+        resolved:  &mut self.resolved_drvs,
+        producers: &mut self.producers,
+      };
       for path in effects.resolve {
-        changed |= resolve_derivation_tree(
-          &mut self.state,
-          resolver.as_ref(),
-          &mut self.resolved_drvs,
-          path,
-        );
+        changed |= tree.resolve(path);
+      }
+      if effects.stopped.is_some() {
+        changed |= tree.link_producers(Lookup::Built);
+      }
+      if let Some(id) = effects.started
+        && let Some(info) = tree.state.get_derivation_info(id)
+        && info.derivation_parents.is_empty()
+      {
+        changed |= tree.link_producers(Lookup::Orphan(id));
       }
     }
     if let Some(id) = effects.stopped {
@@ -258,43 +331,142 @@ impl Engine {
   }
 }
 
-fn resolve_derivation_tree(
-  state: &mut State,
-  resolver: &dyn DerivationResolver,
-  resolved: &mut HashSet<PathBuf>,
-  root: PathBuf,
-) -> bool {
-  let mut pending = vec![root];
-  let mut changed = false;
-  while let Some(path) = pending.pop() {
-    if resolved.contains(&path) {
-      continue;
+/// A dynamic-derivation producer whose output is not yet linked.
+struct Producer {
+  path:      PathBuf,
+  consumers: Vec<DerivationId>,
+  /// Every activity stop triggers a Built lookup, so each producer gets one.
+  looked_up: bool,
+}
+
+#[derive(Clone, Copy)]
+enum Lookup {
+  Built,
+  /// A build with no known parent started, so whichever producer wrote it is
+  /// realised even if its trace was not yet recorded when it stopped, or it
+  /// was built by an earlier run. Its producer is named after it plus `.drv`.
+  Orphan(DerivationId),
+}
+
+struct DerivationTree<'engine> {
+  state:     &'engine mut State,
+  resolver:  &'engine dyn DerivationResolver,
+  resolved:  &'engine mut HashSet<PathBuf>,
+  producers: &'engine mut HashMap<DerivationId, Producer>,
+}
+
+impl DerivationTree<'_> {
+  fn resolve(&mut self, root: PathBuf) -> bool {
+    let mut pending = vec![root];
+    let mut changed = false;
+    while let Some(path) = pending.pop() {
+      if self.resolved.contains(&path) {
+        continue;
+      }
+      let Some(derivation) = path.to_str().and_then(Derivation::parse) else {
+        continue;
+      };
+      let id = self.state.get_or_create_derivation_id(derivation);
+      let parsed = match self.resolver.resolve(&path) {
+        Ok(parsed) => parsed,
+        Err(error) => {
+          tracing::debug!("could not resolve {}: {error}", path.display());
+          continue;
+        },
+      };
+
+      // A dynamic input names its producer with no static outputs.
+      for (dependency, outputs) in &parsed.input_drvs {
+        let dependency = PathBuf::from(dependency);
+        if outputs.is_empty() {
+          self.register(&dependency, vec![id]);
+        }
+        pending.push(dependency);
+      }
+      self.state.populate_parsed_derivation(id, parsed);
+      self.resolved.insert(path);
+      changed = true;
     }
-    let Some(path_str) = path.to_str() else {
-      continue;
-    };
-    let Some(derivation) = Derivation::parse(path_str) else {
-      continue;
-    };
-    let id = state.get_or_create_derivation_id(derivation);
-    match resolver.resolve(&path) {
-      Ok(parsed) => {
-        pending.extend(
-          parsed
-            .input_drvs
-            .iter()
-            .map(|(dependency, _)| PathBuf::from(dependency)),
-        );
-        state.populate_parsed_derivation(id, parsed);
-        resolved.insert(path);
-        changed = true;
-      },
-      Err(error) => {
-        tracing::debug!("could not resolve {}: {error}", path.display())
-      },
-    }
+    changed
   }
-  changed
+
+  fn register(&mut self, path: &Path, consumers: Vec<DerivationId>) {
+    let Some(derivation) = path.to_str().and_then(Derivation::parse) else {
+      return;
+    };
+    let id = self.state.get_or_create_derivation_id(derivation);
+    self
+      .producers
+      .entry(id)
+      .or_insert_with(|| {
+        Producer {
+          path:      path.to_path_buf(),
+          consumers: Vec::new(),
+          looked_up: false,
+        }
+      })
+      .consumers
+      .extend(consumers);
+  }
+
+  fn link_producers(&mut self, lookup: Lookup) -> bool {
+    if self.producers.is_empty() {
+      return false;
+    }
+
+    let due: Vec<_> = self
+      .producers
+      .iter_mut()
+      .filter_map(|(&id, producer)| {
+        let info = self.state.get_derivation_info(id)?;
+        let due = match lookup {
+          Lookup::Built => {
+            matches!(info.build_status, BuildStatus::Built { .. })
+              && !std::mem::replace(&mut producer.looked_up, true)
+          },
+          Lookup::Orphan(orphan_id) => {
+            let orphan = &self.state.get_derivation_info(orphan_id)?.name.name;
+            info.name.name.strip_suffix(".drv") == Some(orphan.as_str())
+              && matches!(
+                info.build_status,
+                BuildStatus::Unknown
+                  | BuildStatus::Available
+                  | BuildStatus::Built { .. }
+              )
+          },
+        };
+        due.then_some(id)
+      })
+      .collect();
+
+    let mut changed = false;
+    for id in due {
+      let Some(produced) = self.resolver.produced(&self.producers[&id].path)
+      else {
+        continue;
+      };
+      let Some(derivation) = produced.to_str().and_then(Derivation::parse)
+      else {
+        continue;
+      };
+      let Some(producer) = self.producers.remove(&id) else {
+        continue;
+      };
+      self.state.mark_available(id);
+      let produced_id = self.state.get_or_create_derivation_id(derivation);
+      for &consumer in &producer.consumers {
+        self.state.link_dependency(consumer, produced_id);
+      }
+      // A text output is named after its derivation, so a produced
+      // `x.drv.drv` is itself the producer of `x.drv`.
+      let stem = produced.file_stem().and_then(|stem| stem.to_str());
+      if stem.is_some_and(|stem| stem.ends_with(".drv")) {
+        self.register(&produced, producer.consumers);
+      }
+      changed |= self.resolve(produced);
+    }
+    changed
+  }
 }
 
 enum RecordState {
