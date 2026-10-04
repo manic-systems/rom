@@ -18,13 +18,13 @@ use super::{
   format_bytes,
   format_duration,
   format_secs,
-  model::TransferPlacement,
+  model::{TransferPlacement, UnitCounts},
   progress_bar,
   span,
   spans_width,
   truncate_text,
 };
-use crate::state::{BuildStatus, DerivationId, elapsed};
+use crate::state::{BuildStatus, DerivationId, Membership, elapsed};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum RowId {
@@ -37,6 +37,8 @@ enum RowId {
 struct PlannedRow {
   priority:     u8,
   active:       bool,
+  /// Whether this waiting unit holds running units, which hang from it.
+  holds_active: bool,
   active_below: usize,
   children:     Vec<RowId>,
   inline:       Vec<usize>,
@@ -48,6 +50,7 @@ impl PlannedRow {
     Self {
       priority,
       active: priority >= 3,
+      holds_active: false,
       active_below: 0,
       children: Vec::new(),
       inline: Vec::new(),
@@ -123,7 +126,24 @@ impl Renderer<'_> {
         | BuildStatus::Built { .. }
         | BuildStatus::DependencyFailed => 0,
       };
-      relevance[id] = priority;
+      let units = self.snapshot.packages.get(&id);
+      relevance[id] = match info.membership {
+        Membership::Unit(_) if priority < 3 => 0,
+        Membership::Package
+          if units.is_some_and(|counts| counts.running > 0) =>
+        {
+          priority.max(3)
+        },
+        Membership::Package
+          if !self.snapshot.finished
+            && units.is_some_and(UnitCounts::unfinished) =>
+        {
+          priority.max(2)
+        },
+        Membership::Outside | Membership::Package | Membership::Unit(_) => {
+          priority
+        },
+      };
     }
     for item in &self.snapshot.placed_transfers {
       if let Some(id) = item.placement.derivation() {
@@ -143,24 +163,27 @@ impl Renderer<'_> {
       .collect::<Vec<bool>>();
 
     // Reverse reachability computes the connected ancestor set in O(V + E).
+    let unit_parents = self.unit_parents();
     while let Some(id) = pending.pop_front() {
       let priority = relevance[id];
-      let Some(info) = self.snapshot.derivation(id) else {
-        continue;
-      };
-      for &parent in &info.derivation_parents {
+      for parent in self.row_parents(id, &unit_parents) {
         // Nix announces everything it will build, so an unannounced or
         // settled parent never waits on its inputs and only active work keeps
-        // it on the path.
+        // it on the path. Units are the exception, since they only appear once
+        // their producer runs.
         let settled =
           self.snapshot.derivation(parent).is_some_and(|derivation| {
-            matches!(
-              derivation.build_status,
-              BuildStatus::Unknown
-                | BuildStatus::Available
-                | BuildStatus::Built { .. }
-                | BuildStatus::DependencyFailed
-            )
+            match derivation.build_status {
+              BuildStatus::Unknown => {
+                !matches!(derivation.membership, Membership::Unit(_))
+              },
+              BuildStatus::Available
+              | BuildStatus::Built { .. }
+              | BuildStatus::DependencyFailed => true,
+              BuildStatus::Planned
+              | BuildStatus::Building(_)
+              | BuildStatus::Failed { .. } => false,
+            }
           });
         if priority < 3 && settled {
           continue;
@@ -180,16 +203,19 @@ impl Renderer<'_> {
       }
       let mut row = PlannedRow::new(priority);
       row.active = active[id];
+      row.holds_active = !active[id]
+        && priority >= 3
+        && self
+          .snapshot
+          .derivation(id)
+          .is_some_and(|info| matches!(info.membership, Membership::Unit(_)));
       plan.rows.insert(RowId::Build(id), row);
     }
     for id in (0..slots).filter(|&id| active[id]) {
       let mut seen = HashSet::new();
       let mut above = vec![id];
       while let Some(current) = above.pop() {
-        let Some(info) = self.snapshot.derivation(current) else {
-          continue;
-        };
-        for &parent in &info.derivation_parents {
+        for parent in self.row_parents(current, &unit_parents) {
           if seen.insert(parent)
             && let Some(row) = plan.rows.get_mut(&RowId::Build(parent))
           {
@@ -209,10 +235,48 @@ impl Renderer<'_> {
       let children: Vec<_> = info
         .input_derivations
         .iter()
+        .filter(|&&child| {
+          self.snapshot.derivation(child).is_none_or(|child| {
+            !matches!(child.membership, Membership::Unit(_))
+          })
+        })
         .map(|&child| RowId::Build(child))
         .filter(|child| plan.rows.contains_key(child))
         .collect();
       plan.row_mut(RowId::Build(id)).children.extend(children);
+    }
+    for (id, &priority) in relevance.iter().enumerate() {
+      if priority == 0 {
+        continue;
+      }
+      let Some(info) = self.snapshot.derivation(id) else {
+        continue;
+      };
+      let hosts: Vec<_> = match info.membership {
+        Membership::Unit(package) => {
+          vec![unit_parents.get(&id).copied().unwrap_or(package)]
+        },
+        Membership::Outside | Membership::Package => {
+          info
+            .derivation_parents
+            .iter()
+            .filter_map(|&parent| {
+              match self.snapshot.derivation(parent)?.membership {
+                Membership::Unit(package) => Some(package),
+                Membership::Outside | Membership::Package => None,
+              }
+            })
+            .collect()
+        },
+      };
+      for host in hosts {
+        if host != id
+          && let Some(row) = plan.rows.get_mut(&RowId::Build(host))
+          && !row.children.contains(&RowId::Build(id))
+        {
+          row.children.push(RowId::Build(id));
+        }
+      }
     }
 
     for (index, item) in self.snapshot.placed_transfers.iter().enumerate() {
@@ -266,12 +330,10 @@ impl Renderer<'_> {
     plan.roots = (0..slots)
       .filter(|&id| plan.rows.contains_key(&RowId::Build(id)))
       .filter(|&id| {
-        self.snapshot.derivation(id).is_none_or(|info| {
-          !info
-            .derivation_parents
-            .iter()
-            .any(|&parent| plan.rows.contains_key(&RowId::Build(parent)))
-        })
+        !self
+          .row_parents(id, &unit_parents)
+          .into_iter()
+          .any(|parent| plan.rows.contains_key(&RowId::Build(parent)))
       })
       .map(RowId::Build)
       .collect();
@@ -287,6 +349,114 @@ impl Renderer<'_> {
       plan.roots.push(RowId::TransferGroup);
     }
     plan
+  }
+
+  /// Returns the derivations whose rows a derivation's row hangs from.
+  ///
+  /// A unit hangs from the unit [`Self::unit_parents`] places it under, or
+  /// else its package, and anything else hangs from the package of a unit it
+  /// feeds.
+  fn row_parents(
+    &self,
+    id: DerivationId,
+    unit_parents: &HashMap<DerivationId, DerivationId>,
+  ) -> Vec<DerivationId> {
+    let Some(info) = self.snapshot.derivation(id) else {
+      return Vec::new();
+    };
+    if let Membership::Unit(package) = info.membership {
+      return vec![unit_parents.get(&id).copied().unwrap_or(package)];
+    }
+    let mut parents = Vec::new();
+    for &parent in &info.derivation_parents {
+      let host =
+        match self.snapshot.derivation(parent).map(|info| info.membership) {
+          Some(Membership::Unit(package)) => package,
+          Some(Membership::Outside | Membership::Package) | None => parent,
+        };
+      if host != id && !parents.contains(&host) {
+        parents.push(host);
+      }
+    }
+    parents
+  }
+
+  /// Places each unit under the unit waiting on it that is furthest from the
+  /// package, so a compile lands under its link and a link under whatever
+  /// links it in turn.
+  ///
+  /// The stages the package itself waits on, such as the collection of every
+  /// unit, never hold other units, since the package row stands for them.
+  fn unit_parents(&self) -> HashMap<DerivationId, DerivationId> {
+    let stage = |unit: DerivationId, package: DerivationId| {
+      self
+        .snapshot
+        .derivation(package)
+        .is_some_and(|info| info.input_derivations.contains(&unit))
+    };
+    let consumers = |id: DerivationId, package: DerivationId| {
+      self
+        .snapshot
+        .derivation(id)
+        .into_iter()
+        .flat_map(move |info| {
+          info
+            .derivation_parents
+            .iter()
+            .copied()
+            .filter(move |&parent| {
+              !stage(parent, package)
+                && self.snapshot.derivation(parent).is_some_and(|parent| {
+                  parent.membership == Membership::Unit(package)
+                })
+            })
+        })
+    };
+
+    let mut depths = HashMap::new();
+    for (&id, info) in self.snapshot.derivations {
+      let Membership::Unit(package) = info.membership else {
+        continue;
+      };
+      let mut stack = vec![(id, false)];
+      while let Some((current, expanded)) = stack.pop() {
+        if depths.contains_key(&current) {
+          continue;
+        }
+        if expanded {
+          let depth = consumers(current, package)
+            .map(|consumer| depths.get(&consumer).copied().unwrap_or(0))
+            .max()
+            .map_or(1, |deepest| deepest + 1);
+          depths.insert(current, depth);
+          continue;
+        }
+        stack.push((current, true));
+        stack.extend(
+          consumers(current, package)
+            .filter(|consumer| !depths.contains_key(consumer))
+            .map(|consumer| (consumer, false)),
+        );
+      }
+    }
+
+    let mut unit_parents = HashMap::new();
+    for (&id, info) in self.snapshot.derivations {
+      let Membership::Unit(package) = info.membership else {
+        continue;
+      };
+      let deepest = consumers(id, package).fold(None, |best, consumer| {
+        let depth = depths.get(&consumer).copied().unwrap_or(0);
+        match best {
+          Some((_, best_depth)) if best_depth >= depth => best,
+          _ => Some((consumer, depth)),
+        }
+      });
+      if let Some((consumer, _)) = deepest {
+        unit_parents.insert(id, consumer);
+      }
+    }
+    unit_parents
   }
 
   pub(super) fn render_tree(
@@ -379,7 +549,8 @@ impl Renderer<'_> {
     while let Some((_, _, _, id)) = frontier.pop() {
       order.push(id);
       let row = plan.row(id);
-      candidates += usize::from(!focus_active || row.active);
+      candidates +=
+        usize::from(!focus_active || row.active || row.holds_active);
       for &child in &row.children {
         if selection.parents.contains_key(&child) {
           continue;
@@ -410,7 +581,10 @@ impl Renderer<'_> {
       order
         .iter()
         .copied()
-        .filter(|id| !focus_active || plan.row(*id).active)
+        .filter(|id| {
+          let row = plan.row(*id);
+          !focus_active || row.active || row.holds_active
+        })
         .take(remaining),
     );
     remaining -= selection.rows.len();
@@ -594,7 +768,38 @@ impl Renderer<'_> {
     {
       spans.push(span("\u{2026} ", self.config.theme.muted)); // …
     }
-    let (icon, color, suffix) = match &info.build_status {
+    let units = self
+      .snapshot
+      .packages
+      .get(&id)
+      .filter(|counts| counts.unfinished() || counts.failed > 0);
+    let unit_start = units
+      .filter(|counts| counts.running > 0)
+      .and_then(|counts| counts.start);
+    let (icon, color, mut suffix) = match &info.build_status {
+      BuildStatus::Unknown | BuildStatus::Planned if unit_start.is_some() => {
+        let mut suffix = Vec::new();
+        if self.config.show_timers
+          && let Some(start) = unit_start
+        {
+          suffix.push(span(
+            format!(
+              "  {}{}{}",
+              self.icons.clock,
+              self.icons.gap,
+              format_duration(elapsed(start, self.now))
+            ),
+            self.config.theme.timer,
+          ));
+        }
+        (self.icons.running, self.config.theme.running, suffix)
+      },
+      BuildStatus::Unknown
+        if units.is_some()
+          || matches!(info.membership, Membership::Unit(_)) =>
+      {
+        (self.icons.planned, self.config.theme.planned, Vec::new())
+      },
       BuildStatus::Unknown => {
         (self.icons.planned, self.config.theme.muted, Vec::new())
       },
@@ -671,6 +876,17 @@ impl Renderer<'_> {
         (self.icons.failed, self.config.theme.muted, Vec::new())
       },
     };
+    if let Some(counts) = units
+      && !matches!(
+        info.build_status,
+        BuildStatus::Built { .. } | BuildStatus::Available
+      )
+    {
+      suffix.insert(0, self.unit_summary(counts));
+    }
+    if let Some(progress) = self.unit_progress(id) {
+      suffix.insert(0, progress);
+    }
     spans.push(span(format!("{icon}{}", self.icons.gap), color));
     let transfer = (!row.inline.is_empty()).then(|| {
       aggregate_transfers(
@@ -687,7 +903,23 @@ impl Renderer<'_> {
     );
     let name_width =
       usize::from(self.width).saturating_sub(spans_width(&spans) + reserve);
-    spans.push(span(truncate_text(&info.name.name, name_width), color));
+    let name = match info.membership {
+      Membership::Unit(package) => {
+        self.snapshot.derivation(package).map_or(
+          info.name.name.as_str(),
+          |package| {
+            info
+              .name
+              .name
+              .strip_prefix(package.name.name.as_str())
+              .and_then(|name| name.strip_prefix('-'))
+              .unwrap_or(&info.name.name)
+          },
+        )
+      },
+      Membership::Outside | Membership::Package => &info.name.name,
+    };
+    spans.push(span(truncate_text(name, name_width), color));
     if let Some(aggregate) = transfer {
       spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
     }
@@ -745,6 +977,70 @@ impl Renderer<'_> {
         break;
       }
     }
+  }
+
+  /// Returns how many of the units a unit waits on are done, like `(12/15)`.
+  fn unit_progress(&self, id: DerivationId) -> Option<Span<'static>> {
+    let info = self.snapshot.derivation(id)?;
+    let Membership::Unit(package) = info.membership else {
+      return None;
+    };
+    let (mut done, mut total) = (0, 0);
+    for &input in &info.input_derivations {
+      let Some(input) = self.snapshot.derivation(input) else {
+        continue;
+      };
+      if input.membership != Membership::Unit(package) || input.writes.is_some()
+      {
+        continue;
+      }
+      total += 1;
+      done += usize::from(matches!(
+        input.build_status,
+        BuildStatus::Built { .. } | BuildStatus::Available
+      ));
+    }
+    if total < 2 {
+      return None;
+    }
+    let state = match info.build_status {
+      BuildStatus::Building(_) => ", running",
+      BuildStatus::Failed { .. } => ", failed",
+      BuildStatus::Unknown
+      | BuildStatus::Planned
+      | BuildStatus::Available
+      | BuildStatus::Built { .. }
+      | BuildStatus::DependencyFailed => "",
+    };
+    Some(span(
+      format!("  ({done}/{total}{state})"),
+      self.config.theme.muted,
+    ))
+  }
+
+  fn unit_summary(&self, counts: &UnitCounts<'_>) -> Span<'static> {
+    let mut parts = vec![format!("units {}/{}", counts.done, counts.total)];
+    if counts.running > 0 {
+      let mut remote = counts
+        .remote
+        .iter()
+        .map(|(&machine, &count)| (machine, count))
+        .collect::<Vec<(&str, usize)>>();
+      remote.sort_by_key(|&(machine, count)| (Reverse(count), machine));
+      let machines = remote
+        .iter()
+        .map(|(machine, count)| format!("{count} @{machine}"))
+        .collect::<Vec<String>>();
+      parts.push(if machines.is_empty() {
+        format!("{} running", counts.running)
+      } else {
+        format!("{} running ({})", counts.running, machines.join(", "))
+      });
+    }
+    if counts.failed > 0 {
+      parts.push(format!("{} failed", counts.failed));
+    }
+    span(format!("  ({})", parts.join(", ")), self.config.theme.muted)
   }
 
   fn push_transfer_group(

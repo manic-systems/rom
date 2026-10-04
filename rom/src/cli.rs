@@ -665,7 +665,9 @@ fn drive(
       .context("locating the build history")?,
   );
   let mut stream = StreamEngine::new(engine);
-  stream.engine_mut().set_resolver(FilesystemResolver);
+  stream
+    .engine_mut()
+    .set_resolver(FilesystemResolver::default());
   stream.engine_mut().load_history(&history);
   let mut presenter = Presenter::new(silent);
   let mut dirty = false;
@@ -690,6 +692,7 @@ fn drive(
       Err(RecvTimeoutError::Disconnected) => break,
       Err(RecvTimeoutError::Timeout) => {},
     }
+    dirty |= stream.engine_mut().poll_produced();
     let timer_due = last_timer.elapsed() >= Duration::from_secs(1);
     if !silent
       && (dirty || timer_due)

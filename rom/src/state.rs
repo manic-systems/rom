@@ -193,6 +193,17 @@ pub enum BuildStatus {
   DependencyFailed,
 }
 
+/// How a derivation relates to a package built through dynamic derivations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Membership {
+  /// Nix knew the derivation without building a producer.
+  Outside,
+  /// The derivation a top-level producer wrote, which stands for its package.
+  Package,
+  /// A derivation the package's producers wrote, such as one compile.
+  Unit(DerivationId),
+}
+
 /// Derivation information.
 #[derive(Debug, Clone)]
 pub struct DerivationInfo {
@@ -208,6 +219,22 @@ pub struct DerivationInfo {
   pub pname:              Option<String>,
   /// System the derivation builds for.
   pub platform:           Option<String>,
+  /// Package the derivation belongs to.
+  pub membership:         Membership,
+  /// The derivation this dynamic-derivation producer wrote, once known.
+  pub writes:             Option<DerivationId>,
+}
+
+impl DerivationInfo {
+  /// Returns the package of the derivation with this info and `id`.
+  #[must_use]
+  pub const fn package(&self, id: DerivationId) -> Option<DerivationId> {
+    match self.membership {
+      Membership::Outside => None,
+      Membership::Package => Some(id),
+      Membership::Unit(package) => Some(package),
+    }
+  }
 }
 
 /// Transfer lifecycle summary.
@@ -426,6 +453,8 @@ impl State {
       derivation_parents: BTreeSet::new(),
       pname:              None,
       platform:           None,
+      membership:         Membership::Outside,
+      writes:             None,
     });
     self.derivation_ids.insert(drv, id);
 
@@ -490,6 +519,10 @@ impl State {
     original_info.pname = original_info.pname.take().or(resolved_info.pname);
     original_info.platform =
       original_info.platform.take().or(resolved_info.platform);
+    if original_info.membership == Membership::Outside {
+      original_info.membership = resolved_info.membership;
+    }
+    original_info.writes = original_info.writes.or(resolved_info.writes);
 
     for id in self.derivation_ids.values_mut() {
       if *id == resolved {
@@ -497,6 +530,12 @@ impl State {
       }
     }
     for (&id, info) in &mut self.derivation_infos {
+      if info.membership == Membership::Unit(resolved) {
+        info.membership = Membership::Unit(original);
+      }
+      if info.writes == Some(resolved) {
+        info.writes = Some(original);
+      }
       let has_original = info.input_derivations.contains(&original);
       info.input_derivations.retain_mut(|child| {
         if *child == resolved {
@@ -615,19 +654,127 @@ impl State {
   ///
   /// Nix starts a build only once its inputs are valid. A planned input with
   /// no build of its own was realised by another process holding its lock.
+  ///
+  /// Nix announces no units, so every unit below a starting one that never
+  /// built was realised from the build trace.
   fn settle_inputs(&mut self, id: DerivationId) {
     let Some(info) = self.derivation_infos.get_mut(&id) else {
       return;
     };
+    let package = info.package(id);
     let inputs = std::mem::take(&mut info.input_derivations);
+    let mut pending = Vec::new();
     for input in &inputs {
-      if let Some(input_info) = self.derivation_infos.get_mut(input)
-        && matches!(input_info.build_status, BuildStatus::Planned)
+      let Some(input_info) = self.derivation_infos.get_mut(input) else {
+        continue;
+      };
+      let unit = package.is_some_and(|package| {
+        input_info.membership == Membership::Unit(package)
+      });
+      if matches!(input_info.build_status, BuildStatus::Planned)
+        || unit && matches!(input_info.build_status, BuildStatus::Unknown)
       {
         input_info.build_status = BuildStatus::Available;
       }
+      if unit {
+        pending.extend(input_info.input_derivations.iter().copied());
+      }
     }
     self.derivation_infos[&id].input_derivations = inputs;
+
+    let Some(package) = package else {
+      return;
+    };
+    while let Some(input) = pending.pop() {
+      let Some(input_info) = self.derivation_infos.get_mut(&input) else {
+        continue;
+      };
+      if input_info.membership == Membership::Unit(package)
+        && matches!(
+          input_info.build_status,
+          BuildStatus::Unknown | BuildStatus::Planned
+        )
+      {
+        input_info.build_status = BuildStatus::Available;
+        pending.extend(input_info.input_derivations.iter().copied());
+      }
+    }
+  }
+
+  /// Makes `written`, the derivation `producer` wrote, part of a package.
+  ///
+  /// A producer outside any package writes the package itself.
+  pub(crate) fn join_package(
+    &mut self,
+    producer: DerivationId,
+    written: DerivationId,
+  ) {
+    let Some(producer_info) = self.derivation_infos.get_mut(&producer) else {
+      return;
+    };
+    producer_info.writes = Some(written);
+    let package = match producer_info.membership {
+      Membership::Outside => {
+        if let Some(info) = self.derivation_infos.get_mut(&written)
+          && info.membership == Membership::Outside
+        {
+          info.membership = Membership::Package;
+        }
+        written
+      },
+      Membership::Package => producer,
+      Membership::Unit(package) => package,
+    };
+    // Its producer's own answer can arrive before the one that makes the
+    // producer a unit, which made it a package of its own.
+    if package != written
+      && let Some(info) = self.derivation_infos.get_mut(&written)
+      && matches!(info.membership, Membership::Outside | Membership::Package)
+    {
+      info.membership = Membership::Unit(package);
+      for info in self.derivation_infos.values_mut() {
+        if info.membership == Membership::Unit(written) {
+          info.membership = Membership::Unit(package);
+        }
+      }
+    }
+    self.adopt_inputs(written);
+  }
+
+  /// Makes the inputs of a package or unit units of that package, unless
+  /// something outside the package also depends on them.
+  pub(crate) fn adopt_inputs(&mut self, id: DerivationId) {
+    let Some(package) = self
+      .derivation_infos
+      .get(&id)
+      .and_then(|info| info.package(id))
+    else {
+      return;
+    };
+
+    let mut pending = vec![id];
+    while let Some(current) = pending.pop() {
+      let adopted: Vec<_> =
+        self.derivation_infos[&current]
+          .input_derivations
+          .iter()
+          .copied()
+          .filter(|input| {
+            self.derivation_infos.get(input).is_some_and(|info| {
+              info.membership == Membership::Outside
+                && info.derivation_parents.iter().all(|&parent| {
+                  self.derivation_infos.get(&parent).is_some_and(
+                    |parent_info| parent_info.package(parent) == Some(package),
+                  )
+                })
+            })
+          })
+          .collect();
+      for &input in &adopted {
+        self.derivation_infos[&input].membership = Membership::Unit(package);
+      }
+      pending.extend(adopted);
+    }
   }
 
   pub(crate) fn ensure_root(&mut self, id: DerivationId) {

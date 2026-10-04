@@ -21,6 +21,7 @@ pub use monitor::{
   Monitor,
   Output,
   Processed,
+  ProducedDrv,
   StreamEngine,
 };
 pub use types::{
