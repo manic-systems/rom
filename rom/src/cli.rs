@@ -15,6 +15,7 @@ use std::{
 };
 
 use cognos::Verbosity;
+use misstep::OptionExt;
 use pound::Parse;
 use tracing_subscriber::EnvFilter;
 
@@ -96,7 +97,7 @@ struct WrapperConfig {
   monitor:  Config,
 }
 
-pub fn run() -> eyre::Result<()> {
+pub fn run() -> misstep::Result<()> {
   let mut process_args = std::env::args_os();
   let program = process_args
     .next()
@@ -108,9 +109,9 @@ pub fn run() -> eyre::Result<()> {
     .map(|argument| {
       argument
         .into_string()
-        .map_err(|_| eyre::eyre!("argument is not valid UTF-8"))
+        .map_err(|_| misstep::report!("argument is not valid UTF-8"))
     })
-    .collect::<eyre::Result<Vec<_>>>()?;
+    .collect::<misstep::Result<Vec<_>>>()?;
   match program.as_str() {
     "rom-build" => arguments.insert(0, "build".to_string()),
     "rom-shell" => arguments.insert(0, "shell".to_string()),
@@ -120,7 +121,7 @@ pub fn run() -> eyre::Result<()> {
   let (rom_args, nix_flags) = parse_args_with_separator(&arguments);
   let cli = Cli::parse_from(rom_args.iter().map(String::as_str));
   if cli.command.is_none() && !nix_flags.is_empty() {
-    eyre::bail!("Nix flags require a build, shell, or develop subcommand");
+    misstep::bail!("Nix flags require a build, shell, or develop subcommand");
   }
   let default_filter = match cli.verbose {
     0 => "rom=warn",
@@ -153,18 +154,18 @@ pub fn run() -> eyre::Result<()> {
         InputMode::Auto
       },
       log_prefix_style: LogPrefixStyle::parse(&cli.log_prefix)
-        .ok_or_else(|| eyre::eyre!("unknown log prefix: {}", cli.log_prefix))?,
+        .with_context(|| format!("unknown log prefix: {}", cli.log_prefix))?,
       log_line_limit: cli.log_lines,
       ..EngineConfig::default()
     },
     render: RenderConfig {
       ansi: io::stderr().is_terminal(),
       format: DisplayFormat::parse(&cli.format)
-        .ok_or_else(|| eyre::eyre!("unknown format: {}", cli.format))?,
+        .with_context(|| format!("unknown format: {}", cli.format))?,
       legend_style: LegendStyle::parse(&cli.legend)
-        .ok_or_else(|| eyre::eyre!("unknown legend style: {}", cli.legend))?,
+        .with_context(|| format!("unknown legend style: {}", cli.legend))?,
       summary_style: SummaryStyle::parse(&cli.summary)
-        .ok_or_else(|| eyre::eyre!("unknown summary style: {}", cli.summary))?,
+        .with_context(|| format!("unknown summary style: {}", cli.summary))?,
       ..RenderConfig::default()
     },
   };
@@ -227,9 +228,9 @@ fn nix_verbosity_flag(verbose: u8) -> String {
   format!("-{}", "v".repeat(verbose.max(1) as usize))
 }
 
-fn require_packages(kind: &str, packages: &[String]) -> eyre::Result<()> {
+fn require_packages(kind: &str, packages: &[String]) -> misstep::Result<()> {
   if packages.is_empty() {
-    eyre::bail!("No package or flake specified for {kind}");
+    misstep::bail!("No package or flake specified for {kind}");
   }
   Ok(())
 }
@@ -238,7 +239,7 @@ fn build(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<()> {
+) -> misstep::Result<()> {
   require_packages("build", &packages)?;
   let mut arguments = vec![
     "build".to_string(),
@@ -259,7 +260,7 @@ fn shell(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<()> {
+) -> misstep::Result<()> {
   require_packages("shell", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
@@ -284,7 +285,7 @@ fn develop(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<()> {
+) -> misstep::Result<()> {
   require_packages("develop", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
@@ -310,7 +311,7 @@ fn run_inherited(command: &str, arguments: &[String]) -> io::Result<i32> {
   Ok(exit_status_code(status))
 }
 
-fn exit_with(code: i32) -> eyre::Result<()> {
+fn exit_with(code: i32) -> misstep::Result<()> {
   if code != 0 {
     std::process::exit(code);
   }
@@ -321,7 +322,7 @@ fn run_monitored_command(
   command: &str,
   arguments: Vec<String>,
   config: &WrapperConfig,
-) -> eyre::Result<i32> {
+) -> misstep::Result<i32> {
   #[cfg(unix)] use std::os::unix::process::CommandExt;
 
   let mut command = Command::new(command);
@@ -438,7 +439,7 @@ impl SignalForwarder {
 fn run_input<R: Read + Send + 'static>(
   reader: R,
   config: Config,
-) -> eyre::Result<()> {
+) -> misstep::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
   drive(receiver, config, true, &AtomicBool::new(false))?;
   reader_thread
@@ -613,7 +614,7 @@ fn drive(
   config: Config,
   semantic_failure_is_error: bool,
   interrupted: &AtomicBool,
-) -> eyre::Result<()> {
+) -> misstep::Result<()> {
   let Config { engine, render } = config;
   let silent = engine.silent;
   let history = BuildReportCache::new(BuildReportCache::default_cache_path()?);

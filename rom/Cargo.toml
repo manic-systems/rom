@@ -19,7 +19,7 @@ path = "src/lib.rs"
 default = ["cli"]
 cli = [
   "dep:pound",
-  "dep:eyre",
+  "dep:misstep",
   "dep:libc",
   "dep:signal-hook",
   "dep:tracing-subscriber",
@@ -39,7 +39,7 @@ jiff.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 tracing-subscriber = { workspace = true, optional = true }
-eyre = { workspace = true, optional = true }
+misstep = { workspace = true, optional = true }
 etcetera.workspace = true
 unicode-width.workspace = true
 libc = { workspace = true, optional = true }

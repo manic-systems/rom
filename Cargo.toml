@@ -34,7 +34,7 @@ jiff = { version = "0.2.37", default-features = false, features = ["std"] }
 thiserror = "2.0.20"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-eyre = "0.6.14"
+misstep = { version = "0.3.0", features = ["pretty"] }
 etcetera = "0.11.0"
 tempfile = "3.27.0"
 unicode-width = "0.2.2"

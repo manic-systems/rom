@@ -41,6 +41,6 @@ pub use types::{
 ///
 /// This is the main entry point for the CLI application.
 #[cfg(feature = "cli")]
-pub fn run() -> eyre::Result<()> {
+pub fn run() -> misstep::Result<()> {
   cli::run()
 }
