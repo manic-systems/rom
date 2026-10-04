@@ -45,6 +45,6 @@ pub use types::{
 /// Returns an error if an argument is not valid UTF-8, the Nix process cannot
 /// be run, or the build fails or ends with unfinished work.
 #[cfg(feature = "cli")]
-pub fn run() -> eyre::Result<std::process::ExitCode> {
+pub fn run() -> misstep::Result<std::process::ExitCode> {
   cli::run()
 }
