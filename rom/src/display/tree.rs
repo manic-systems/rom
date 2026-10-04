@@ -594,6 +594,15 @@ impl Renderer<'_> {
             format_duration(self.now - build.start)
           ));
         }
+        if let Some(estimate) = build.estimate
+          && !self.snapshot.shared_names.contains(info.name.name.as_str())
+        {
+          suffix.push_str(&format!(
+            "  ({} {})",
+            self.icons.estimate,
+            format_duration(estimate as f64)
+          ));
+        }
         let mut seen = HashSet::new();
         let mut above = vec![id];
         let mut unseen = 0;
@@ -632,6 +641,12 @@ impl Renderer<'_> {
         (self.icons.failed, self.config.theme.muted, None)
       },
     };
+    let host = match &info.build_status {
+      BuildStatus::Building(build) if build.host.name() != "localhost" => {
+        Some(format!(" @{}", build.host.name()))
+      },
+      _ => None,
+    };
     spans.push(self.span(format!("{icon} "), color));
     let transfer = (!row.inline.is_empty()).then(|| {
       aggregate_transfers(
@@ -643,7 +658,10 @@ impl Renderer<'_> {
     });
     let has_transfer = transfer.is_some();
     let reserve = transfer.as_ref().map_or_else(
-      || suffix.as_ref().map_or(0, |value| value.width()),
+      || {
+        suffix.as_ref().map_or(0, |value| value.width())
+          + host.as_ref().map_or(0, |value| value.width())
+      },
       |item| if item.total.is_some() { 12 } else { 8 },
     );
     let name_width =
@@ -652,8 +670,13 @@ impl Renderer<'_> {
     if let Some(aggregate) = transfer {
       spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
     }
-    if !has_transfer && let Some(suffix) = suffix {
-      spans.push(self.span(suffix, self.config.theme.muted));
+    if !has_transfer {
+      if let Some(suffix) = suffix {
+        spans.push(self.span(suffix, self.config.theme.muted));
+      }
+      if let Some(host) = host {
+        spans.push(self.span(host, self.config.theme.host));
+      }
     }
 
     let mut children: Vec<_> = row
