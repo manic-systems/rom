@@ -223,17 +223,17 @@ fn progress_bar(
   if width == 0 || total == 0 {
     return Vec::new();
   }
-  let quarters = (done.min(total) as u128).saturating_mul((width * 4) as u128)
+  let eighths = (done.min(total) as u128).saturating_mul((width * 8) as u128)
     / total as u128;
-  let full = (quarters / 4) as usize;
-  let partial = (quarters % 4) as usize;
+  let full = (eighths / 8) as usize;
+  let partial = (eighths % 8) as usize;
   let mut spans = Vec::new();
   if full > 0 {
     spans.push(Span::styled("█".repeat(full), Style::default().fg(fill)));
   }
   if full < width {
     if partial > 0 {
-      let symbol = ["", "▖", "▌", "▛"][partial];
+      let symbol = ["", "▏", "▎", "▍", "▌", "▋", "▊", "▉"][partial];
       spans.push(Span::styled(symbol, Style::default().fg(fill).bg(track)));
     }
     let occupied = full + usize::from(partial > 0);
