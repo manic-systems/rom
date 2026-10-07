@@ -1,0 +1,1 @@
+0 @nix {"action":"msg","level":0,"msg":"error: experimental Nix feature 'flakes' is disabled; add '--extra-experimental-features flakes' to enable it"}

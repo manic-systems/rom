@@ -1,0 +1,4 @@
+0 @nix {"action":"start","id":40,"level":3,"parent":0,"text":"copying '/home/user/src/app' to the store","type":113,"fields":[]}
+100 = fetching
+200 @nix {"action":"result","id":40,"type":109,"fields":["/nix/store/00000000000000000000000000000004-source"]}
+200 @nix {"action":"stop","id":40}

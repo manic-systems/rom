@@ -1,0 +1,12 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-demo.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-demo.drv","",1,1]}
+100 @nix {"action":"start","id":20,"level":3,"parent":10,"text":"copying path '/nix/store/00000000000000000000000000000002-openssl-3.0.15' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/00000000000000000000000000000002-openssl-3.0.15","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":21,"level":3,"parent":10,"text":"copying path '/nix/store/00000000000000000000000000000003-zlib-1.3.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/00000000000000000000000000000003-zlib-1.3.1","https://cache.nixos.org"]}
+300 @nix {"action":"result","id":20,"type":105,"fields":[3145728,8388608,1,0]}
+300 @nix {"action":"result","id":21,"type":105,"fields":[1048576,2097152,1,0]}
+300 = both-downloading
+500 @nix {"action":"result","id":21,"type":105,"fields":[2097152,2097152,1,0]}
+500 @nix {"action":"stop","id":21}
+550 = one-done
+700 @nix {"action":"result","id":20,"type":105,"fields":[8388608,8388608,1,0]}
+700 @nix {"action":"stop","id":20}
+800 @nix {"action":"stop","id":10}

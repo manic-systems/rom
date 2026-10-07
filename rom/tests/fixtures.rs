@@ -9,37 +9,50 @@ use std::{fs, path::Path};
 use rom::{
   display::{format_log, render_frame},
   monitor::{Output, StreamEngine},
-  types::{DisplayFormat, EngineConfig, IconMode, RenderConfig},
+  types::{
+    DisplayFormat,
+    EngineConfig,
+    IconMode,
+    LegendStyle,
+    LogPrefixStyle,
+    RenderConfig,
+    SummaryStyle,
+  },
 };
 
 struct View {
   width:  u16,
   height: u16,
-  format: DisplayFormat,
+  render: RenderConfig,
+  engine: EngineConfig,
 }
 
-const DEFAULT_VIEW: View = View {
-  width:  79,
-  height: 23,
-  format: DisplayFormat::Tree,
-};
-
-fn replay(snapshot: &str, log: &str, view: View) {
+/// Replay `fixtures/<log>.log` into `fixtures/<snapshot>.snap` with a 79x23
+/// Unicode tree view, adjusted by `configure`.
+fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
+  let mut view = View {
+    width:  79,
+    height: 23,
+    render: RenderConfig {
+      icons: IconMode::Unicode,
+      ..RenderConfig::default()
+    },
+    engine: EngineConfig::default(),
+  };
+  configure(&mut view);
   let fixtures = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
   let log_path = fixtures.join(format!("{log}.log"));
   let input = fs::read_to_string(&log_path).unwrap();
   let ansi = RenderConfig {
     ansi: true,
-    icons: IconMode::Unicode,
-    format: view.format,
-    ..RenderConfig::default()
+    ..view.render
   };
   let plain = RenderConfig {
     ansi: false,
     ..ansi.clone()
   };
 
-  let mut stream = StreamEngine::new(EngineConfig::default());
+  let mut stream = StreamEngine::new(view.engine);
   let mut output = Vec::new();
   let mut actual = String::new();
   let mut snap = |stream: &StreamEngine, name: &str, at_ms: u64, done: bool| {
@@ -166,34 +179,157 @@ fn simple_diff(expected: &str, actual: &str) -> String {
   diff
 }
 
+// Build lifecycles.
 #[test]
-fn fixture_download_progress() {
-  replay("download-progress", "download-progress", DEFAULT_VIEW);
+fn download_progress() {
+  replay("download-progress", "download-progress", |_| {});
 }
 
 #[test]
-fn fixture_failed_build() {
-  replay("failed-build", "failed-build", DEFAULT_VIEW);
+fn failed_build() {
+  replay("failed-build", "failed-build", |_| {});
 }
 
 #[test]
-fn fixture_overflow() {
-  replay("overflow", "overflow", DEFAULT_VIEW);
+fn planned_builds() {
+  replay("planned-builds", "planned-builds", |_| {});
 }
 
 #[test]
-fn fixture_overflow_narrow() {
-  replay("overflow-narrow", "overflow", View {
-    width: 40,
-    height: 12,
-    ..DEFAULT_VIEW
+fn remote_build() {
+  replay("remote-build", "remote-build", |_| {});
+}
+
+#[test]
+fn long_names() {
+  replay("long-names", "long-names", |_| {});
+}
+
+// How a run ends.
+#[test]
+fn nix_error() {
+  replay("nix-error", "nix-error", |_| {});
+}
+
+#[test]
+fn unfinished() {
+  replay("unfinished", "unfinished", |_| {});
+}
+
+#[test]
+fn planned_leftover() {
+  replay("planned-leftover", "planned-leftover", |_| {});
+}
+
+// Transfers.
+#[test]
+fn concurrent_downloads() {
+  replay("concurrent-downloads", "concurrent-downloads", |_| {});
+}
+
+#[test]
+fn unsized_download() {
+  replay("unsized-download", "unsized-download", |_| {});
+}
+
+#[test]
+fn upload() {
+  replay("upload", "upload", |_| {});
+}
+
+#[test]
+fn fetch_to_store() {
+  replay("fetch-to-store", "fetch-to-store", |_| {});
+}
+
+// Input handling and log policy.
+#[test]
+fn passthrough() {
+  replay("passthrough", "passthrough", |_| {});
+}
+
+#[test]
+fn unsupported_record() {
+  replay("unsupported-record", "unsupported-record", |_| {});
+}
+
+#[test]
+fn log_line_limit() {
+  replay("log-line-limit", "log-line-limit", |view| {
+    view.engine.log_line_limit = Some(2)
   });
 }
 
 #[test]
-fn fixture_overflow_dashboard() {
-  replay("overflow-dashboard", "overflow", View {
-    format: DisplayFormat::Dashboard,
-    ..DEFAULT_VIEW
+fn silent() {
+  replay("silent", "failed-build", |view| view.engine.silent = true);
+}
+
+#[test]
+fn log_prefix_none() {
+  replay("log-prefix-none", "download-progress", |view| {
+    view.engine.log_prefix_style = LogPrefixStyle::None
+  });
+}
+
+// Layout and presentation options.
+#[test]
+fn overflow() {
+  replay("overflow", "overflow", |_| {});
+}
+
+#[test]
+fn overflow_narrow() {
+  replay("overflow-narrow", "overflow", |view| {
+    (view.width, view.height) = (40, 12)
+  });
+}
+
+#[test]
+fn format_dashboard() {
+  replay("format-dashboard", "overflow", |view| {
+    view.render.format = DisplayFormat::Dashboard
+  });
+}
+
+#[test]
+fn format_plain() {
+  replay("format-plain", "overflow", |view| {
+    view.render.format = DisplayFormat::Plain
+  });
+}
+
+#[test]
+fn legend_compact() {
+  replay("legend-compact", "failed-build", |view| {
+    view.render.legend_style = LegendStyle::Compact
+  });
+}
+
+#[test]
+fn legend_verbose() {
+  replay("legend-verbose", "failed-build", |view| {
+    view.render.legend_style = LegendStyle::Verbose
+  });
+}
+
+#[test]
+fn summary_table() {
+  replay("summary-table", "failed-build", |view| {
+    view.render.summary_style = SummaryStyle::Table
+  });
+}
+
+#[test]
+fn summary_full() {
+  replay("summary-full", "failed-build", |view| {
+    view.render.summary_style = SummaryStyle::Full
+  });
+}
+
+#[test]
+fn icons_nerd() {
+  replay("icons-nerd", "concurrent-downloads", |view| {
+    view.render.icons = IconMode::Nerd
   });
 }

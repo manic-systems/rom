@@ -1,0 +1,4 @@
+0 @nix {"action":"msg","level":3,"msg":"these 2 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/00000000000000000000000000000001-a-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/00000000000000000000000000000002-b-1.0.drv"}
+100 = planned
