@@ -22,13 +22,7 @@ use ratatui_core::{
 };
 use unicode_width::UnicodeWidthChar;
 
-use self::model::{
-  Direction,
-  RenderSnapshot,
-  StatusCounts,
-  Transfer,
-  aggregate_transfers,
-};
+use self::model::{Direction, RenderSnapshot, Transfer, aggregate_transfers};
 use crate::{
   icons::Icons,
   state::{DerivationId, State},
