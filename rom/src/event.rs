@@ -42,6 +42,11 @@ pub(crate) enum ActivitySubject {
     from: Host,
     to:   Host,
   },
+  /// A local source path being copied into, or only hashed for, the store.
+  FetchToStore {
+    source:  String,
+    hashing: bool,
+  },
   None,
 }
 
@@ -188,6 +193,15 @@ fn decode_subject(
           .and_then(StorePath::parse),
         from: parse_host(fields.get(1).and_then(Value::as_str).unwrap_or("")),
         to:   parse_host(fields.get(2).and_then(Value::as_str).unwrap_or("")),
+      }
+    },
+    Activities::FetchToStore => {
+      let Some(source) = fields.first().and_then(Value::as_str) else {
+        return ActivitySubject::None;
+      };
+      ActivitySubject::FetchToStore {
+        source:  source.to_string(),
+        hashing: fields.get(1).and_then(Value::as_u64) == Some(1),
       }
     },
     _ => ActivitySubject::None,

@@ -10,6 +10,7 @@ use crate::state::{
   DependencySummary,
   DerivationId,
   DerivationInfo,
+  SourceFetch,
   State,
   StorePathId,
   StorePathInfo,
@@ -103,6 +104,7 @@ pub(super) struct RenderSnapshot<'a> {
   pub error_count:      usize,
   pub counts:           SummaryCounts,
   pub placed_transfers: Vec<PresentedTransfer>,
+  pub source_fetches:   Vec<&'a SourceFetch>,
 }
 
 impl<'a> RenderSnapshot<'a> {
@@ -161,6 +163,7 @@ impl<'a> RenderSnapshot<'a> {
       error_count: state.error_count(),
       counts,
       placed_transfers: Vec::new(),
+      source_fetches: state.source_fetches().collect(),
     };
     snapshot.collect_transfers(state.store_paths(), now);
     snapshot

@@ -25,6 +25,7 @@ use crate::state::{BuildStatus, DerivationId};
 enum RowId {
   Build(DerivationId),
   Transfer(usize),
+  SourceFetch(usize),
   TransferGroup,
 }
 
@@ -231,6 +232,18 @@ impl Renderer<'_> {
       }
     }
 
+    for index in 0..self.snapshot.source_fetches.len() {
+      let id = RowId::SourceFetch(index);
+      plan.rows.insert(id, PlannedRow::new(3));
+      let group = plan
+        .rows
+        .entry(RowId::TransferGroup)
+        .or_insert_with(|| PlannedRow::new(3));
+      group.priority = 3;
+      group.active = true;
+      group.children.push(id);
+    }
+
     plan.roots = (0..slots)
       .filter(|&id| plan.rows.contains_key(&RowId::Build(id)))
       .filter(|&id| {
@@ -361,7 +374,8 @@ impl Renderer<'_> {
             ));
             sequence += 1;
           },
-          RowId::Transfer(_) | RowId::TransferGroup => {},
+          RowId::Transfer(_) | RowId::SourceFetch(_) | RowId::TransferGroup => {
+          },
         }
       }
       if candidates >= maximum - 1 {
@@ -404,12 +418,15 @@ impl Renderer<'_> {
           .iter()
           .filter(|id| rows.contains(id))
           .map(|&id| {
-            plan.row(id).children.iter().copied().filter(|child| {
-              let RowId::Transfer(index) = child else {
-                return false;
-              };
-              self.snapshot.placed_transfers[*index].transfer.completed
-                == completed
+            plan.row(id).children.iter().copied().filter(move |child| {
+              match child {
+                RowId::Transfer(index) => {
+                  self.snapshot.placed_transfers[*index].transfer.completed
+                    == completed
+                },
+                RowId::SourceFetch(_) => !completed,
+                RowId::Build(_) | RowId::TransferGroup => false,
+              }
             })
           })
           .collect();
@@ -521,6 +538,12 @@ impl Renderer<'_> {
           last,
           &self.snapshot.placed_transfers[index].transfer,
           row.consumers,
+        );
+      },
+      RowId::SourceFetch(index) => {
+        let prefix = self.prefix(ancestors, last);
+        lines.push(
+          self.source_fetch_line(prefix, self.snapshot.source_fetches[index]),
         );
       },
       RowId::TransferGroup => {
@@ -815,9 +838,7 @@ impl Renderer<'_> {
       }
       spans.push(self.span(format!("{value:>3}%"), color));
     } else {
-      let spinner =
-        ["◐", "◓", "◑", "◒"][((self.now * 4.0).max(0.0) as usize) % 4];
-      spans.push(self.span(spinner, color));
+      spans.push(self.span(self.spinner(), color));
     }
     if available > essential + bytes.len() + 2 {
       spans.push(self.span(format!("  {bytes}"), self.config.theme.muted));

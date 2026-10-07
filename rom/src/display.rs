@@ -11,7 +11,7 @@ mod model;
 mod summary;
 mod tree;
 
-use std::collections::HashSet;
+use std::{collections::HashSet, path::Path};
 
 pub use frame::{Frame, format_log, write_final};
 use ratatui_core::{
@@ -20,12 +20,12 @@ use ratatui_core::{
   style::{Color, Style},
   text::{Line, Span},
 };
-use unicode_width::UnicodeWidthChar;
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 use self::model::{Direction, RenderSnapshot, Transfer, aggregate_transfers};
 use crate::{
   icons::Icons,
-  state::{DerivationId, State},
+  state::{DerivationId, SourceFetch, State},
   types::{DisplayFormat, RenderConfig},
 };
 
@@ -184,6 +184,37 @@ impl<'a> Renderer<'a> {
       Direction::Download => self.config.theme.download,
       Direction::Upload => self.config.theme.upload,
     }
+  }
+
+  fn spinner(&self) -> &'static str {
+    ["◐", "◓", "◑", "◒"][((self.now * 4.0).max(0.0) as usize) % 4]
+  }
+
+  /// Render a source fetch after `prefix`: the source's file name, what is
+  /// being done to it, and for how long.
+  fn source_fetch_line(
+    &self,
+    mut spans: Vec<Span<'static>>,
+    fetch: &SourceFetch,
+  ) -> Line<'static> {
+    let action = if fetch.hashing { "hashing" } else { "copying" };
+    let detail = format!(
+      "  {} {action}  {}",
+      self.spinner(),
+      format_duration(self.now - fetch.start)
+    );
+    let name = Path::new(&fetch.source)
+      .file_name()
+      .map_or(fetch.source.as_str(), |name| {
+        name.to_str().unwrap_or(&fetch.source)
+      });
+    let available = usize::from(self.width)
+      .saturating_sub(spans_width(&spans) + detail.width());
+    spans.push(
+      self.span(truncate_text(name, available), self.config.theme.running),
+    );
+    spans.push(self.span(detail, self.config.theme.muted));
+    fit_line(spans, self.width)
   }
 
   fn span(&self, value: impl Into<String>, color: Color) -> Span<'static> {

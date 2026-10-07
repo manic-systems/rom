@@ -20,6 +20,7 @@ use crate::{
     BuildInfo,
     DerivationId,
     FailType,
+    SourceFetch,
     State,
     TransferInfo,
   },
@@ -200,6 +201,14 @@ fn apply_start(
     | ActivitySubject::Substitute { path: None, .. }
     | ActivitySubject::CopyPath { path: None, .. }
     | ActivitySubject::None => {},
+    ActivitySubject::FetchToStore { source, hashing } => {
+      state.start_source_fetch(start.id, SourceFetch {
+        source,
+        hashing,
+        start: now,
+      });
+      effects.changed = true;
+    },
   }
 
   state.insert_activity(start.id, ActivityStatus {
@@ -230,6 +239,7 @@ fn apply_stop(state: &mut State, id: Id, now: f64) -> bool {
         .store_path
         .is_some_and(|path| state.complete_transfer(path, now))
     },
+    Activities::FetchToStore => state.finish_source_fetch(id),
     _ => false,
   }
 }

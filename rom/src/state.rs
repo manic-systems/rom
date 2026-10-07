@@ -1,6 +1,6 @@
 //! State management for ROM
 use std::{
-  collections::{HashMap, HashSet},
+  collections::{BTreeMap, HashMap, HashSet},
   path::PathBuf,
   time::{Duration, SystemTime},
 };
@@ -185,6 +185,14 @@ pub struct ActivityStatus {
   pub store_path: Option<StorePathId>,
 }
 
+/// A local source path being copied into, or only hashed for, the store.
+#[derive(Debug, Clone)]
+pub struct SourceFetch {
+  pub source:  String,
+  pub hashing: bool,
+  pub start:   f64,
+}
+
 /// Build report for caching
 #[derive(Debug, Clone)]
 pub struct BuildReport {
@@ -205,6 +213,7 @@ pub struct State {
   store_path_ids:     HashMap<StorePath, StorePathId>,
   derivation_ids:     HashMap<Derivation, DerivationId>,
   activities:         HashMap<ActivityId, ActivityStatus>,
+  source_fetches:     BTreeMap<ActivityId, SourceFetch>,
   nix_errors:         Vec<String>,
   nix_error_count:    usize,
   next_store_path_id: StorePathId,
@@ -231,6 +240,7 @@ impl State {
       store_path_ids:     HashMap::new(),
       derivation_ids:     HashMap::new(),
       activities:         HashMap::new(),
+      source_fetches:     BTreeMap::new(),
       nix_errors:         Vec::new(),
       nix_error_count:    0,
       next_store_path_id: 0,
@@ -805,6 +815,23 @@ impl State {
     id: ActivityId,
   ) -> Option<ActivityStatus> {
     self.activities.remove(&id)
+  }
+
+  pub(crate) fn start_source_fetch(
+    &mut self,
+    id: ActivityId,
+    fetch: SourceFetch,
+  ) {
+    self.source_fetches.insert(id, fetch);
+  }
+
+  pub(crate) fn finish_source_fetch(&mut self, id: ActivityId) -> bool {
+    self.source_fetches.remove(&id).is_some()
+  }
+
+  /// Running source fetches in start order.
+  pub fn source_fetches(&self) -> impl Iterator<Item = &SourceFetch> {
+    self.source_fetches.values()
   }
 
   pub(crate) fn activity_derivation(
