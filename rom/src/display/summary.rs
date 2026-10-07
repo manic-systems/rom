@@ -2,8 +2,9 @@ use ratatui_core::{
   style::Color,
   text::{Line, Span},
 };
+use unicode_width::UnicodeWidthStr;
 
-use super::{Renderer, StatusCounts, fit_line, format_duration};
+use super::{Renderer, fit_line, format_duration, spans_width};
 use crate::types::{LegendStyle, SummaryStyle};
 
 impl Renderer<'_> {
@@ -20,57 +21,23 @@ impl Renderer<'_> {
   }
 
   fn table_legend(&self) -> Vec<Line<'static>> {
-    let mut lines = vec![fit_line(
-      vec![
-        self.span("┣━ ", self.config.theme.connector),
-        self.span("Status       ", self.config.theme.text),
-        self.span("Running    ", self.config.theme.running),
-        self.span("Completed   ", self.config.theme.completed),
-        self.span("Waiting   ", self.config.theme.planned),
-        self.span("Failed    ", self.config.theme.failed),
-        self.span("Total", self.config.theme.text),
-      ],
-      self.width,
-    )];
-    lines.push(fit_line(
-      self.status_row(
-        "Builds",
-        self.icons.running,
-        self.icons.done,
-        Some(self.icons.planned),
-        Some(self.icons.failed),
-        self.snapshot.counts.builds,
-      ),
-      self.width,
-    ));
-
-    if !self.snapshot.counts.downloads.is_empty() {
-      lines.push(fit_line(
-        self.status_row(
-          "Downloads",
-          self.icons.download,
-          self.icons.download,
-          Some(self.icons.planned),
-          None,
-          self.snapshot.counts.downloads,
-        ),
-        self.width,
-      ));
-    }
-
-    if !self.snapshot.counts.uploads.is_empty() {
-      lines.push(fit_line(
-        self.status_row(
-          "Uploads",
-          self.icons.upload,
-          self.icons.upload,
-          None,
-          None,
-          self.snapshot.counts.uploads,
-        ),
-        self.width,
-      ));
-    }
+    // Prefer the labelled grid; terminals too narrow for it get the same rows
+    // without the header and with tighter spacing.
+    let rows = self.status_rows();
+    let labelled =
+      self.status_grid(&[vec![self.status_header()], rows.clone()].concat(), 3);
+    let fits = labelled
+      .iter()
+      .all(|line| spans_width(line) <= usize::from(self.width));
+    let grid = if fits {
+      labelled
+    } else {
+      self.status_grid(&rows, 1)
+    };
+    let mut lines: Vec<_> = grid
+      .into_iter()
+      .map(|spans| fit_line(spans, self.width))
+      .collect();
     lines.push(fit_line(
       vec![
         self.span("┗━ ", self.config.theme.connector),
@@ -89,37 +56,113 @@ impl Renderer<'_> {
     lines
   }
 
-  fn status_row(
-    &self,
-    label: &str,
-    running_icon: &str,
-    completed_icon: &str,
-    waiting_icon: Option<&str>,
-    failed_icon: Option<&str>,
-    counts: StatusCounts,
-  ) -> Vec<Span<'static>> {
-    let waiting = waiting_icon.map_or_else(
-      || "          ".to_string(),
-      |icon| format!("{icon} {:<7} ", counts.waiting),
-    );
-    let failed = failed_icon.map_or_else(
-      || "          ".to_string(),
-      |icon| format!("{icon} {:<7} ", counts.failed),
-    );
-    vec![
-      self.span(format!("┃  {label:<13}"), self.config.theme.connector),
-      self.span(
-        format!("{running_icon} {:<8} ", counts.running),
-        self.config.theme.running,
-      ),
-      self.span(
-        format!("{completed_icon} {:<9} ", counts.completed),
-        self.config.theme.completed,
-      ),
-      self.span(waiting, self.config.theme.planned),
-      self.span(failed, self.config.theme.failed),
-      self.span(counts.total().to_string(), self.config.theme.text),
+  fn status_header(&self) -> StatusRow {
+    let theme = &self.config.theme;
+    [
+      ("Status", theme.text),
+      ("Running", theme.running),
+      ("Completed", theme.completed),
+      ("Waiting", theme.planned),
+      ("Failed", theme.failed),
+      ("Total", theme.text),
     ]
+    .map(|(text, color)| (text.to_string(), color))
+  }
+
+  fn status_rows(&self) -> Vec<StatusRow> {
+    let theme = &self.config.theme;
+    let icons = self.icons;
+    let counts = &self.snapshot.counts;
+    let row = |label: &str, cells: [Option<(&str, usize)>; 4], total| {
+      let cell = |index: usize, color| {
+        let text = cells[index]
+          .map_or_else(String::new, |(icon, count)| format!("{icon} {count}"));
+        (text, color)
+      };
+      [
+        (label.to_string(), theme.connector),
+        cell(0, theme.running),
+        cell(1, theme.completed),
+        cell(2, theme.planned),
+        cell(3, theme.failed),
+        (format!("{} {total}", icons.summary), theme.text),
+      ]
+    };
+
+    let builds = counts.builds;
+    let mut rows = vec![row(
+      "Builds",
+      [
+        Some((icons.running, builds.running)),
+        Some((icons.done, builds.completed)),
+        Some((icons.planned, builds.waiting)),
+        Some((icons.failed, builds.failed)),
+      ],
+      builds.total(),
+    )];
+    let downloads = counts.downloads;
+    if !downloads.is_empty() {
+      rows.push(row(
+        "Downloads",
+        [
+          Some((icons.download, downloads.running)),
+          Some((icons.download, downloads.completed)),
+          Some((icons.planned, downloads.waiting)),
+          None,
+        ],
+        downloads.total(),
+      ));
+    }
+    let uploads = counts.uploads;
+    if !uploads.is_empty() {
+      rows.push(row(
+        "Uploads",
+        [
+          Some((icons.upload, uploads.running)),
+          Some((icons.upload, uploads.completed)),
+          None,
+          None,
+        ],
+        uploads.total(),
+      ));
+    }
+    rows
+  }
+
+  /// Lay out rows as aligned columns separated by `gap` spaces.
+  fn status_grid(
+    &self,
+    rows: &[StatusRow],
+    gap: usize,
+  ) -> Vec<Vec<Span<'static>>> {
+    let mut widths: [usize; 6] = std::array::from_fn(|column| {
+      rows
+        .iter()
+        .map(|row| row[column].0.width())
+        .max()
+        .unwrap_or(0)
+    });
+    // Size labels for the widest row kind so columns stay put while transfer
+    // rows come and go.
+    widths[0] = widths[0].max("Downloads".len());
+    rows
+      .iter()
+      .enumerate()
+      .map(|(index, row)| {
+        let prefix = if index == 0 { "┣━ " } else { "┃  " };
+        let mut spans = vec![self.span(prefix, self.config.theme.connector)];
+        for (column, (text, color)) in row.iter().enumerate() {
+          let padding = if column + 1 == row.len() {
+            0
+          } else {
+            widths[column] - text.width() + gap
+          };
+          spans
+            .push(self.span(format!("{text}{}", " ".repeat(padding)), *color));
+        }
+        spans
+      })
+      .collect()
   }
 
   fn verbose_legend(&self) -> Vec<Line<'static>> {
@@ -341,3 +384,6 @@ impl Renderer<'_> {
     }
   }
 }
+
+/// Label, running, completed, waiting, failed, and total cells.
+type StatusRow = [(String, Color); 6];
