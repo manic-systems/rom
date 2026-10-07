@@ -217,24 +217,20 @@ fn progress_bar(
   if width == 0 || total == 0 {
     return Vec::new();
   }
-  let eighths = (done.min(total) as u128).saturating_mul((width * 8) as u128)
+  let halves = (done.min(total) as u128).saturating_mul((width * 2) as u128)
     / total as u128;
-  let full = (eighths / 8) as usize;
-  let partial = (eighths % 8) as usize;
+  let full = (halves / 2) as usize;
+  let half = halves % 2 == 1;
+  let empty = width - full - usize::from(half);
   let mut spans = Vec::new();
   if full > 0 {
-    spans.push(Span::styled("█".repeat(full), Style::default().fg(fill)));
+    spans.push(Span::styled("━".repeat(full), Style::default().fg(fill)));
   }
-  if full < width {
-    if partial > 0 {
-      let symbol = ["", "▏", "▎", "▍", "▌", "▋", "▊", "▉"][partial];
-      spans.push(Span::styled(symbol, Style::default().fg(fill).bg(track)));
-    }
-    let occupied = full + usize::from(partial > 0);
-    let empty = width.saturating_sub(occupied);
-    if empty > 0 {
-      spans.push(Span::styled(" ".repeat(empty), Style::default().bg(track)));
-    }
+  if half {
+    spans.push(Span::styled("╸", Style::default().fg(fill)));
+  }
+  if empty > 0 {
+    spans.push(Span::styled("━".repeat(empty), Style::default().fg(track)));
   }
   spans
 }
@@ -317,21 +313,21 @@ mod tests {
   use crate::state::TransferInfo;
 
   #[test]
-  fn block_bar_uses_requested_quarter_glyphs() {
-    let spans = progress_bar(5, 12, 3, Color::Cyan, Color::DarkGray);
+  fn line_bar_uses_half_cell_glyphs() {
+    let spans = progress_bar(6, 12, 3, Color::Cyan, Color::DarkGray);
     assert_eq!(spans[0].style.fg, Some(Color::Cyan));
-    assert_eq!(spans[1].style.bg, Some(Color::DarkGray));
-    assert_eq!(spans.last().unwrap().style.bg, Some(Color::DarkGray));
+    assert_eq!(spans[1].style.fg, Some(Color::Cyan));
+    assert_eq!(spans.last().unwrap().style.fg, Some(Color::DarkGray));
     let text = spans
       .into_iter()
       .map(|span| span.content.into_owned())
       .collect::<String>();
-    assert_eq!(text, "█▖ ");
+    assert_eq!(text, "━╸━");
 
     let empty = progress_bar(0, 12, 3, Color::Cyan, Color::DarkGray);
     assert_eq!(empty.len(), 1);
-    assert_eq!(empty[0].content, "   ");
-    assert_eq!(empty[0].style.bg, Some(Color::DarkGray));
+    assert_eq!(empty[0].content, "━━━");
+    assert_eq!(empty[0].style.fg, Some(Color::DarkGray));
   }
 
   #[test]
@@ -372,14 +368,14 @@ mod tests {
         .buffer
         .content()
         .iter()
-        .any(|cell| { cell.symbol() == "█" && cell.fg == Color::LightRed })
+        .any(|cell| { cell.symbol() == "━" && cell.fg == Color::LightRed })
     );
     assert!(
       frame
         .buffer
         .content()
         .iter()
-        .any(|cell| { cell.symbol() == " " && cell.bg == Color::LightBlue })
+        .any(|cell| { cell.symbol() == "━" && cell.fg == Color::LightBlue })
     );
   }
 }
