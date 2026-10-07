@@ -131,8 +131,20 @@ impl<W: Write> LiveTerminal<W> {
       }
       let frame =
         render_frame(state, config, now, columns - 1, rows - 1, final_render);
-      let text = frame.ansi_text().replace('\n', "\r\n");
-      let bytes = self.compose(&self.pending[..complete], &text)?;
+      // A shorter frame would leave blank rows under it, lifting the graph off
+      // the bottom of the screen. Keep the region's height until new log lines
+      // take over the freed rows; the final frame needs no anchoring.
+      let logs = &self.pending[..complete];
+      let log_lines = logs.iter().filter(|&&byte| byte == b'\n').count();
+      let reserved = if final_render {
+        0
+      } else {
+        usize::from(self.graph_height).saturating_sub(log_lines)
+      };
+      let padding = reserved.saturating_sub(usize::from(frame.height));
+      let text =
+        "\r\n".repeat(padding) + &frame.ansi_text().replace('\n', "\r\n");
+      let bytes = self.compose(logs, &text)?;
       if crossterm::terminal::size()? != (columns, rows) {
         continue;
       }
@@ -140,7 +152,7 @@ impl<W: Write> LiveTerminal<W> {
       self.writer.flush()?;
       self.pending.drain(..complete);
       self.frame = text;
-      self.graph_height = frame.height.min(rows - 1);
+      self.graph_height = (frame.height + padding as u16).min(rows - 1);
       self.initialized = true;
       return Ok(true);
     }
