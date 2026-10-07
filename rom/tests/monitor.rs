@@ -171,10 +171,10 @@ fn planned_records_build_a_recursive_dependency_tree() {
   assert!(text.contains("┃     ┗━ ⏸ leaf"), "{text}");
   let builds = text
     .lines()
-    .find(|line| line.contains("Builds       ⏵"))
+    .find(|line| line.starts_with("┃  Builds"))
     .expect("missing build status row");
   assert!(builds.contains("⏸ 3"), "{builds}");
-  assert!(builds.ends_with('3'), "{builds}");
+  assert!(builds.ends_with("∑ 3"), "{builds}");
 }
 
 #[test]
