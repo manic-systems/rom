@@ -109,54 +109,46 @@ services; the CLI supplies filesystem-backed implementations.
 
 ## Reproducible visual fixtures
 
-Each fixture keeps its timed input and every expected checkpoint together:
+Fixtures are timed raw Nix logs. Each line of `rom/tests/fixtures/<log>.log`
+is either `<ms> <raw line>`, written to ROM followed by a newline, or
+`<ms> = <checkpoint>`, which snapshots the frame at that time:
 
 ```text
-rom/tests/fixtures/<fixture-name>/
-├── events.jsonl
-└── expected/
-    ├── plain-79x23/
-    │   ├── frames.txt
-    │   ├── stream.txt
-    │   └── <named-checkpoint>.txt
-    └── ansi-79x23/
-        ├── frames.txt
-        ├── stream.txt
-        └── <named-checkpoint>.txt
+0 @nix {"action":"start","id":10,...}
+100 = build-started
 ```
 
-Rust tests replay timestamps with a virtual clock. Every input write,
-checkpoint, and EOF is captured in `frames.txt`; `stream.txt` captures decoded
-logs. The plain variant asserts that no escape byte survives, while the ANSI
-variant stores exact SGR sequences as visible `\\e` escapes. A PTY integration
-test additionally runs the real CLI and proves that the synchronized live path
-commits styled and over-width logs together with a complete graph, while the
-no-cursor multiplexer fallback still shows the first graph:
+`rom/tests/fixtures.rs` replays a log with a virtual clock and writes one
+`<snapshot>.snap` per test: every checkpoint frame, the finished frame, and the
+decoded log, with exact SGR sequences stored as visible `\e` escapes. One log
+can back several snapshots at different sizes or formats. Plain output is not
+snapshotted; the harness asserts it equals the ANSI output with escapes removed.
+
+A PTY integration test additionally runs the real CLI and proves that the
+synchronized live path commits styled and over-width logs together with a
+complete graph, while the no-cursor multiplexer fallback still shows the first
+graph:
 
 ```console
-cargo test --test fixtures fixture_download_progress
-cargo test --test fixtures fixture_nixpkgs_hello
-cargo test --test fixtures fixture_nested_builds
+cargo test --test fixtures
 cargo test --test pty_live
 ```
 
-Expectations are changed only through an explicit Miri-style blessing pass:
+Snapshots are changed only through an explicit Miri-style blessing pass:
 
 ```console
-ROM_BLESS=1 cargo test fixture_download_progress
-git diff -- rom/tests/fixtures
+ROM_BLESS=1 cargo test --test fixtures
+jj diff rom/tests/fixtures
 ```
 
-The same event file can be watched through the real binary:
+The same log can be watched through the real binary:
 
 ```console
 cargo build -p rom
-uv run scripts/replay-fixture.py download-progress
-uv run scripts/replay-fixture.py download-progress --speed 4
-uv run scripts/replay-fixture.py download-progress --step
-uv run scripts/replay-fixture.py download-progress -- --format dashboard
-uv run scripts/replay-fixture.py nixpkgs-hello --speed 4
-uv run scripts/replay-fixture.py nested-builds --step
+nu scripts/replay-fixture.nu download-progress
+nu scripts/replay-fixture.nu overflow --speed 0.25
+nu scripts/replay-fixture.nu failed-build --step
+nu scripts/replay-fixture.nu overflow -- --format dashboard
 ```
 
 Arguments after `--` are passed to ROM. The replay helper never builds ROM

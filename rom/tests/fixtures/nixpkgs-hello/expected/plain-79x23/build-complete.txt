@@ -1,4 +1,0 @@
-┏━ Builds
-┣━ Status       Running    Completed   Waiting   Failed    Total
-┃  Builds       ⏵ 0        ✔ 1         ⏸ 0       ✗ 0       1
-┗━ Elapsed ⏱ 4s

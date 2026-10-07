@@ -113,23 +113,16 @@ fn replay_fixture(multiplexer: bool, columns: u16, rows: u16) -> Vec<u8> {
   drop(command);
   let reader = thread::spawn(move || read_terminal(master));
 
-  let fixture = include_str!("fixtures/download-progress/events.jsonl");
+  let fixture = include_str!("fixtures/download-progress.log");
   let mut stdin = child.stdin.take().unwrap();
   let started = Instant::now();
-  for line in fixture.lines().filter(|line| !line.trim().is_empty()) {
-    let event: serde_json::Value = serde_json::from_str(line).unwrap();
-    let at = Duration::from_millis(event["at_ms"].as_u64().unwrap());
+  for line in fixture.lines() {
+    let (at_ms, rest) = line.split_once(' ').unwrap();
+    let at = Duration::from_millis(at_ms.parse().unwrap());
     thread::sleep(at.saturating_sub(started.elapsed()));
-    match event["type"].as_str().unwrap() {
-      "write" => {
-        stdin
-          .write_all(event["text"].as_str().unwrap().as_bytes())
-          .unwrap();
-        stdin.flush().unwrap();
-      },
-      "checkpoint" => {},
-      "eof" => break,
-      other => panic!("unknown fixture event: {other}"),
+    if !rest.starts_with("= ") {
+      stdin.write_all(format!("{rest}\n").as_bytes()).unwrap();
+      stdin.flush().unwrap();
     }
   }
   drop(stdin);
