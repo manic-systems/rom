@@ -185,12 +185,11 @@ pub struct ActivityStatus {
   pub store_path: Option<StorePathId>,
 }
 
-/// A local source path being copied into, or only hashed for, the store.
+/// A local source path being copied into the store.
 #[derive(Debug, Clone)]
 pub struct SourceFetch {
-  pub source:  String,
-  pub hashing: bool,
-  pub start:   f64,
+  pub source: String,
+  pub start:  f64,
 }
 
 /// Build report for caching

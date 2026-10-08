@@ -190,16 +190,15 @@ impl<'a> Renderer<'a> {
     ["◐", "◓", "◑", "◒"][((self.now * 4.0).max(0.0) as usize) % 4]
   }
 
-  /// Render a source fetch after `prefix`: the source's file name, what is
-  /// being done to it, and for how long.
+  /// Render a source fetch after `prefix`: the source's file name and how
+  /// long it has been copying.
   fn source_fetch_line(
     &self,
     mut spans: Vec<Span<'static>>,
     fetch: &SourceFetch,
   ) -> Line<'static> {
-    let action = if fetch.hashing { "hashing" } else { "copying" };
     let detail = format!(
-      "  {} {action}  {}",
+      "  {} copying  {}",
       self.spinner(),
       format_duration(self.now - fetch.start)
     );

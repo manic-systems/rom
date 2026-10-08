@@ -1,8 +1,10 @@
-0 @nix {"action":"start","id":40,"level":5,"parent":0,"text":"copying '/home/user/src/app' to the store","type":113,"fields":["/home/user/src/app",0]}
+0 @nix {"action":"start","id":40,"level":5,"parent":0,"text":"copying '/home/user/src/app'","type":113,"fields":["/home/user/src/app",0]}
 50 @nix {"action":"start","id":41,"level":5,"parent":0,"text":"hashing '/home/user/src/app/flake.lock'","type":113,"fields":["/home/user/src/app/flake.lock",1]}
+100 @nix {"action":"start","id":42,"level":5,"parent":0,"text":"copying '«github:NixOS/nixpkgs/ec9a6634fc6c422271eb03bb0c4ae6d3d1fecd14?narHash=sha256-51cy%2Bmn0UvTRDXVP9YPkuOo8VppQkz5XrutzsRa2DGg%3D»'","type":113,"fields":["«github:NixOS/nixpkgs/ec9a6634fc6c422271eb03bb0c4ae6d3d1fecd14?narHash=sha256-51cy%2Bmn0UvTRDXVP9YPkuOo8VppQkz5XrutzsRa2DGg%3D»",0]}
 1200 = fetching
-1300 @nix {"action":"result","id":41,"type":109,"fields":["/nix/store/00000000000000000000000000000004-source"]}
 1300 @nix {"action":"stop","id":41}
+1300 @nix {"action":"result","id":42,"type":109,"fields":["/nix/store/00000000000000000000000000000004-source"]}
+1300 @nix {"action":"stop","id":42}
 1400 = one-left
 2000 @nix {"action":"result","id":40,"type":109,"fields":["/nix/store/00000000000000000000000000000004-source"]}
 2000 @nix {"action":"stop","id":40}
