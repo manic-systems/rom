@@ -1,3 +1,5 @@
+//! Legend, status box, and final summary rendering.
+
 use ratatui_core::{
   style::Color,
   text::{Line, Span},
@@ -149,7 +151,7 @@ impl Renderer<'_> {
     rows
   }
 
-  /// Lay out rows as aligned columns separated by `gap` spaces.
+  /// Lays out rows as aligned columns separated by `gap` spaces.
   fn status_grid(
     &self,
     rows: &[StatusRow],

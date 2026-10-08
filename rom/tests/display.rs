@@ -1,3 +1,5 @@
+//! Rendering of the tree, plain, and dashboard presentations.
+
 use rom::{
   EngineConfig,
   display::render_frame,

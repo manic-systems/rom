@@ -7,14 +7,23 @@ use std::env;
 
 /// A complete set of display icons.
 pub struct Icons {
+  /// Marks a running build.
   pub running:  &'static str,
+  /// Marks a finished build.
   pub done:     &'static str,
+  /// Marks a planned build.
   pub planned:  &'static str,
+  /// Marks a failed build.
   pub failed:   &'static str,
+  /// Marks a download.
   pub download: &'static str,
+  /// Marks an upload.
   pub upload:   &'static str,
+  /// Precedes elapsed time.
   pub clock:    &'static str,
+  /// Precedes an estimated duration.
   pub estimate: &'static str,
+  /// Marks the summary.
   pub summary:  &'static str,
   /// Separator printed after an icon.
   ///
@@ -24,7 +33,7 @@ pub struct Icons {
   pub gap:      &'static str,
 }
 
-/// Standard Unicode icons are always available, no special font required.
+/// Standard Unicode icons, which need no special font.
 pub static UNICODE: Icons = Icons {
   running:  "⏵",
   done:     "✔",
@@ -56,7 +65,7 @@ pub static NERD: Icons = Icons {
   gap:      "\u{a0}",
 };
 
-/// Detect the best icon set for the current terminal session.
+/// Detects the best icon set for the current terminal session.
 ///
 /// Checks `NERD_FONTS` env override first (`1` forces Nerd, `0` forces
 /// Unicode), then checks for terminals that bundle Nerd Font glyphs.
@@ -85,7 +94,7 @@ pub fn detect() -> &'static Icons {
   }
 }
 
-/// Resolve a configured icon choice.
+/// Resolves a configured icon choice.
 #[must_use]
 pub fn select(mode: crate::types::IconMode) -> &'static Icons {
   match mode {

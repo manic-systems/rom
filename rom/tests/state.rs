@@ -1,3 +1,5 @@
+//! Store path and derivation parsing, and fresh state.
+
 use rom::state::{Derivation, ProgressState, State, StorePath};
 
 #[test]

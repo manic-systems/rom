@@ -18,9 +18,17 @@ use crate::{
   update::{self, LogEffect},
 };
 
-/// Optional source of `.drv` metadata. Resolver failures are diagnostic-only;
-/// the activity remains visible as a truthful root rather than aborting work.
+/// Optional source of `.drv` metadata.
+///
+/// Resolver failures are diagnostic-only; the activity remains visible as a
+/// truthful root rather than aborting work.
 pub trait DerivationResolver: Send + Sync {
+  /// Parses the derivation at `path`.
+  ///
+  /// # Errors
+  ///
+  /// Returns a description of the failure if the derivation cannot be read or
+  /// parsed.
   fn resolve(
     &self,
     path: &Path,
@@ -42,7 +50,9 @@ impl DerivationResolver for FilesystemResolver {
 /// Bytes or decoded logs which must be emitted exactly once by an adapter.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Output {
-  /// Non-protocol bytes. Their content and order are never changed.
+  /// Non-protocol bytes.
+  ///
+  /// Their content and order are never changed.
   Passthrough(Vec<u8>),
   /// A decoded protocol message or a nonfatal unsupported-record diagnostic.
   Log(LogLine),
@@ -51,7 +61,9 @@ pub enum Output {
 /// Result of feeding one or more bytes into the engine.
 #[derive(Debug, Default)]
 pub struct Processed {
+  /// Whether the state changed.
   pub changed: bool,
+  /// Output to emit, in order.
   pub output:  Vec<Output>,
 }
 
@@ -99,6 +111,7 @@ pub struct Engine {
 }
 
 impl Engine {
+  /// Creates an engine with empty state.
   #[must_use]
   pub fn new(config: EngineConfig) -> Self {
     Self {
@@ -112,30 +125,40 @@ impl Engine {
     }
   }
 
+  /// Returns the current state.
   #[must_use]
   pub const fn state(&self) -> &State {
     &self.state
   }
 
+  /// Marks a planned derivation as available without building it.
+  ///
+  /// Returns whether its status changed.
   pub fn mark_available(&mut self, id: DerivationId) -> bool {
     self.state.mark_available(id)
   }
 
+  /// Sets the source of `.drv` metadata.
   pub fn set_resolver(&mut self, resolver: impl DerivationResolver + 'static) {
     self.resolver = Some(Box::new(resolver));
   }
 
+  /// Returns the engine's configuration.
   #[must_use]
   pub const fn config(&self) -> &EngineConfig {
     &self.config
   }
 
-  /// Opt into build-history estimates from an injected store.
+  /// Opts into build-history estimates from an injected store.
   pub fn load_history(&mut self, history: &BuildReportCache) {
     self.state.replace_build_history(history.load());
   }
 
-  /// Persist build history through an injected store.
+  /// Persists build history through an injected store.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the store cannot be written.
   pub fn save_history(
     &self,
     history: &BuildReportCache,
@@ -143,8 +166,15 @@ impl Engine {
     history.save(self.state.build_history())
   }
 
+  /// Processes one complete input record received at `now`.
+  ///
   /// Unsupported JSON produces an ordered diagnostic without changing build
-  /// state; malformed structured input is returned as an error.
+  /// state.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the record is not valid internal JSON, or if a record
+  /// without the `@nix ` prefix reaches the decoder in auto-detect mode.
   pub fn process_record_at(
     &mut self,
     record: &[u8],
@@ -251,7 +281,7 @@ impl Engine {
     })
   }
 
-  /// Mark the input source as closed without pretending unfinished work
+  /// Marks the input source as closed without pretending unfinished work
   /// succeeded.
   pub fn finish(&mut self) {
     self.state.finish();
@@ -313,6 +343,7 @@ pub struct StreamEngine {
 }
 
 impl StreamEngine {
+  /// Creates a stream engine with empty state.
   #[must_use]
   pub fn new(config: EngineConfig) -> Self {
     let record = match config.input_mode {
@@ -325,15 +356,23 @@ impl StreamEngine {
     }
   }
 
+  /// Returns the wrapped engine.
   #[must_use]
   pub const fn engine(&self) -> &Engine {
     &self.engine
   }
 
+  /// Returns the wrapped engine mutably.
   pub fn engine_mut(&mut self) -> &mut Engine {
     &mut self.engine
   }
 
+  /// Feeds input bytes received at `now`, processing every completed record.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if a structured record exceeds the configured size limit
+  /// or cannot be processed.
   pub fn push_at(&mut self, bytes: &[u8], now: f64) -> Result<Processed> {
     const PREFIX: &[u8] = b"@nix ";
     let mut processed = Processed::default();
@@ -397,6 +436,11 @@ impl StreamEngine {
     Ok(processed)
   }
 
+  /// Processes any unterminated final record and marks the input as closed.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the final structured record cannot be processed.
   pub fn finish_at(&mut self, now: f64) -> Result<Processed> {
     let mut processed = Processed::default();
     match std::mem::replace(
@@ -414,8 +458,10 @@ impl StreamEngine {
   }
 }
 
-/// Append-only stream adapter. It writes logs immediately and one final plain
-/// presentation; it never emits cursor-control sequences.
+/// Append-only stream adapter.
+///
+/// It writes logs immediately and one final plain presentation; it never emits
+/// cursor-control sequences.
 pub struct Monitor<W: Write> {
   stream: StreamEngine,
   writer: W,
@@ -423,6 +469,7 @@ pub struct Monitor<W: Write> {
 }
 
 impl<W: Write> Monitor<W> {
+  /// Creates a monitor that writes to `writer`.
   #[must_use]
   pub fn new(config: Config, writer: W) -> Self {
     let Config { engine, render } = config;
@@ -433,20 +480,34 @@ impl<W: Write> Monitor<W> {
     }
   }
 
+  /// Returns the current state.
   #[must_use]
   pub const fn state(&self) -> &State {
     self.stream.engine().state()
   }
 
+  /// Feeds input bytes received at `now` and writes the resulting output.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the input cannot be processed or the output cannot be
+  /// written.
   pub fn process_bytes_at(&mut self, bytes: &[u8], now: f64) -> Result<()> {
     let processed = self.stream.push_at(bytes, now)?;
     write_outputs(&mut self.writer, processed.output, &self.render)
   }
 
+  /// Returns the engine mutably.
   pub fn engine_mut(&mut self) -> &mut Engine {
     self.stream.engine_mut()
   }
 
+  /// Monitors `reader` until it ends, then writes the final presentation.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if reading, processing, or writing fails, if a build
+  /// failed, or if the input ended while work was still active.
   pub fn process_stream<R: BufRead>(&mut self, mut reader: R) -> Result<()> {
     let mut bytes = [0_u8; 16 * 1024];
     loop {

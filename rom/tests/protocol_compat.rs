@@ -1,3 +1,5 @@
+//! Handling of protocol extensions and malformed records.
+
 use rom::{
   monitor::{Engine, Output},
   types::{EngineConfig, InputMode},

@@ -1,7 +1,8 @@
-/// Internal log format parsers.
-///
-/// Each submodule handles one wire format emitted by a Nix-family evaluator.
-/// New formats should be added as sibling modules here.
+//! Evaluator platforms and their internal log formats.
+//!
+//! Each submodule handles one wire format emitted by a Nix-family evaluator.
+//! New formats should be added as sibling modules here.
+
 pub mod json;
 
 use std::{process::Command, str::FromStr};

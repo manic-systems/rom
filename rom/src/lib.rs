@@ -37,9 +37,13 @@ pub use types::{
   Theme,
 };
 
-/// Run the CLI application with the provided arguments.
+/// Runs the CLI with the process's command-line arguments and returns the
+/// exit code of the wrapped Nix command.
 ///
-/// This is the main entry point for the CLI application.
+/// # Errors
+///
+/// Returns an error if an argument is not valid UTF-8, the Nix process cannot
+/// be run, or the build fails or ends with unfinished work.
 #[cfg(feature = "cli")]
 pub fn run() -> eyre::Result<std::process::ExitCode> {
   cli::run()
