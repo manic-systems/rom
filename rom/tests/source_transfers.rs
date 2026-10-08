@@ -1,3 +1,5 @@
+//! Source downloads and their placement in the dependency graph.
+
 use std::path::Path;
 
 use rom::{

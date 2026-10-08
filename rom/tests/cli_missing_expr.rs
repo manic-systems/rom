@@ -1,3 +1,5 @@
+//! CLI handling of missing installables and passthrough flags.
+
 #![cfg(feature = "cli")]
 
 use std::process::Command;

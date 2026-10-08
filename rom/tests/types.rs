@@ -1,3 +1,5 @@
+//! Configuration defaults and comparisons.
+
 use rom::types::{Config, DisplayFormat, InputMode, LogPrefixStyle};
 
 #[test]

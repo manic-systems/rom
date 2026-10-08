@@ -1,3 +1,5 @@
+//! Argument rewriting helpers used by the CLI wrappers.
+
 #![cfg(feature = "cli")]
 
 use rom::cli::{parse_args_with_separator, replace_command_with_exit};
