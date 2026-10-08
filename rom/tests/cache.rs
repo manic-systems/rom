@@ -1,3 +1,5 @@
+//! Build history persistence and median estimates.
+
 use std::{collections::HashMap, time::SystemTime};
 
 use rom::{

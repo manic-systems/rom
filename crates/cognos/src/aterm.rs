@@ -6,16 +6,28 @@ use std::{fs, path::Path};
 /// Parsed derivation information from a .drv file
 #[derive(Debug, Clone)]
 pub struct ParsedDerivation {
+  /// Output names paired with their store paths.
   pub outputs:    Vec<(String, String)>,
+  /// Input derivation paths paired with the outputs used from each.
   pub input_drvs: Vec<(String, Vec<String>)>,
+  /// Source store paths used as inputs.
   pub input_srcs: Vec<String>,
+  /// System the derivation builds for, such as `x86_64-linux`.
   pub platform:   String,
+  /// Path of the builder executable.
   pub builder:    String,
+  /// Arguments passed to the builder.
   pub args:       Vec<String>,
+  /// Environment variables set for the builder.
   pub env:        Vec<(String, String)>,
 }
 
 /// Parse a .drv file and extract its dependency information
+///
+/// # Errors
+///
+/// Returns a description of the failure if the file cannot be read or is not a
+/// valid derivation.
 pub fn parse_drv_file<P: AsRef<Path>>(
   path: P,
 ) -> Result<ParsedDerivation, String> {
@@ -25,6 +37,10 @@ pub fn parse_drv_file<P: AsRef<Path>>(
 }
 
 /// Parse the content of a .drv file
+///
+/// # Errors
+///
+/// Returns a description of the failure if `content` is not a valid derivation.
 pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
   let content = content.trim();
 
@@ -262,6 +278,11 @@ fn unescape_string(s: &str) -> String {
 }
 
 /// Extract all input derivation paths from a .drv file
+///
+/// # Errors
+///
+/// Returns a description of the failure if the file cannot be read or is not a
+/// valid derivation.
 pub fn get_input_derivations<P: AsRef<Path>>(
   path: P,
 ) -> Result<Vec<String>, String> {

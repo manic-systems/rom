@@ -1,3 +1,5 @@
+//! Output and exit status of wrapped Nix commands.
+
 #![cfg(all(unix, feature = "cli"))]
 
 use std::{fs, os::unix::fs::PermissionsExt, process::Command};

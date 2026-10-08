@@ -1,3 +1,5 @@
+//! Render snapshot derived from state, shared by every display format.
+
 use std::collections::HashSet;
 
 use indexmap::IndexMap;

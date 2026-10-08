@@ -27,7 +27,7 @@ struct View {
   engine: EngineConfig,
 }
 
-/// Replay `fixtures/<log>.log` into `fixtures/<snapshot>.snap` with a 79x23
+/// Replays `fixtures/<log>.log` into `fixtures/<snapshot>.snap` with a 79x23
 /// Unicode tree view, adjusted by `configure`.
 fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
   let mut view = View {

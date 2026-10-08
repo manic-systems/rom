@@ -1,3 +1,5 @@
+//! Stream ingestion, passthrough, and dependency resolution.
+
 use rom::{
   display::{format_log, render_frame},
   monitor::{DerivationResolver, Engine, Output, StreamEngine},
