@@ -18,7 +18,7 @@ pub struct Icons {
   pub summary:  &'static str,
 }
 
-/// Standard Unicode icons are always available, no special font required.
+/// Standard Unicode icons, which need no special font.
 pub static UNICODE: Icons = Icons {
   running:  "⏵",
   done:     "✔",
@@ -48,7 +48,7 @@ pub static NERD: Icons = Icons {
   summary:  "\u{f04a0}", // 󰒠
 };
 
-/// Detect the best icon set for the current terminal session.
+/// Detects the best icon set for the current terminal session.
 ///
 /// Checks `NERD_FONTS` env override first (`1` forces Nerd, `0` forces
 /// Unicode), then checks for terminals that bundle Nerd Font glyphs.
@@ -77,7 +77,7 @@ pub fn detect() -> &'static Icons {
   }
 }
 
-/// Resolve a configured icon choice.
+/// Resolves a configured icon choice.
 #[must_use]
 pub fn select(mode: crate::types::IconMode) -> &'static Icons {
   match mode {

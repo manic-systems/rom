@@ -29,7 +29,7 @@ use crate::{
   types::{DisplayFormat, RenderConfig},
 };
 
-/// Format a duration without introducing sub-second redraw noise.
+/// Formats a duration without introducing sub-second redraw noise.
 #[must_use]
 pub fn format_duration(secs: f64) -> String {
   let secs = secs.max(0.0) as u64;
@@ -190,8 +190,9 @@ impl<'a> Renderer<'a> {
     ["◐", "◓", "◑", "◒"][((self.now * 4.0).max(0.0) as usize) % 4]
   }
 
-  /// Render a source fetch after `prefix`: the source's file name and how
-  /// long it has been copying.
+  /// Renders a source fetch after `prefix`.
+  ///
+  /// The row shows the source's file name and how long it has been copying.
   fn source_fetch_line(
     &self,
     mut spans: Vec<Span<'static>>,
@@ -306,8 +307,9 @@ fn fit_line(spans: Vec<Span<'static>>, width: u16) -> Line<'static> {
   Line::from(result)
 }
 
-/// Render a complete frame. `width` is already expected to exclude the
-/// terminal's last physical column.
+/// Renders a complete frame.
+///
+/// `width` is already expected to exclude the terminal's last physical column.
 #[must_use]
 pub fn render_frame(
   state: &State,

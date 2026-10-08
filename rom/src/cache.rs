@@ -14,16 +14,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::state::BuildReport;
 
-/// Maximum number of historical builds to keep per derivation
+/// Maximum number of historical builds to keep per derivation.
 const HISTORY_LIMIT: usize = 10;
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
-/// Build report cache for CSV persistence
+/// Build report cache for CSV persistence.
 pub struct BuildReportCache {
   cache_path: PathBuf,
 }
 
-/// CSV row format for build reports
+/// CSV row format for build reports.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct BuildReportRow {
   hostname:        String,
@@ -33,13 +33,17 @@ struct BuildReportRow {
 }
 
 impl BuildReportCache {
-  /// Create a new cache instance with the given path
+  /// Creates a cache backed by the given path.
   #[must_use]
   pub const fn new(cache_path: PathBuf) -> Self {
     Self { cache_path }
   }
 
-  /// Get the default cache file path
+  /// Returns the default cache file path under the user's state directory.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the user's home directory cannot be determined.
   pub fn default_cache_path() -> Result<PathBuf, HomeDirError> {
     let strategy = choose_base_strategy()?;
     Ok(
@@ -51,9 +55,9 @@ impl BuildReportCache {
     )
   }
 
-  /// Load build reports from CSV
+  /// Loads build reports from the CSV file.
   ///
-  /// Returns empty [`HashMap`] if file doesn't exist or parsing fails
+  /// Returns an empty [`HashMap`] if the file doesn't exist or can't be parsed.
   #[must_use]
   pub fn load(&self) -> HashMap<(String, String), Vec<BuildReport>> {
     if !self.cache_path.exists() {
@@ -100,9 +104,14 @@ impl BuildReportCache {
     reports
   }
 
-  /// Save build reports to CSV
+  /// Merges build reports into the CSV file.
   ///
-  /// Atomically replaces the store and enforces the history limit.
+  /// Atomically replaces the file under a lock and enforces the history limit.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the cache directory, lock file, or replacement file
+  /// cannot be created, locked, written, or renamed.
   pub fn save(
     &self,
     reports: &HashMap<(String, String), Vec<BuildReport>>,
@@ -182,9 +191,9 @@ impl BuildReportCache {
     result
   }
 
-  /// Calculate median build time from historical reports
+  /// Calculates the median build time from historical reports.
   ///
-  /// Returns [`None`] if there are no reports
+  /// Returns [`None`] if there are no reports.
   #[must_use]
   pub fn calculate_median(reports: &[BuildReport]) -> Option<u64> {
     if reports.is_empty() {
@@ -210,6 +219,11 @@ pub fn parse_utc_time(input: &str) -> Option<SystemTime> {
   Some(input.parse::<Timestamp>().ok()?.into())
 }
 
+/// Formats a time as an RFC 3339 UTC timestamp.
+///
+/// # Errors
+///
+/// Returns an error if the time is outside the range a timestamp can represent.
 pub fn format_utc_time(time: SystemTime) -> Result<String, jiff::Error> {
   Ok(Timestamp::try_from(time)?.to_string())
 }

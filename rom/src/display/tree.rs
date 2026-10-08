@@ -82,8 +82,10 @@ struct TreeSelection<'a> {
 }
 
 impl Renderer<'_> {
-  /// Build one typed row graph. Selection and rendering operate on these same
-  /// rows, so transfer placement cannot be lost in parallel index maps.
+  /// Builds one typed row graph.
+  ///
+  /// Selection and rendering operate on these same rows, so transfer placement
+  /// cannot be lost in parallel index maps.
   pub(super) fn tree_plan(&self) -> TreePlan {
     let slots = self
       .snapshot
@@ -325,8 +327,10 @@ impl Renderer<'_> {
     lines
   }
 
-  /// Select active build/group rows first, then share remaining rows fairly
-  /// among transfer children. Completed grace rows never displace active work.
+  /// Selects active build and group rows first, then shares the remaining rows
+  /// fairly among transfer children.
+  ///
+  /// Completed grace rows never displace active work.
   fn select_rows<'a>(
     &self,
     plan: &'a TreePlan,
@@ -497,7 +501,9 @@ impl Renderer<'_> {
     selection
   }
 
-  /// A waiting build whose inputs are all done or running starts next.
+  /// Returns whether a waiting build will start next.
+  ///
+  /// That is the case once all its inputs are done or running.
   fn ready(&self, id: RowId) -> bool {
     let RowId::Build(id) = id else {
       return false;

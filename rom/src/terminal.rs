@@ -29,7 +29,7 @@ pub enum Admission {
   Multiplexer,
 }
 
-/// Select live redraws for every direct interactive terminal.
+/// Selects live redraws for every direct interactive terminal.
 ///
 /// Like nix-output-monitor, ROM sends synchronized-update markers without a
 /// capability round trip. Terminals which do not implement mode 2026 ignore
@@ -88,8 +88,16 @@ impl<W: Write> LiveTerminal<W> {
     self.retired
   }
 
-  /// Render with bounded resize retries while the synchronized transaction is
-  /// still only an in-memory byte string.
+  /// Renders one frame, retrying a bounded number of times if the terminal is
+  /// resized while the synchronized transaction is still being composed.
+  ///
+  /// Returns `Ok(false)` without drawing when live rendering has retired or a
+  /// partial log line is pending.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the terminal size cannot be queried or the frame
+  /// cannot be written to the terminal.
   pub fn render(
     &mut self,
     state: &State,
@@ -184,10 +192,15 @@ impl<W: Write> LiveTerminal<W> {
     Ok(())
   }
 
-  /// Buffer exact output bytes for the next atomic logs-plus-graph commit.
+  /// Buffers exact output bytes for the next atomic logs-plus-graph commit.
   ///
   /// This deliberately matches nix-output-monitor: ROM does not interpret or
   /// classify controls belonging to the producer.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if writing to the terminal fails, either directly after
+  /// retirement or while flushing an overflowing buffer.
   pub fn write_passthrough(&mut self, input: &[u8]) -> io::Result<()> {
     if input.is_empty() {
       return Ok(());
@@ -224,6 +237,11 @@ impl<W: Write> LiveTerminal<W> {
     self.writer.flush()
   }
 
+  /// Clears the live graph and permanently falls back to plain passthrough.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if clearing the graph or flushing the terminal fails.
   pub fn retire(&mut self) -> io::Result<()> {
     if self.retired {
       return Ok(());
@@ -252,7 +270,11 @@ impl<W: Write> LiveTerminal<W> {
     Ok(())
   }
 
-  /// Leave the final frame in normal scrollback and restore terminal modes.
+  /// Leaves the final frame in normal scrollback and restores terminal modes.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if writing to the terminal fails.
   pub fn finish(&mut self) -> io::Result<()> {
     if self.finished {
       return Ok(());
@@ -270,8 +292,14 @@ impl<W: Write> LiveTerminal<W> {
     Ok(())
   }
 
-  /// Append a final frame constrained to the current terminal when live
-  /// rendering retired, for example because the window was too small.
+  /// Appends a final frame sized to the current terminal.
+  ///
+  /// Used when live rendering retired, for example because the window was too
+  /// small.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if writing to the terminal fails.
   pub fn append_final(
     &mut self,
     state: &State,

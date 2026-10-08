@@ -97,6 +97,12 @@ struct WrapperConfig {
   monitor:  Config,
 }
 
+/// Runs the CLI with the process's command-line arguments.
+///
+/// # Errors
+///
+/// Returns an error if an argument is not valid UTF-8, the Nix process cannot
+/// be run, or the build fails or ends with unfinished work.
 pub fn run() -> misstep::Result<()> {
   let mut process_args = std::env::args_os();
   let program = process_args

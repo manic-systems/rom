@@ -19,7 +19,7 @@ pub struct Frame {
 }
 
 impl Frame {
-  /// Return a stable, style-free representation used by fixture goldens.
+  /// Returns the frame as style-free text with trailing spaces trimmed.
   #[must_use]
   pub fn text(&self) -> String {
     let area = self.buffer.area;
@@ -40,7 +40,8 @@ impl Frame {
       .join("\n")
   }
 
-  /// Return the same frame as append-only text with exact ANSI SGR styling.
+  /// Returns the frame as append-only text with exact ANSI SGR styling.
+  ///
   /// No cursor movement, clearing, or terminal-mode controls are emitted.
   #[must_use]
   pub fn ansi_text(&self) -> String {
@@ -219,6 +220,11 @@ fn ansi_color_code(color: Color, background: bool) -> Option<String> {
   Some(code.to_string())
 }
 
+/// Writes the final frame, styled if `config.ansi` is set, then flushes.
+///
+/// # Errors
+///
+/// Returns an error if writing to or flushing `writer` fails.
 pub fn write_final<W: Write>(
   writer: &mut W,
   state: &State,

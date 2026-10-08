@@ -43,7 +43,7 @@ pub(crate) struct LogEffect {
   pub force:    bool,
 }
 
-/// Apply one typed event and return every external effect caused by it.
+/// Applies one typed event and return every external effect caused by it.
 pub(crate) fn apply_event_at(
   state: &mut State,
   event: Event,

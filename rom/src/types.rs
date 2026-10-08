@@ -121,7 +121,9 @@ pub struct Theme {
   pub progress_track: Color,
 }
 
-/// Icon selection. `Auto` also honors the existing `NERD_FONTS` override.
+/// Icon selection.
+///
+/// `Auto` also honors the existing `NERD_FONTS` override.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum IconMode {
   #[default]
@@ -166,6 +168,7 @@ pub struct EngineConfig {
 #[derive(Debug, Clone)]
 pub struct RenderConfig {
   /// Emit ANSI styling for decoded logs and append-only presentations.
+  ///
   /// Exact non-protocol passthrough is never changed by this setting.
   pub ansi:          bool,
   pub show_timers:   bool,
@@ -207,16 +210,19 @@ impl Default for RenderConfig {
   }
 }
 
-/// Complete adapter configuration. The engine and renderer retain only their
-/// respective halves.
+/// Complete adapter configuration.
+///
+/// The engine and renderer retain only their respective halves.
 #[derive(Debug, Clone, Default)]
 pub struct Config {
   pub engine: EngineConfig,
   pub render: RenderConfig,
 }
 
-/// A decoded logical log line. Presentation adapters decide whether to retain
-/// producer styling and how to color the optional activity prefix.
+/// A decoded logical log line.
+///
+/// Presentation adapters decide whether to retain producer styling and how to
+/// color the optional activity prefix.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogLine {
   pub prefix: String,

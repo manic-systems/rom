@@ -129,7 +129,7 @@ impl Renderer<'_> {
     rows
   }
 
-  /// Lay out rows as aligned columns separated by `gap` spaces.
+  /// Lays out rows as aligned columns separated by `gap` spaces.
   fn status_grid(
     &self,
     rows: &[StatusRow],

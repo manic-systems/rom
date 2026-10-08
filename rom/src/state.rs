@@ -1,4 +1,4 @@
-//! State management for ROM
+//! State management for ROM.
 use std::{
   collections::{BTreeMap, HashMap, HashSet},
   path::PathBuf,
@@ -9,16 +9,16 @@ pub use cognos::ProgressState;
 use cognos::{Activities, Host, Id};
 use indexmap::IndexMap;
 
-/// Unique identifier for store paths
+/// Unique identifier for store paths.
 pub type StorePathId = usize;
 
-/// Unique identifier for derivations
+/// Unique identifier for derivations.
 pub type DerivationId = usize;
 
-/// Unique identifier for activities
+/// Unique identifier for activities.
 pub type ActivityId = Id;
 
-/// Store path representation
+/// Store path representation.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct StorePath {
   pub path: PathBuf,
@@ -49,7 +49,7 @@ impl StorePath {
   }
 }
 
-/// Derivation representation
+/// Derivation representation.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Derivation {
   pub path: PathBuf,
@@ -81,7 +81,7 @@ impl Derivation {
   }
 }
 
-/// Transfer information (download/upload)
+/// Transfer information for a download or upload.
 #[derive(Debug, Clone)]
 pub struct TransferInfo {
   pub start:             f64,
@@ -92,7 +92,7 @@ pub struct TransferInfo {
   pub total_bytes:       Option<u64>,
 }
 
-/// Completed transfer information
+/// Completed transfer information.
 #[derive(Debug, Clone)]
 pub struct CompletedTransferInfo {
   pub start:       f64,
@@ -102,7 +102,7 @@ pub struct CompletedTransferInfo {
   pub total_bytes: u64,
 }
 
-/// Store path information
+/// Store path information.
 #[derive(Debug, Clone)]
 pub struct StorePathInfo {
   pub name:      StorePath,
@@ -110,7 +110,7 @@ pub struct StorePathInfo {
   pub input_for: HashSet<DerivationId>,
 }
 
-/// Build information
+/// Build information.
 #[derive(Debug, Clone)]
 pub struct BuildInfo {
   pub start:    f64,
@@ -119,14 +119,14 @@ pub struct BuildInfo {
   pub phase:    Option<String>,
 }
 
-/// Build failure information
+/// Build failure information.
 #[derive(Debug, Clone)]
 pub struct BuildFail {
   pub at:        f64,
   pub fail_type: FailType,
 }
 
-/// Failure type
+/// Failure type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FailType {
   BuildFailed(i32),
@@ -135,7 +135,7 @@ pub enum FailType {
   Unknown,
 }
 
-/// Build status
+/// Build status.
 #[derive(Debug, Clone)]
 pub enum BuildStatus {
   Unknown,
@@ -154,7 +154,7 @@ pub enum BuildStatus {
   DependencyFailed,
 }
 
-/// Derivation information
+/// Derivation information.
 #[derive(Debug, Clone)]
 pub struct DerivationInfo {
   pub name:               Derivation,
@@ -165,7 +165,9 @@ pub struct DerivationInfo {
   pub platform:           Option<String>,
 }
 
-/// Transfer lifecycle summary. Build lifecycle has a single source of truth in
+/// Transfer lifecycle summary.
+///
+/// Build lifecycle has a single source of truth in
 /// [`DerivationInfo::build_status`].
 #[derive(Debug, Clone, Default)]
 pub struct DependencySummary {
@@ -176,7 +178,7 @@ pub struct DependencySummary {
   pub running_uploads:     HashMap<StorePathId, TransferInfo>,
 }
 
-/// Activity status tracking
+/// Activity status tracking.
 #[derive(Debug, Clone)]
 pub struct ActivityStatus {
   pub activity:   Activities,
@@ -192,14 +194,14 @@ pub struct SourceFetch {
   pub start:  f64,
 }
 
-/// Build report for caching
+/// Build report for caching.
 #[derive(Debug, Clone)]
 pub struct BuildReport {
   pub duration_secs: f64,
   pub completed_at:  SystemTime,
 }
 
-/// Main state for ROM
+/// Main state for ROM.
 #[derive(Debug, Clone)]
 pub struct State {
   derivation_infos:   IndexMap<DerivationId, DerivationInfo>,
@@ -478,7 +480,7 @@ impl State {
     self.ensure_root(original);
   }
 
-  /// Apply derivation metadata returned by an injected resolver.
+  /// Applies derivation metadata returned by an injected resolver.
   pub(crate) fn populate_parsed_derivation(
     &mut self,
     drv_id: DerivationId,
@@ -539,6 +541,8 @@ impl State {
     }
   }
 
+  /// Marks the planned inputs of a starting build as available.
+  ///
   /// Nix starts a build only once its inputs are valid. A planned input with
   /// no build of its own was realised by another process holding its lock.
   fn settle_inputs(&mut self, id: DerivationId) {
@@ -937,11 +941,11 @@ impl State {
       .count()
   }
 
-  /// Get the activity prefix for a given activity ID by walking up the parent
-  /// chain to find a Build activity and extracting its derivation name.
-  /// Returns a prefix like "hello> " suitable for prepending to log lines.
-  /// The `prefix_style` determines whether to use short (pname only), full, or
-  /// no prefix.
+  /// Returns the log prefix for an activity, like `hello> `.
+  ///
+  /// Walks up the parent chain to the enclosing build activity and uses its
+  /// derivation name. `prefix_style` selects the short name (pname only), the
+  /// full name, or no prefix.
   #[must_use]
   pub(crate) fn get_activity_prefix(
     &self,

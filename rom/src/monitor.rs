@@ -21,16 +21,24 @@ use crate::{
   update::{self, LogEffect},
 };
 
-/// Optional source of `.drv` metadata. Resolver failures are diagnostic-only;
-/// the activity remains visible as a truthful root rather than aborting work.
+/// Optional source of `.drv` metadata.
+///
+/// Resolver failures are diagnostic-only; the activity remains visible as a
+/// truthful root rather than aborting work.
 pub trait DerivationResolver: Send + Sync {
+  /// Parses the derivation at `path`.
+  ///
+  /// # Errors
+  ///
+  /// Returns a description of the failure if the derivation cannot be read or
+  /// parsed.
   fn resolve(
     &self,
     path: &Path,
   ) -> std::result::Result<cognos::ParsedDerivation, String>;
 
-  /// The `.drv` a dynamic-derivation producer wrote to its `out`, once Nix
-  /// has realised it.
+  /// Returns the `.drv` a dynamic-derivation producer wrote to its `out`, once
+  /// Nix has realised it.
   fn produced(&self, _producer: &Path) -> Option<PathBuf> {
     None
   }
@@ -103,7 +111,9 @@ impl DerivationResolver for FilesystemResolver {
 /// Bytes or decoded logs which must be emitted exactly once by an adapter.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Output {
-  /// Non-protocol bytes. Their content and order are never changed.
+  /// Non-protocol bytes.
+  ///
+  /// Their content and order are never changed.
   Passthrough(Vec<u8>),
   /// A decoded protocol message or a nonfatal unsupported-record diagnostic.
   Log(LogLine),
@@ -193,12 +203,16 @@ impl Engine {
     &self.config
   }
 
-  /// Opt into build-history estimates from an injected store.
+  /// Opts into build-history estimates from an injected store.
   pub fn load_history(&mut self, history: &BuildReportCache) {
     self.state.replace_build_history(history.load());
   }
 
-  /// Persist build history through an injected store.
+  /// Persists build history through an injected store.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the store cannot be written.
   pub fn save_history(
     &self,
     history: &BuildReportCache,
@@ -206,8 +220,15 @@ impl Engine {
     history.save(self.state.build_history())
   }
 
+  /// Processes one complete input record received at `now`.
+  ///
   /// Unsupported JSON produces an ordered diagnostic without changing build
-  /// state; malformed structured input is returned as an error.
+  /// state.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the record is not valid internal JSON, or if a record
+  /// without the `@nix ` prefix reaches the decoder in auto-detect mode.
   pub fn process_record_at(
     &mut self,
     record: &[u8],
@@ -324,7 +345,7 @@ impl Engine {
     })
   }
 
-  /// Mark the input source as closed without pretending unfinished work
+  /// Marks the input source as closed without pretending unfinished work
   /// succeeded.
   pub fn finish(&mut self) {
     self.state.finish();
@@ -335,16 +356,20 @@ impl Engine {
 struct Producer {
   path:      PathBuf,
   consumers: Vec<DerivationId>,
-  /// Every activity stop triggers a Built lookup, so each producer gets one.
+  /// Whether a [`Lookup::Built`] has run for this producer.
+  ///
+  /// Every activity stop triggers one, so each producer gets one.
   looked_up: bool,
 }
 
 #[derive(Clone, Copy)]
 enum Lookup {
   Built,
-  /// A build with no known parent started, so whichever producer wrote it is
-  /// realised even if its trace was not yet recorded when it stopped, or it
-  /// was built by an earlier run. Its producer is named after it plus `.drv`.
+  /// Look up the producer of a build that started without a known parent.
+  ///
+  /// Whichever producer wrote it is realised even if its trace was not yet
+  /// recorded when it stopped, or it was built by an earlier run. Its producer
+  /// is named after it plus `.drv`.
   Orphan(DerivationId),
 }
 
@@ -506,6 +531,12 @@ impl StreamEngine {
     &mut self.engine
   }
 
+  /// Feeds input bytes received at `now`, processing every completed record.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if a structured record exceeds the configured size limit
+  /// or cannot be processed.
   pub fn push_at(&mut self, bytes: &[u8], now: f64) -> Result<Processed> {
     const PREFIX: &[u8] = b"@nix ";
     let mut processed = Processed::default();
@@ -569,6 +600,11 @@ impl StreamEngine {
     Ok(processed)
   }
 
+  /// Processes any unterminated final record and marks the input as closed.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the final structured record cannot be processed.
   pub fn finish_at(&mut self, now: f64) -> Result<Processed> {
     let mut processed = Processed::default();
     match std::mem::replace(
@@ -586,8 +622,10 @@ impl StreamEngine {
   }
 }
 
-/// Append-only stream adapter. It writes logs immediately and one final plain
-/// presentation; it never emits cursor-control sequences.
+/// Append-only stream adapter.
+///
+/// It writes logs immediately and one final plain presentation; it never emits
+/// cursor-control sequences.
 pub struct Monitor<W: Write> {
   stream: StreamEngine,
   writer: W,
@@ -610,6 +648,12 @@ impl<W: Write> Monitor<W> {
     self.stream.engine().state()
   }
 
+  /// Feeds input bytes received at `now` and writes the resulting output.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the input cannot be processed or the output cannot be
+  /// written.
   pub fn process_bytes_at(&mut self, bytes: &[u8], now: f64) -> Result<()> {
     let processed = self.stream.push_at(bytes, now)?;
     write_outputs(&mut self.writer, processed.output, &self.render)
@@ -619,6 +663,12 @@ impl<W: Write> Monitor<W> {
     self.stream.engine_mut()
   }
 
+  /// Monitors `reader` until it ends, then writes the final presentation.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if reading, processing, or writing fails, if a build
+  /// failed, or if the input ended while work was still active.
   pub fn process_stream<R: BufRead>(&mut self, mut reader: R) -> Result<()> {
     let mut bytes = [0_u8; 16 * 1024];
     loop {
