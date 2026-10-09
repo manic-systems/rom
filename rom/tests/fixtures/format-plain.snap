@@ -1,5 +1,5 @@
 === all-running @ 300ms ===
-\e[0;34m━ \e[0;97mBuilds  ⏱ 0s\e[0;33m  ⏵ 17 building\e[0m
+\e[0;34m─ \e[0;97mBuilds  ⏱ 0s\e[0;33m  ⏵ 17 building\e[0m
 \e[0;97m  \e[0;33m⏵ bash\e[0;97m  (buildPhase)  0s\e[0m
 \e[0;97m  \e[0;33m⏵ coreutils\e[0;97m  (buildPhase)  0s\e[0m
 \e[0;97m  \e[0;33m⏵ curl\e[0;97m  (buildPhase)  0s\e[0m
@@ -18,7 +18,7 @@
 \e[0;97m  \e[0;33m⏵ xz\e[0;97m  (buildPhase)  0s\e[0m
 \e[0;97m  \e[0;33m⏵ zlib\e[0;97m  (buildPhase)  0s\e[0m
 === half-done @ 500ms ===
-\e[0;34m━ \e[0;97mBuilds  ⏱ 0s\e[0;33m  ⏵ 9 building\e[0;32m  ✔ 8 completed\e[0m
+\e[0;34m─ \e[0;97mBuilds  ⏱ 0s\e[0;33m  ⏵ 9 building\e[0;32m  ✔ 8 completed\e[0m
 \e[0;97m  \e[0;33m⏵ gettext\e[0;97m  (buildPhase)  0s\e[0m
 \e[0;97m  \e[0;33m⏵ git\e[0;97m  (buildPhase)  0s\e[0m
 \e[0;97m  \e[0;33m⏵ libffi\e[0;97m  (buildPhase)  0s\e[0m
@@ -29,6 +29,6 @@
 \e[0;97m  \e[0;33m⏵ system\e[0;97m  0s\e[0m
 \e[0;97m  \e[0;33m⏵ xz\e[0;97m  (buildPhase)  0s\e[0m
 === finished @ 700ms ===
-\e[0;34m━ \e[0;97mBuilds  ⏱ 0s\e[0;32m  ✔ 17 completed\e[0m
+\e[0;34m─ \e[0;97mBuilds  ⏱ 0s\e[0;32m  ✔ 17 completed\e[0m
 \e[0;32mFinished after 0s\e[0m
 === log ===

@@ -297,7 +297,7 @@ impl Renderer<'_> {
       }
     }
     let mut lines = vec![Line::from(vec![
-      self.span("┏━ ", self.config.theme.connector),
+      self.span("╭─ ", self.config.theme.connector),
       self.span("Builds", self.config.theme.text),
     ])];
     for &root in &selection.roots {
@@ -320,7 +320,7 @@ impl Renderer<'_> {
         (running, rest) => format!("… {running} active, {rest} more"),
       };
       lines.push(Line::from(vec![
-        self.span("┣━ ", self.config.theme.connector),
+        self.span("├─ ", self.config.theme.connector),
         self.span(label, self.config.theme.muted),
       ]));
     }
@@ -779,12 +779,12 @@ impl Renderer<'_> {
     let mut spans = Vec::new();
     for &continues in ancestors {
       spans.push(self.span(
-        if continues { "┃  " } else { "   " },
+        if continues { "│  " } else { "   " },
         self.config.theme.connector,
       ));
     }
     spans.push(self.span(
-      if last { "┗━ " } else { "┣━ " },
+      if last { "╰─ " } else { "├─ " },
       self.config.theme.connector,
     ));
     spans

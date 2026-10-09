@@ -17,7 +17,7 @@ impl Renderer<'_> {
   }
 
   fn compact_legend(&self) -> Vec<Line<'static>> {
-    vec![fit_line(self.legend_counts("┗━ ", false), self.width)]
+    vec![fit_line(self.legend_counts("╰─ ", false), self.width)]
   }
 
   fn table_legend(&self) -> Vec<Line<'static>> {
@@ -40,7 +40,7 @@ impl Renderer<'_> {
       .collect();
     lines.push(fit_line(
       vec![
-        self.span("┗━ ", self.config.theme.connector),
+        self.span("╰─ ", self.config.theme.connector),
         self.span("Elapsed ", self.config.theme.muted),
         self.span(
           format!(
@@ -149,7 +149,7 @@ impl Renderer<'_> {
       .iter()
       .enumerate()
       .map(|(index, row)| {
-        let prefix = if index == 0 { "┣━ " } else { "┃  " };
+        let prefix = if index == 0 { "├─ " } else { "│  " };
         let mut spans = vec![self.span(prefix, self.config.theme.connector)];
         for (column, (text, color)) in row.iter().enumerate() {
           let padding = if column + 1 == row.len() {
@@ -168,7 +168,7 @@ impl Renderer<'_> {
   fn verbose_legend(&self) -> Vec<Line<'static>> {
     let mut lines = vec![fit_line(
       vec![
-        self.span("┣━ ", self.config.theme.connector),
+        self.span("├─ ", self.config.theme.connector),
         self.span("Build Summary", self.config.theme.text),
       ],
       self.width,
@@ -186,7 +186,7 @@ impl Renderer<'_> {
     for (name, build) in builds {
       let host = build.host.name();
       let mut spans = vec![
-        self.span("┃  ", self.config.theme.connector),
+        self.span("│  ", self.config.theme.connector),
         self.span(
           format!(
             "{} {name}  {}",
@@ -204,7 +204,7 @@ impl Renderer<'_> {
       }
       lines.push(fit_line(spans, self.width));
     }
-    lines.push(fit_line(self.legend_counts("┗━ ", true), self.width));
+    lines.push(fit_line(self.legend_counts("╰─ ", true), self.width));
     lines
   }
 
@@ -257,7 +257,7 @@ impl Renderer<'_> {
       SummaryStyle::Concise => {
         vec![Line::from(vec![
           self.span(
-            if connected { "┗━ " } else { "" },
+            if connected { "╰─ " } else { "" },
             self.config.theme.connector,
           ),
           self.span(text, color),
@@ -265,7 +265,7 @@ impl Renderer<'_> {
       },
       SummaryStyle::Table => {
         let (summary_prefix, status_prefix) = if connected {
-          ("┣━ ∑ ", "┗━ ")
+          ("├─ ∑ ", "╰─ ")
         } else {
           ("∑ ", "")
         };
@@ -296,14 +296,14 @@ impl Renderer<'_> {
       SummaryStyle::Full => {
         let mut lines = vec![Line::from(vec![
           self.span(
-            if connected { "┣━ " } else { "" },
+            if connected { "├─ " } else { "" },
             self.config.theme.connector,
           ),
           self.span("Build Summary", self.config.theme.text),
         ])];
         lines.push(Line::from(vec![
           self.span(
-            if connected { "┃  " } else { "  " },
+            if connected { "│  " } else { "  " },
             self.config.theme.connector,
           ),
           self.span(
@@ -319,7 +319,7 @@ impl Renderer<'_> {
         if downloads + uploads > 0 {
           lines.push(Line::from(vec![
             self.span(
-              if connected { "┃  " } else { "  " },
+              if connected { "│  " } else { "  " },
               self.config.theme.connector,
             ),
             self.span(
@@ -330,7 +330,7 @@ impl Renderer<'_> {
         }
         lines.push(Line::from(vec![
           self.span(
-            if connected { "┗━ " } else { "" },
+            if connected { "╰─ " } else { "" },
             self.config.theme.connector,
           ),
           self.span(text, color),

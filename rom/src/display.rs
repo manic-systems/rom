@@ -145,7 +145,7 @@ impl<'a> Renderer<'a> {
           if matches!(self.config.format, DisplayFormat::Plain) {
             ""
           } else {
-            "┗━ "
+            "╰─ "
           },
           self.config.theme.connector,
         ),
@@ -255,13 +255,13 @@ fn progress_bar(
   let empty = width - full - usize::from(half);
   let mut spans = Vec::new();
   if full > 0 {
-    spans.push(Span::styled("━".repeat(full), Style::default().fg(fill)));
+    spans.push(Span::styled("─".repeat(full), Style::default().fg(fill)));
   }
   if half {
-    spans.push(Span::styled("╸", Style::default().fg(fill)));
+    spans.push(Span::styled("╴", Style::default().fg(fill)));
   }
   if empty > 0 {
-    spans.push(Span::styled("━".repeat(empty), Style::default().fg(track)));
+    spans.push(Span::styled("─".repeat(empty), Style::default().fg(track)));
   }
   spans
 }
@@ -354,11 +354,11 @@ mod tests {
       .into_iter()
       .map(|span| span.content.into_owned())
       .collect::<String>();
-    assert_eq!(text, "━╸━");
+    assert_eq!(text, "─╴─");
 
     let empty = progress_bar(0, 12, 3, Color::Cyan, Color::DarkGray);
     assert_eq!(empty.len(), 1);
-    assert_eq!(empty[0].content, "━━━");
+    assert_eq!(empty[0].content, "───");
     assert_eq!(empty[0].style.fg, Some(Color::DarkGray));
   }
 
@@ -400,14 +400,14 @@ mod tests {
         .buffer
         .content()
         .iter()
-        .any(|cell| { cell.symbol() == "━" && cell.fg == Color::LightRed })
+        .any(|cell| { cell.symbol() == "─" && cell.fg == Color::LightRed })
     );
     assert!(
       frame
         .buffer
         .content()
         .iter()
-        .any(|cell| { cell.symbol() == "━" && cell.fg == Color::LightBlue })
+        .any(|cell| { cell.symbol() == "─" && cell.fg == Color::LightBlue })
     );
   }
 }

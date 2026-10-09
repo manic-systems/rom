@@ -166,12 +166,12 @@ fn planned_records_build_a_recursive_dependency_tree() {
   );
   assert_eq!(engine.state().roots().len(), 1);
   let text = render_frame(engine.state(), &render, 3.0, 100, 30, false).text();
-  assert!(text.contains("┣━ ⏸ root"), "{text}");
-  assert!(text.contains("┃  ┗━ ⏸ child"), "{text}");
-  assert!(text.contains("┃     ┗━ ⏸ leaf"), "{text}");
+  assert!(text.contains("├─ ⏸ root"), "{text}");
+  assert!(text.contains("│  ╰─ ⏸ child"), "{text}");
+  assert!(text.contains("│     ╰─ ⏸ leaf"), "{text}");
   let builds = text
     .lines()
-    .find(|line| line.starts_with("┃  Builds"))
+    .find(|line| line.starts_with("│  Builds"))
     .expect("missing build status row");
   assert!(builds.contains("⏸ 3"), "{builds}");
   assert!(builds.ends_with("∑ 3"), "{builds}");
