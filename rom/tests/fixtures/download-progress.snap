@@ -1,26 +1,26 @@
 === build-started @ 100ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m╰─ \e[0;33m⏵ demo\e[0;97m  ⏱ 0s\e[0m
-\e[0;34m┏━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
-\e[0;34m┃  Builds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 1\e[0m
-\e[0;34m┗━ \e[0;97mElapsed ⏱ 0s\e[0m
+\e[0;34m├─ \e[0;33m⏵ demo\e[0;97m  ⏱ 0s\e[0m
+\e[0;34m┝━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
+\e[0;34m│  Builds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 1\e[0m
+\e[0;34m┕━ \e[0;97mElapsed ⏱ 0s\e[0m
 === download-halfway @ 500ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m╰─ \e[0;33m⏵ demo\e[0;36m  ↓ ━━━━━━━━━━━━━━━━\e[0;90m────────────────\e[0m \e[0;36m 50%\e[0;97m  512 KiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
-\e[0;34m┏━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
-\e[0;34m┃  Builds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 1\e[0m
-\e[0;34m┃  Downloads   \e[0;33m↓ 1       \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0;31m         \e[0;97m∑ 1\e[0m
-\e[0;34m┗━ \e[0;97mElapsed ⏱ 0s\e[0m
+\e[0;34m├─ \e[0;33m⏵ demo\e[0;36m  ↓ ━━━━━━━━━━━━━━━━\e[0;90m────────────────\e[0m \e[0;36m 50%\e[0;97m  512 KiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
+\e[0;34m┝━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
+\e[0;34m│  Builds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 1\e[0m
+\e[0;34m│  Downloads   \e[0;33m↓ 1       \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0;31m         \e[0;97m∑ 1\e[0m
+\e[0;34m┕━ \e[0;97mElapsed ⏱ 0s\e[0m
 === download-complete @ 950ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m╰─ \e[0;32m✔ demo  ↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m \e[0;32m100%\e[0;97m  1.0 MiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
-\e[0;34m┏━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
-\e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 1         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 1\e[0m
-\e[0;34m┃  Downloads   \e[0;33m↓ 0       \e[0;32m↓ 1         \e[0;34m⏸ 0       \e[0;31m         \e[0;97m∑ 1\e[0m
-\e[0;34m┗━ \e[0;97mElapsed ⏱ 0s\e[0m
+\e[0;34m├─ \e[0;32m✔ demo  ↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m \e[0;32m100%\e[0;97m  1.0 MiB/1.0 MiB  0s\e[0;35m  cache.\e[0m
+\e[0;34m┝━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
+\e[0;34m│  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 1         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 1\e[0m
+\e[0;34m│  Downloads   \e[0;33m↓ 0       \e[0;32m↓ 1         \e[0;34m⏸ 0       \e[0;31m         \e[0;97m∑ 1\e[0m
+\e[0;34m┕━ \e[0;97mElapsed ⏱ 0s\e[0m
 === finished @ 950ms ===
-\e[0;34m╶─ \e[0;97mBuilds\e[0m
-\e[0;34m╺━ \e[0;32mFinished after 0s\e[0m
+\e[0;34m╭─ \e[0;97mBuilds\e[0m
+\e[0;34m┕━ \e[0;32mFinished after 0s\e[0m
 === log ===
 \e[0;34mdemo> \e[0m\e[1;35mchecking styled output\e[0m\e[0m
 \e[0;34mdemo> \e[0mconfiguring flags: --disable-static --disable-dependency-tracking --prefix=/nix/store/8vqx-example-imagemagick-7.1.2 --bindir=/nix/store/8vqx-example-imagemagick-7.1.2/bin --includedir=/nix/store/8vqx-example-imagemagick-7.1.2-dev/include\e[0m

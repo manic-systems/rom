@@ -296,19 +296,18 @@ impl Renderer<'_> {
         selection = self.select_rows(plan, content_limit);
       }
     }
-    // The tree is its own box: its last line closes it, and the status box
-    // below starts fresh.
-    let summarized = truncated && maximum > 1;
-    let mut lines = vec![Line::default()];
-    let count = selection.roots.len();
-    for (position, &root) in selection.roots.iter().enumerate() {
-      let last = !summarized && position + 1 == count;
-      self.push_row(&mut lines, root, &[], last, &selection);
+    // The status box below continues the tree's line, so no row closes it.
+    let mut lines = vec![Line::from(vec![
+      self.span("╭─ ", self.config.theme.connector),
+      self.span("Builds", self.config.theme.text),
+    ])];
+    for &root in &selection.roots {
+      self.push_row(&mut lines, root, &[], false, &selection);
       if lines.len() >= content_limit {
         break;
       }
     }
-    if summarized {
+    if truncated && maximum > 1 {
       let hidden = plan.line_count().saturating_sub(lines.len());
       let active = plan
         .rows
@@ -322,19 +321,10 @@ impl Renderer<'_> {
         (running, rest) => format!("… {running} active, {rest} more"),
       };
       lines.push(Line::from(vec![
-        self.span("╰─ ", self.config.theme.connector),
+        self.span("├─ ", self.config.theme.connector),
         self.span(label, self.config.theme.muted),
       ]));
     }
-    let corner = if lines.len() > 1 {
-      "╭─ "
-    } else {
-      "╶─ "
-    };
-    lines[0] = Line::from(vec![
-      self.span(corner, self.config.theme.connector),
-      self.span("Builds", self.config.theme.text),
-    ]);
     lines
   }
 

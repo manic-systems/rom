@@ -86,8 +86,8 @@ fn tree_has_continuous_header_and_root_connector() {
   let frame =
     render_frame(engine.state(), &RenderConfig::default(), 2.0, 79, 23, false);
   let text = frame.text();
-  assert!(text.starts_with("╭─ Builds\n╰─"), "{text}");
-  assert!(text.lines().last().unwrap().starts_with("┗━"), "{text}");
+  assert!(text.starts_with("╭─ Builds\n├─"), "{text}");
+  assert!(text.lines().last().unwrap().starts_with("┕━"), "{text}");
   assert!(text.contains("demo"));
 }
 
@@ -156,14 +156,14 @@ fn live_tree_is_capped_at_two_thirds_and_keeps_its_legend() {
   let lines: Vec<_> = text.lines().collect();
   let legend = lines
     .iter()
-    .position(|line| line.starts_with("┏━ Status"))
+    .position(|line| line.starts_with("┝━ Status"))
     .expect("table legend is missing");
   assert_eq!(
     legend, 15,
     "graph exceeded two thirds of the frame:\n{text}"
   );
-  assert!(lines[legend - 1].starts_with("╰─ …"), "{text}");
-  assert!(lines.last().unwrap().starts_with("┗━ Elapsed"), "{text}");
+  assert!(lines[legend - 1].starts_with("├─ …"), "{text}");
+  assert!(lines.last().unwrap().starts_with("┕━ Elapsed"), "{text}");
 }
 
 #[test]
@@ -183,8 +183,8 @@ fn deeply_nested_live_graph_is_bounded_before_rendering() {
   let lines: Vec<_> = text.lines().collect();
   assert_eq!(lines.len(), 18, "{text}");
   assert!(lines[14].contains("… 1987 more"), "{text}");
-  assert!(lines[15].starts_with("┏━ Status"), "{text}");
-  assert!(lines.last().unwrap().starts_with("┗━ Elapsed"), "{text}");
+  assert!(lines[15].starts_with("┝━ Status"), "{text}");
+  assert!(lines.last().unwrap().starts_with("┕━ Elapsed"), "{text}");
 }
 
 #[test]
@@ -228,12 +228,12 @@ fn minimum_live_height_keeps_every_table_legend_row() {
       .text();
   let lines: Vec<_> = text.lines().collect();
   assert_eq!(lines.len(), 7, "{text}");
-  assert!(lines[1].starts_with("╰─ …"), "{text}");
-  assert!(lines[2].starts_with("┏━ Status"), "{text}");
+  assert!(lines[1].starts_with("├─ …"), "{text}");
+  assert!(lines[2].starts_with("┝━ Status"), "{text}");
   assert!(lines[3].contains("Builds"), "{text}");
   assert!(lines[4].contains("Downloads"), "{text}");
   assert!(lines[5].contains("Uploads"), "{text}");
-  assert!(lines[6].starts_with("┗━ Elapsed"), "{text}");
+  assert!(lines[6].starts_with("┕━ Elapsed"), "{text}");
 }
 
 #[test]
@@ -316,8 +316,8 @@ fn tree_legends_are_distinct_and_other_formats_ignore_them() {
   let table = render(DisplayFormat::Tree, LegendStyle::Table);
   let verbose = render(DisplayFormat::Tree, LegendStyle::Verbose);
   assert!(!compact.contains("Status"), "{compact}");
-  assert!(table.contains("┏━ Status"), "{table}");
-  assert!(verbose.contains("┏━ Build Summary"), "{verbose}");
+  assert!(table.contains("┝━ Status"), "{table}");
+  assert!(verbose.contains("┝━ Build Summary"), "{verbose}");
   assert_ne!(compact, table);
   assert_ne!(table, verbose);
 

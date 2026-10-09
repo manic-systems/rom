@@ -20,10 +20,11 @@ impl Renderer<'_> {
     self.status_box(vec![self.legend_counts(false)])
   }
 
-  /// Frames rows as the heavy status box below the tree.
+  /// Hangs rows off the tree's line as the status box.
   ///
-  /// The first row gets the top corner, the last the bottom corner, and rows
-  /// in between the vertical line; a single row gets a short stub.
+  /// The light vertical line continues from the tree: the first row branches
+  /// off it with a heavy line, the last row ends it with a heavy turn, and rows
+  /// in between sit beside it.
   fn status_box(&self, rows: Vec<Vec<Span<'static>>>) -> Vec<Line<'static>> {
     let count = rows.len();
     rows
@@ -31,10 +32,9 @@ impl Renderer<'_> {
       .enumerate()
       .map(|(index, row)| {
         let corner = match index {
-          _ if count == 1 => "╺━ ",
-          0 => "┏━ ",
-          _ if index + 1 == count => "┗━ ",
-          _ => "┃  ",
+          _ if index + 1 == count => "┕━ ",
+          0 => "┝━ ",
+          _ => "│  ",
         };
         let mut spans = vec![self.span(corner, self.config.theme.connector)];
         spans.extend(row);
