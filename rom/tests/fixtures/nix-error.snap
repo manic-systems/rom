@@ -1,5 +1,5 @@
 === finished @ 0ms ===
-\e[0;34m╭─ \e[0;97mBuilds\e[0m
+\e[0;34m╭─ \e[0mBuilds
 \e[0;34m┕━ \e[0;31mExited with 1 Nix error(s) after 0s\e[0m
 === log ===
 error: experimental Nix feature 'flakes' is disabled; add '--extra-experimental-features flakes' to enable it\e[0m

@@ -59,7 +59,7 @@ impl Renderer<'_> {
       self.status_grid(&rows, 1)
     };
     grid.push(vec![
-      self.span("Elapsed ", self.config.theme.muted),
+      self.span("Elapsed ", self.config.theme.text),
       self.span(
         format!(
           "{}{}{}",
@@ -67,7 +67,7 @@ impl Renderer<'_> {
           self.icons.gap,
           format_duration(self.now - self.snapshot.start_time)
         ),
-        self.config.theme.muted,
+        self.config.theme.text,
       ),
     ]);
     self.status_box(grid)

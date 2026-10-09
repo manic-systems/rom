@@ -136,8 +136,9 @@ impl Default for Theme {
   fn default() -> Self {
     Self {
       connector:      Color::Blue,
-      text:           Color::White,
-      muted:          Color::White,
+      // The terminal's own foreground, readable on light and dark themes.
+      text:           Color::Reset,
+      muted:          Color::DarkGray,
       planned:        Color::Blue,
       running:        Color::Yellow,
       completed:      Color::Green,

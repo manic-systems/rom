@@ -1,19 +1,19 @@
 === all-running @ 300ms ===
-\e[0;34m╭─ \e[0;97mBuild Dashboard: system\e[0m
-\e[0;34m│  \e[0;97mHost      │ \e[0;35mlocalhost\e[0m
-\e[0;34m│  \e[0;97mStatus    │ \e[0;33m⏵ building\e[0m
-\e[0;34m│  \e[0;97mDuration  │ 0s\e[0m
-\e[0;34m╰─ \e[0;97mSummary   │ jobs=17  ok=0  failed=0  waiting=0\e[0m
+\e[0;34m╭─ \e[0mBuild Dashboard: system
+\e[0;34m│  \e[0;90mHost      │ \e[0;35mlocalhost\e[0m
+\e[0;34m│  \e[0;90mStatus    │ \e[0;33m⏵ building\e[0m
+\e[0;34m│  \e[0;90mDuration  │ 0s\e[0m
+\e[0;34m╰─ \e[0;90mSummary   │ \e[0mjobs=17  ok=0  failed=0  waiting=0
 === half-done @ 500ms ===
-\e[0;34m╭─ \e[0;97mBuild Dashboard: system\e[0m
-\e[0;34m│  \e[0;97mHost      │ \e[0;35mlocalhost\e[0m
-\e[0;34m│  \e[0;97mStatus    │ \e[0;33m⏵ building\e[0m
-\e[0;34m│  \e[0;97mDuration  │ 0s\e[0m
-\e[0;34m╰─ \e[0;97mSummary   │ jobs=17  ok=8  failed=0  waiting=0\e[0m
+\e[0;34m╭─ \e[0mBuild Dashboard: system
+\e[0;34m│  \e[0;90mHost      │ \e[0;35mlocalhost\e[0m
+\e[0;34m│  \e[0;90mStatus    │ \e[0;33m⏵ building\e[0m
+\e[0;34m│  \e[0;90mDuration  │ 0s\e[0m
+\e[0;34m╰─ \e[0;90mSummary   │ \e[0mjobs=17  ok=8  failed=0  waiting=0
 === finished @ 700ms ===
-\e[0;34m╭─ \e[0;97mBuild Dashboard: system\e[0m
-\e[0;34m│  \e[0;97mHost      │ \e[0;35mlocalhost\e[0m
-\e[0;34m│  \e[0;97mStatus    │ \e[0;32m✔ done\e[0m
-\e[0;34m│  \e[0;97mDuration  │ 0s\e[0m
-\e[0;34m╰─ \e[0;97mSummary   │ jobs=17  ok=17  failed=0  waiting=0\e[0m
+\e[0;34m╭─ \e[0mBuild Dashboard: system
+\e[0;34m│  \e[0;90mHost      │ \e[0;35mlocalhost\e[0m
+\e[0;34m│  \e[0;90mStatus    │ \e[0;32m✔ done\e[0m
+\e[0;34m│  \e[0;90mDuration  │ 0s\e[0m
+\e[0;34m╰─ \e[0;90mSummary   │ \e[0mjobs=17  ok=17  failed=0  waiting=0
 === log ===
