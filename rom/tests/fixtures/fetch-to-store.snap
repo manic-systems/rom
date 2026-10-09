@@ -1,3 +1,8 @@
+=== starting @ 600ms ===
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 0\e[0m
+\e[0;34m┗━ \e[0;97mElapsed ⏱ 0s\e[0m
 === fetching @ 1200ms ===
 \e[0;34m┏━ \e[0;97mBuilds\e[0m
 \e[0;34m┣━ \e[0;97mTransfers\e[0m
@@ -10,6 +15,13 @@
 \e[0;34m┏━ \e[0;97mBuilds\e[0m
 \e[0;34m┣━ \e[0;97mTransfers\e[0m
 \e[0;34m┃  ┗━ \e[0;33mapp\e[0;97m  ◓ copying  1s\e[0m
+\e[0;34m┣━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
+\e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 0\e[0m
+\e[0;34m┗━ \e[0;97mElapsed ⏱ 1s\e[0m
+=== cached-inputs @ 1505ms ===
+\e[0;34m┏━ \e[0;97mBuilds\e[0m
+\e[0;34m┣━ \e[0;97mTransfers\e[0m
+\e[0;34m┃  ┗━ \e[0;33mapp\e[0;97m  ◑ copying  1s\e[0m
 \e[0;34m┣━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
 \e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 0\e[0m
 \e[0;34m┗━ \e[0;97mElapsed ⏱ 1s\e[0m

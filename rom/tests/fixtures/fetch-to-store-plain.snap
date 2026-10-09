@@ -1,3 +1,5 @@
+=== starting @ 600ms ===
+\e[0;34m━ \e[0;97mBuilds  ⏱ 0s\e[0m
 === fetching @ 1200ms ===
 \e[0;34m━ \e[0;97mBuilds  ⏱ 1s\e[0m
 \e[0;97m  \e[0;33mapp\e[0;97m  ◐ copying  1s\e[0m
@@ -5,6 +7,9 @@
 === one-left @ 1400ms ===
 \e[0;34m━ \e[0;97mBuilds  ⏱ 1s\e[0m
 \e[0;97m  \e[0;33mapp\e[0;97m  ◓ copying  1s\e[0m
+=== cached-inputs @ 1505ms ===
+\e[0;34m━ \e[0;97mBuilds  ⏱ 1s\e[0m
+\e[0;97m  \e[0;33mapp\e[0;97m  ◑ copying  1s\e[0m
 === finished @ 2000ms ===
 \e[0;34m━ \e[0;97mBuilds  ⏱ 2s\e[0m
 \e[0;32mFinished after 2s\e[0m

@@ -91,6 +91,12 @@ pub(super) struct Builds<'a> {
   pub failed:    Vec<(DerivationId, &'a BuildInfo, &'a BuildFail)>,
 }
 
+/// Seconds a source copy must run before it is shown.
+///
+/// Evaluation copies many already-cached sources in milliseconds; showing each
+/// would flash rows in and out of the graph.
+const SOURCE_FETCH_DELAY: f64 = 1.0;
+
 /// Immutable presentation input derived once for a complete frame.
 pub(super) struct RenderSnapshot<'a> {
   /// Names shared by several derivations, whose history mixes unrelated
@@ -163,7 +169,10 @@ impl<'a> RenderSnapshot<'a> {
       error_count: state.error_count(),
       counts,
       placed_transfers: Vec::new(),
-      source_fetches: state.source_fetches().collect(),
+      source_fetches: state
+        .source_fetches()
+        .filter(|fetch| now - fetch.start >= SOURCE_FETCH_DELAY)
+        .collect(),
     };
     snapshot.collect_transfers(state.store_paths(), now);
     snapshot
