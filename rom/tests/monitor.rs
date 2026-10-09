@@ -166,15 +166,15 @@ fn planned_records_build_a_recursive_dependency_tree() {
   );
   assert_eq!(engine.state().roots().len(), 1);
   let text = render_frame(engine.state(), &render, 3.0, 100, 30, false).text();
-  assert!(text.contains("├─ ⏸ root"), "{text}");
-  assert!(text.contains("│  ╰─ ⏸ child"), "{text}");
-  assert!(text.contains("│     ╰─ ⏸ leaf"), "{text}");
+  assert!(text.contains("├─ ⏸\u{a0}root"), "{text}");
+  assert!(text.contains("│  ╰─ ⏸\u{a0}child"), "{text}");
+  assert!(text.contains("│     ╰─ ⏸\u{a0}leaf"), "{text}");
   let builds = text
     .lines()
     .find(|line| line.starts_with("│  Builds"))
     .expect("missing build status row");
-  assert!(builds.contains("⏸ 3"), "{builds}");
-  assert!(builds.ends_with("∑ 3"), "{builds}");
+  assert!(builds.contains("⏸\u{a0}3"), "{builds}");
+  assert!(builds.ends_with("∑\u{a0}3"), "{builds}");
 }
 
 #[test]
@@ -211,7 +211,7 @@ fn planned_download_moves_through_running_and_completed_counts() {
     .lines()
     .find(|line| line.contains("Downloads"))
     .expect("missing download status row");
-  assert!(downloads.contains("↓ 1"), "{downloads}");
+  assert!(downloads.contains("↓\u{a0}1"), "{downloads}");
   assert!(downloads.ends_with('1'), "{downloads}");
 
   engine
@@ -225,8 +225,8 @@ fn planned_download_moves_through_running_and_completed_counts() {
     .lines()
     .find(|line| line.contains("Downloads"))
     .expect("missing download status row");
-  assert!(downloads.contains("↓ 0"), "{downloads}");
-  assert!(downloads.contains("↓ 1"), "{downloads}");
+  assert!(downloads.contains("↓\u{a0}0"), "{downloads}");
+  assert!(downloads.contains("↓\u{a0}1"), "{downloads}");
   assert!(downloads.ends_with('1'), "{downloads}");
 }
 

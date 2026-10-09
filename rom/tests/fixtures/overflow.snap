@@ -1,36 +1,36 @@
 === all-running @ 300ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m├─ \e[0;33m⏵ system\e[0;97m  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ bash\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ coreutils\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ gcc\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ glibc\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ openssl\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ zlib\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ curl\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ python3\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ perl\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ git\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ ncurses\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ╰─ \e[0;33m⏵ readline\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m├─ \e[0;33m⏵ system\e[0;97m  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ bash\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ coreutils\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ gcc\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ glibc\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ openssl\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ zlib\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ curl\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ python3\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ perl\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ git\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ ncurses\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ╰─ \e[0;33m⏵ readline\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
 \e[0;34m├─ \e[0;97m… 4 active\e[0m
 \e[0;34m┝━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
-\e[0;34m│  Builds      \e[0;33m⏵ 17      \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 17\e[0m
-\e[0;34m┕━ \e[0;97mElapsed ⏱ 0s\e[0m
+\e[0;34m│  Builds      \e[0;33m⏵ 17      \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 17\e[0m
+\e[0;34m┕━ \e[0;97mElapsed ⏱ 0s\e[0m
 === half-done @ 500ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m├─ \e[0;33m⏵ system\e[0;97m  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ perl\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ git\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ ncurses\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ readline\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ sqlite\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ libffi\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ xz\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ╰─ \e[0;33m⏵ gettext\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m├─ \e[0;33m⏵ system\e[0;97m  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ perl\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ git\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ ncurses\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ readline\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ sqlite\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ libffi\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ├─ \e[0;33m⏵ xz\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m│  ╰─ \e[0;33m⏵ gettext\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
 \e[0;34m┝━ \e[0;97mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0;97mTotal\e[0m
-\e[0;34m│  Builds      \e[0;33m⏵ 9       \e[0;32m✔ 8         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 17\e[0m
-\e[0;34m┕━ \e[0;97mElapsed ⏱ 0s\e[0m
+\e[0;34m│  Builds      \e[0;33m⏵ 9       \e[0;32m✔ 8         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0;97m∑ 17\e[0m
+\e[0;34m┕━ \e[0;97mElapsed ⏱ 0s\e[0m
 === finished @ 700ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
 \e[0;34m┕━ \e[0;32mFinished after 0s\e[0m

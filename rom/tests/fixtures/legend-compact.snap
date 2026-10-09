@@ -1,17 +1,17 @@
 === building @ 200ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m├─ \e[0;33m⏵ app-1.0\e[0;97m  ⏱ 0s\e[0m
-\e[0;34m│  ╰─ \e[0;33m⏵ lib-1.0\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m┕━ \e[0;33m ⏵ 2\e[0;32m ✔ 0\e[0;31m ✗ 0\e[0;34m ⏸ 0\e[0m
+\e[0;34m├─ \e[0;33m⏵ app-1.0\e[0;97m  ⏱ 0s\e[0m
+\e[0;34m│  ╰─ \e[0;33m⏵ lib-1.0\e[0;97m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;34m┕━ \e[0;33m ⏵ 2\e[0;32m ✔ 0\e[0;31m ✗ 0\e[0;34m ⏸ 0\e[0m
 === failed @ 400ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m├─ \e[0;31m✗ app-1.0\e[0m
-\e[0;34m│  ╰─ \e[0;31m✗ lib-1.0\e[0m
-\e[0;34m┕━ \e[0;33m ⏵ 0\e[0;32m ✔ 0\e[0;31m ✗ 2\e[0;34m ⏸ 0\e[0m
+\e[0;34m├─ \e[0;31m✗ app-1.0\e[0m
+\e[0;34m│  ╰─ \e[0;31m✗ lib-1.0\e[0m
+\e[0;34m┕━ \e[0;33m ⏵ 0\e[0;32m ✔ 0\e[0;31m ✗ 2\e[0;34m ⏸ 0\e[0m
 === finished @ 400ms ===
 \e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m├─ \e[0;31m✗ app-1.0\e[0m
-\e[0;34m│  ╰─ \e[0;31m✗ lib-1.0\e[0m
+\e[0;34m├─ \e[0;31m✗ app-1.0\e[0m
+\e[0;34m│  ╰─ \e[0;31m✗ lib-1.0\e[0m
 \e[0;34m┕━ \e[0;31mExited with 2 failed build(s) after 0s\e[0m
 === log ===
 \e[0;34mlib-1.0> \e[0mmake: *** [Makefile:12: lib.o] Error 1\e[0m

@@ -596,8 +596,9 @@ impl Renderer<'_> {
           .unwrap_or_default();
         if self.config.show_timers {
           suffix.push_str(&format!(
-            "  {} {}",
+            "  {}{}{}",
             self.icons.clock,
+            self.icons.gap,
             format_duration(self.now - build.start)
           ));
         }
@@ -605,8 +606,9 @@ impl Renderer<'_> {
           && !self.snapshot.shared_names.contains(info.name.name.as_str())
         {
           suffix.push_str(&format!(
-            "  ({} {})",
+            "  ({}{}{})",
             self.icons.estimate,
+            self.icons.gap,
             format_duration(estimate as f64)
           ));
         }
@@ -654,7 +656,7 @@ impl Renderer<'_> {
       },
       _ => None,
     };
-    spans.push(self.span(format!("{icon} "), color));
+    spans.push(self.span(format!("{icon}{}", self.icons.gap), color));
     let transfer = (!row.inline.is_empty()).then(|| {
       aggregate_transfers(
         row
@@ -844,7 +846,8 @@ impl Renderer<'_> {
     let elapsed = format_duration(self.now - transfer.start);
     let essential = percent.map_or(8, |value| 7 + value.to_string().len());
     let available = usize::from(self.width).saturating_sub(occupied);
-    let mut spans = vec![self.span(format!("  {arrow} "), color)];
+    let mut spans =
+      vec![self.span(format!("  {arrow}{}", self.icons.gap), color)];
     if let Some(value) = percent {
       let bar_width = available.saturating_sub(essential).min(32);
       if bar_width >= 4 {

@@ -16,6 +16,12 @@ pub struct Icons {
   pub clock:    &'static str,
   pub estimate: &'static str,
   pub summary:  &'static str,
+  /// Separator printed after an icon.
+  ///
+  /// A no-break space rather than a space: Ghostty draws symbol glyphs up to
+  /// two cells wide when U+0020 or U+2002 follows them, which would eat the
+  /// gap for wide icons only. Every other terminal shows an ordinary space.
+  pub gap:      &'static str,
 }
 
 /// Standard Unicode icons, which need no special font.
@@ -29,6 +35,7 @@ pub static UNICODE: Icons = Icons {
   clock:    "⏱",
   estimate: "∅",
   summary:  "∑",
+  gap:      "\u{a0}",
 };
 
 /// Nerd Fonts icons.
@@ -46,6 +53,7 @@ pub static NERD: Icons = Icons {
   clock:    "\u{f1da}",  // 
   estimate: "\u{f252}",  // 
   summary:  "\u{f04a0}", // 󰒠
+  gap:      "\u{a0}",
 };
 
 /// Detects the best icon set for the current terminal session.

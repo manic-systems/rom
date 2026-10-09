@@ -270,7 +270,7 @@ fn plain_and_dashboard_keep_their_own_final_layouts() {
   )
   .text();
   assert!(plain.contains("─ Builds"), "{plain}");
-  assert!(plain.contains("✔ 1 completed"), "{plain}");
+  assert!(plain.contains("✔\u{a0}1 completed"), "{plain}");
   assert!(plain.contains("Finished after"), "{plain}");
   assert!(!plain.contains("╰─"), "{plain}");
 

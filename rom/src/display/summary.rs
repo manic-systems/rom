@@ -62,8 +62,9 @@ impl Renderer<'_> {
       self.span("Elapsed ", self.config.theme.muted),
       self.span(
         format!(
-          "{} {}",
+          "{}{}{}",
           self.icons.clock,
+          self.icons.gap,
           format_duration(self.now - self.snapshot.start_time)
         ),
         self.config.theme.muted,
@@ -91,8 +92,9 @@ impl Renderer<'_> {
     let counts = &self.snapshot.counts;
     let row = |label: &str, cells: [Option<(&str, usize)>; 4], total| {
       let cell = |index: usize, color| {
-        let text = cells[index]
-          .map_or_else(String::new, |(icon, count)| format!("{icon} {count}"));
+        let text = cells[index].map_or_else(String::new, |(icon, count)| {
+          format!("{icon}{}{count}", icons.gap)
+        });
         (text, color)
       };
       [
@@ -101,7 +103,7 @@ impl Renderer<'_> {
         cell(1, theme.completed),
         cell(2, theme.planned),
         cell(3, theme.failed),
-        (format!("{} {total}", icons.summary), theme.text),
+        (format!("{}{}{total}", icons.summary, icons.gap), theme.text),
       ]
     };
 
@@ -196,8 +198,9 @@ impl Renderer<'_> {
       let host = build.host.name();
       let mut spans = vec![self.span(
         format!(
-          "{} {name}  {}",
+          "{}{}{name}  {}",
           self.icons.running,
+          self.icons.gap,
           format_duration(self.now - build.start)
         ),
         self.config.theme.running,
@@ -243,9 +246,9 @@ impl Renderer<'_> {
       ),
     ] {
       let label = if verbose {
-        format!(" {icon} {count} {label}")
+        format!(" {icon}{}{count} {label}", self.icons.gap)
       } else {
-        format!(" {icon} {count}")
+        format!(" {icon}{}{count}", self.icons.gap)
       };
       spans.push(self.span(label, color));
     }
@@ -262,7 +265,7 @@ impl Renderer<'_> {
         vec![
           vec![self.span(
             format!(
-              "∑ {} {}  {} {}  {} {}  {} {}",
+              "∑ {}{gap}{}  {}{gap}{}  {}{gap}{}  {}{gap}{}",
               self.icons.done,
               self.snapshot.counts.builds.completed,
               self.icons.failed,
@@ -271,6 +274,7 @@ impl Renderer<'_> {
               self.snapshot.counts.downloads.completed,
               self.icons.upload,
               self.snapshot.counts.uploads.completed,
+              gap = self.icons.gap,
             ),
             self.config.theme.text,
           )],

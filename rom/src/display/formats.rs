@@ -18,8 +18,9 @@ impl Renderer<'_> {
     if self.config.show_timers {
       header.push(self.span(
         format!(
-          "  {} {}",
+          "  {}{}{}",
           self.icons.clock,
+          self.icons.gap,
           format_duration(self.now - self.snapshot.start_time)
         ),
         self.config.theme.muted,
@@ -52,7 +53,8 @@ impl Renderer<'_> {
       ),
     ] {
       if count > 0 {
-        header.push(self.span(format!("  {icon} {count} {label}"), color));
+        let gap = self.icons.gap;
+        header.push(self.span(format!("  {icon}{gap}{count} {label}"), color));
       }
     }
     let mut lines = vec![fit_line(header, self.width)];
@@ -71,7 +73,7 @@ impl Renderer<'_> {
       let mut spans = vec![
         self.span("  ", self.config.theme.text),
         self.span(
-          format!("{} {name}", self.icons.running),
+          format!("{}{}{name}", self.icons.running, self.icons.gap),
           self.config.theme.running,
         ),
       ];
@@ -88,8 +90,9 @@ impl Renderer<'_> {
         let elapsed = (self.now - build.start).max(0.0) as u64;
         spans.push(self.span(
           format!(
-            "  {} {}",
+            "  {}{}{}",
             self.icons.estimate,
+            self.icons.gap,
             format_duration(estimate.saturating_sub(elapsed) as f64)
           ),
           self.config.theme.muted,
@@ -120,7 +123,7 @@ impl Renderer<'_> {
         vec![
           self.span("  ", self.config.theme.text),
           self.span(
-            format!("{} {name}", self.icons.failed),
+            format!("{}{}{name}", self.icons.failed, self.icons.gap),
             self.config.theme.failed,
           ),
         ],
@@ -214,7 +217,10 @@ impl Renderer<'_> {
       vec![
         self.span("│  ", self.config.theme.connector),
         self.span("Status    │ ", self.config.theme.muted),
-        self.span(format!("{status_icon} {status}"), status_color),
+        self.span(
+          format!("{status_icon}{}{status}", self.icons.gap),
+          status_color,
+        ),
       ],
       self.width,
     ));
