@@ -53,7 +53,8 @@ selected automatically for Ghostty, WezTerm, Kitty, and Superset. For other
 terminals with a patched font, set `NERD_FONTS=1`.
 
 Downloads and uploads are first-class activities. Known-size transfers use a
-thin line bar `─╴` with half-cell steps, colored by the active `Theme`.
+line bar, heavy `━╸` for the finished part and a light
+`─` track, with half-cell steps, colored by the active `Theme`.
 Unknown-size transfers show transferred bytes and a spinner rather than a fake
 percentage. Source downloads with no known producer appear beneath a consuming
 build, keeping that branch visible while the transfer is active. Shared sources

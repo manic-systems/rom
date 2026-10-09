@@ -43,7 +43,7 @@ rom build nixpkgs#hello
 ```plaintext
 ─ Builds  ⏱ 5s  ⏵ 1 building  ⏸ 4 planned
   ⏵ hello-2.12.2  5s
-  breakpad-2024.02.16  ↓ ────╴───────────────  24%  1.2 MiB/5.0 MiB
+  breakpad-2024.02.16  ↓ ━━━━╸───────────────  24%  1.2 MiB/5.0 MiB
 ```
 
 **Dashboard Format**:

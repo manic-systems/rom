@@ -238,6 +238,8 @@ fn preserve_last(
   lines
 }
 
+/// Draws a progress bar: heavy `━` for the finished part, with `╸` for a
+/// half cell, and a light `─` track for the rest.
 fn progress_bar(
   done: u64,
   total: u64,
@@ -255,10 +257,10 @@ fn progress_bar(
   let empty = width - full - usize::from(half);
   let mut spans = Vec::new();
   if full > 0 {
-    spans.push(Span::styled("─".repeat(full), Style::default().fg(fill)));
+    spans.push(Span::styled("━".repeat(full), Style::default().fg(fill)));
   }
   if half {
-    spans.push(Span::styled("╴", Style::default().fg(fill)));
+    spans.push(Span::styled("╸", Style::default().fg(fill)));
   }
   if empty > 0 {
     spans.push(Span::styled("─".repeat(empty), Style::default().fg(track)));
@@ -354,7 +356,7 @@ mod tests {
       .into_iter()
       .map(|span| span.content.into_owned())
       .collect::<String>();
-    assert_eq!(text, "─╴─");
+    assert_eq!(text, "━╸─");
 
     let empty = progress_bar(0, 12, 3, Color::Cyan, Color::DarkGray);
     assert_eq!(empty.len(), 1);
@@ -400,7 +402,7 @@ mod tests {
         .buffer
         .content()
         .iter()
-        .any(|cell| { cell.symbol() == "─" && cell.fg == Color::LightRed })
+        .any(|cell| { cell.symbol() == "━" && cell.fg == Color::LightRed })
     );
     assert!(
       frame
