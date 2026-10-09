@@ -29,21 +29,34 @@ def main [
     print --stderr $"Step mode: press any key at each checkpoint: ($names | str join ', ')"
   }
 
+  # Stepping reads keys straight from the terminal. cbreak mode with echo off
+  # keeps output newline translation intact (raw mode would staircase ROM's
+  # logs) and stops keypresses from being drawn into the live frame.
+  let saved = if $step { ^sh -c 'stty -g < /dev/tty' | str trim } else { null }
+  if $step { ^sh -c 'stty -icanon -echo min 1 < /dev/tty' }
+
   let started = date now
-  $events
-  | each {|event|
-      if not $instant {
-        let due = ($event.ms | into int | into duration --unit ms) / $speed
-        let wait = $due - ((date now) - $started)
-        if $wait > 0sec { sleep $wait }
+  let restore = {|| if $step { ^sh -c $"stty ($saved) < /dev/tty" } }
+  try {
+    $events
+    | each {|event|
+        if not $instant {
+          let due = ($event.ms | into int | into duration --unit ms) / $speed
+          let wait = $due - ((date now) - $started)
+          if $wait > 0sec { sleep $wait }
+        }
+        if ($event.line | str starts-with "= ") {
+          if $step { ^sh -c 'dd bs=1 count=1 < /dev/tty > /dev/null 2>&1' }
+        } else {
+          $event.line
+        }
       }
-      if ($event.line | str starts-with "= ") {
-        if $step { input listen --types [key] | ignore }
-      } else {
-        $event.line
-      }
-    }
-  | compact
-  | to text
-  | ^$rom ...$rom_args
+    | compact
+    | to text
+    | ^$rom ...$rom_args
+  } catch {
+    do $restore
+    exit 1
+  }
+  do $restore
 }
