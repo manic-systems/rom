@@ -357,7 +357,7 @@ mod tests {
   #[test]
   fn test_parse_real_world_hello_drv() {
     // Stripped down version of a real hello.drv
-    let drv = r#"Derive([("out","/nix/store/b1ayn0ln6n8bm2spz441csqc2ss66az3-hello-2.12.2","","")],[("/nix/store/1s1ir3vhwq86x0c7ikhhp3c9cin4095k-hello-2.12.2.tar.gz.drv",["out"]),("/nix/store/bjsb6wdjykafnkixq156qdvmxhsm2bai-bash-5.3p3.drv",["out"]),("/nix/store/lzvy25g887aypn07ah8igv72z7b9jb88-version-check-hook.drv",["out"]),("/nix/store/p76r0cwlf6k97ibprrpfd8xw0r8wc3nx-stdenv-linux.drv",["out"])],["/nix/store/l622p70vy8k5sh7y5wizi5f2mic6ynpg-source-stdenv.sh","/nix/store/shkw4qm9qcw5sc5n1k5jznc83ny02r39-default-builder.sh"],"x86_64-linux","/nix/store/q7sqwn7i6w2b67adw0bmix29pxg85x3w-bash-5.3p3/bin/bash",["-e","/nix/store/l622p70vy8k5sh7y5wizi5f2mic6ynpg-source-stdenv.sh"],[("name","hello-2.12.2"),("pname","hello"),("version","2.12.2"),("system","x86_64-linux")])"#;
+    let drv = r#"Derive([("out","/nix/store/00000000000000000000000000000001-hello-2.12.2","","")],[("/nix/store/00000000000000000000000000000002-hello-2.12.2.tar.gz.drv",["out"]),("/nix/store/00000000000000000000000000000003-bash-5.3p3.drv",["out"]),("/nix/store/00000000000000000000000000000004-version-check-hook.drv",["out"]),("/nix/store/00000000000000000000000000000005-stdenv-linux.drv",["out"])],["/nix/store/00000000000000000000000000000006-source-stdenv.sh","/nix/store/00000000000000000000000000000007-default-builder.sh"],"x86_64-linux","/nix/store/00000000000000000000000000000008-bash-5.3p3/bin/bash",["-e","/nix/store/00000000000000000000000000000006-source-stdenv.sh"],[("name","hello-2.12.2"),("pname","hello"),("version","2.12.2"),("system","x86_64-linux")])"#;
 
     let result = parse_drv_content(drv).unwrap();
 
