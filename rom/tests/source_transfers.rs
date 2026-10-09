@@ -144,7 +144,7 @@ fn source_edges_survive_resolution_and_downloads_reveal_their_ancestors() {
   let text = frame(&engine, DisplayFormat::Tree, 1.2, 23);
   assert!(text.contains("root"), "{text}");
   assert!(text.contains("consumer"), "{text}");
-  assert!(text.contains("│     ╰─ source-tree"), "{text}");
+  assert!(text.contains("      ╰─ source-tree"), "{text}");
   assert!(text.contains("50%"), "{text}");
   assert!(!text.contains("Transfers"), "{text}");
   assert!(!text.contains("cached-source"), "{text}");
@@ -379,7 +379,7 @@ fn source_rows_obey_the_live_graph_budget() {
   let lines: Vec<_> = text.lines().collect();
   let legend = lines
     .iter()
-    .position(|line| line.starts_with("├─ Status"))
+    .position(|line| line.starts_with("┏━ Status"))
     .unwrap();
   assert_eq!(legend, 15, "{text}");
   assert!(lines[legend - 1].contains("… 19 active"), "{text}");

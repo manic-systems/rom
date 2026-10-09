@@ -379,7 +379,7 @@ mod tests {
       23,
       false,
     );
-    assert!(frame.text().starts_with("╭─ Builds\n├─"));
+    assert!(frame.text().starts_with("╭─ Builds\n╰─"));
     let terminal = LiveTerminal::new(Vec::<u8>::new());
     let bytes = terminal.compose(&[], &frame.ansi_text()).unwrap();
     assert_eq!(count(&bytes, BEGIN_SYNC), 1);
@@ -442,8 +442,8 @@ mod tests {
       false,
     );
     let text = frame.text();
-    assert!(text.starts_with("╭─ Builds\n"), "{text}");
-    assert!(text.lines().last().unwrap().starts_with("╰─"), "{text}");
+    assert!(text.starts_with("╶─ Builds\n"), "{text}");
+    assert!(text.lines().last().unwrap().starts_with("┗━"), "{text}");
   }
 
   fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {

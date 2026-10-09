@@ -1,6 +1,6 @@
 === finished @ 100ms ===
-\e[0;34m╭─ \e[0;97mBuilds\e[0m
-\e[0;34m╰─ \e[0;32mFinished after 0s\e[0m
+\e[0;34m╶─ \e[0;97mBuilds\e[0m
+\e[0;34m╺━ \e[0;32mFinished after 0s\e[0m
 === log ===
 \e[0;34mhello-2.12.3> \e[0mcompiling unit 1 of 6\e[0m
 \e[0;34mhello-2.12.3> \e[0mcompiling unit 2 of 6\e[0m

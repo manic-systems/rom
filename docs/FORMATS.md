@@ -30,12 +30,12 @@ rom build nixpkgs#hello
 
 ```plaintext
 ╭─ Builds
-├─ ⏸ hello-2.12.2
-│  ╰─ ⏵ dependency-1.0  ⏱ 5s
-├─ Status      Running   Completed   Waiting   Failed   Total
-│  Builds      ⏵ 1       ✔ 0         ⏸ 4       ✗ 0      ∑ 5
-│  Downloads   ↓ 2       ↓ 3         ⏸ 1                ∑ 6
-╰─ Elapsed ⏱ 5s
+╰─ ⏸ hello-2.12.2
+   ╰─ ⏵ dependency-1.0  ⏱ 5s
+┏━ Status      Running   Completed   Waiting   Failed   Total
+┃  Builds      ⏵ 1       ✔ 0         ⏸ 4       ✗ 0      ∑ 5
+┃  Downloads   ↓ 2       ↓ 3         ⏸ 1                ∑ 6
+┗━ Elapsed ⏱ 5s
 ```
 
 **Plain Format**:
@@ -71,29 +71,29 @@ the screen. At this moment they only affect the **tree format**.
 
 ```plaintext
 ╭─ Builds
-├─ ⏵ hello-2.12.2  ⏱ 5s
-├─ Status      Running   Completed   Waiting   Failed   Total
-│  Builds      ⏵ 1       ✔ 0         ⏸ 4       ✗ 0      ∑ 5
-│  Downloads   ↓ 2       ↓ 3         ⏸ 1                ∑ 6
-╰─ Elapsed ⏱ 5s
+╰─ ⏵ hello-2.12.2  ⏱ 5s
+┏━ Status      Running   Completed   Waiting   Failed   Total
+┃  Builds      ⏵ 1       ✔ 0         ⏸ 4       ✗ 0      ∑ 5
+┃  Downloads   ↓ 2       ↓ 3         ⏸ 1                ∑ 6
+┗━ Elapsed ⏱ 5s
 ```
 
 **Compact**:
 
 ```plaintext
 ╭─ Builds
-├─ ⏵ hello-2.12.2  ⏱ 5s
-╰─ ⏵ 1  ✔ 0  ✗ 0  ⏸ 4
+╰─ ⏵ hello-2.12.2  ⏱ 5s
+╺━  ⏵ 1 ✔ 0 ✗ 0 ⏸ 4
 ```
 
 **Verbose**:
 
 ```plaintext
 ╭─ Builds
-├─ ⏵ hello-2.12.2  ⏱ 5s
-├─ Build Summary
-│  ⏵ hello-2.12.2  5s
-╰─ ⏵ 1 building  ✔ 0 completed  ✗ 0 failed  ⏸ 4 waiting
+╰─ ⏵ hello-2.12.2  ⏱ 5s
+┏━ Build Summary
+┃  ⏵ hello-2.12.2  5s
+┗━  ⏵ 1 building ✔ 0 completed ✗ 0 failed ⏸ 4 waiting
 ```
 
 ## Icon Legend

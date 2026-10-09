@@ -17,7 +17,30 @@ impl Renderer<'_> {
   }
 
   fn compact_legend(&self) -> Vec<Line<'static>> {
-    vec![fit_line(self.legend_counts("╰─ ", false), self.width)]
+    self.status_box(vec![self.legend_counts(false)])
+  }
+
+  /// Frames rows as the heavy status box below the tree.
+  ///
+  /// The first row gets the top corner, the last the bottom corner, and rows
+  /// in between the vertical line; a single row gets a short stub.
+  fn status_box(&self, rows: Vec<Vec<Span<'static>>>) -> Vec<Line<'static>> {
+    let count = rows.len();
+    rows
+      .into_iter()
+      .enumerate()
+      .map(|(index, row)| {
+        let corner = match index {
+          _ if count == 1 => "╺━ ",
+          0 => "┏━ ",
+          _ if index + 1 == count => "┗━ ",
+          _ => "┃  ",
+        };
+        let mut spans = vec![self.span(corner, self.config.theme.connector)];
+        spans.extend(row);
+        fit_line(spans, self.width)
+      })
+      .collect()
   }
 
   fn table_legend(&self) -> Vec<Line<'static>> {
@@ -26,34 +49,27 @@ impl Renderer<'_> {
     let rows = self.status_rows();
     let labelled =
       self.status_grid(&[vec![self.status_header()], rows.clone()].concat(), 3);
+    // Every box row starts with a three-column corner or vertical line.
     let fits = labelled
       .iter()
-      .all(|line| spans_width(line) <= usize::from(self.width));
-    let grid = if fits {
+      .all(|line| spans_width(line) + 3 <= usize::from(self.width));
+    let mut grid = if fits {
       labelled
     } else {
       self.status_grid(&rows, 1)
     };
-    let mut lines: Vec<_> = grid
-      .into_iter()
-      .map(|spans| fit_line(spans, self.width))
-      .collect();
-    lines.push(fit_line(
-      vec![
-        self.span("╰─ ", self.config.theme.connector),
-        self.span("Elapsed ", self.config.theme.muted),
-        self.span(
-          format!(
-            "{} {}",
-            self.icons.clock,
-            format_duration(self.now - self.snapshot.start_time)
-          ),
-          self.config.theme.muted,
+    grid.push(vec![
+      self.span("Elapsed ", self.config.theme.muted),
+      self.span(
+        format!(
+          "{} {}",
+          self.icons.clock,
+          format_duration(self.now - self.snapshot.start_time)
         ),
-      ],
-      self.width,
-    ));
-    lines
+        self.config.theme.muted,
+      ),
+    ]);
+    self.status_box(grid)
   }
 
   fn status_header(&self) -> StatusRow {
@@ -147,10 +163,8 @@ impl Renderer<'_> {
     widths[0] = widths[0].max("Downloads".len());
     rows
       .iter()
-      .enumerate()
-      .map(|(index, row)| {
-        let prefix = if index == 0 { "├─ " } else { "│  " };
-        let mut spans = vec![self.span(prefix, self.config.theme.connector)];
+      .map(|row| {
+        let mut spans = Vec::new();
         for (column, (text, color)) in row.iter().enumerate() {
           let padding = if column + 1 == row.len() {
             0
@@ -166,13 +180,8 @@ impl Renderer<'_> {
   }
 
   fn verbose_legend(&self) -> Vec<Line<'static>> {
-    let mut lines = vec![fit_line(
-      vec![
-        self.span("├─ ", self.config.theme.connector),
-        self.span("Build Summary", self.config.theme.text),
-      ],
-      self.width,
-    )];
+    let mut rows =
+      vec![vec![self.span("Build Summary", self.config.theme.text)]];
     let mut builds: Vec<_> = self
       .snapshot
       .builds
@@ -185,35 +194,28 @@ impl Renderer<'_> {
     builds.sort_by(|left, right| left.0.cmp(&right.0));
     for (name, build) in builds {
       let host = build.host.name();
-      let mut spans = vec![
-        self.span("│  ", self.config.theme.connector),
-        self.span(
-          format!(
-            "{} {name}  {}",
-            self.icons.running,
-            format_duration(self.now - build.start)
-          ),
-          self.config.theme.running,
+      let mut spans = vec![self.span(
+        format!(
+          "{} {name}  {}",
+          self.icons.running,
+          format_duration(self.now - build.start)
         ),
-      ];
+        self.config.theme.running,
+      )];
       if let Some(phase) = &build.phase {
         spans.push(self.span(format!("  ({phase})"), self.config.theme.muted));
       }
       if host != "localhost" {
         spans.push(self.span(format!("  {host}"), self.config.theme.host));
       }
-      lines.push(fit_line(spans, self.width));
+      rows.push(spans);
     }
-    lines.push(fit_line(self.legend_counts("╰─ ", true), self.width));
-    lines
+    rows.push(self.legend_counts(true));
+    self.status_box(rows)
   }
 
-  fn legend_counts(
-    &self,
-    prefix: &'static str,
-    verbose: bool,
-  ) -> Vec<Span<'static>> {
-    let mut spans = vec![self.span(prefix, self.config.theme.connector)];
+  fn legend_counts(&self, verbose: bool) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
     for (icon, count, label, color) in [
       (
         self.icons.running,
@@ -253,91 +255,69 @@ impl Renderer<'_> {
   pub(super) fn final_summary(&self, connected: bool) -> Vec<Line<'static>> {
     let (text, color) = self.final_status();
     let failed = self.snapshot.counts.builds.failed;
-    match self.config.summary_style {
-      SummaryStyle::Concise => {
-        vec![Line::from(vec![
-          self.span(
-            if connected { "╰─ " } else { "" },
-            self.config.theme.connector,
-          ),
-          self.span(text, color),
-        ])]
-      },
+    let status = vec![self.span(text, color)];
+    let rows = match self.config.summary_style {
+      SummaryStyle::Concise => vec![status],
       SummaryStyle::Table => {
-        let (summary_prefix, status_prefix) = if connected {
-          ("├─ ∑ ", "╰─ ")
-        } else {
-          ("∑ ", "")
-        };
         vec![
-          Line::from(vec![
-            self.span(summary_prefix, self.config.theme.connector),
-            self.span(
-              format!(
-                "{} {}  {} {}  {} {}  {} {}",
-                self.icons.done,
-                self.snapshot.counts.builds.completed,
-                self.icons.failed,
-                failed,
-                self.icons.download,
-                self.snapshot.counts.downloads.completed,
-                self.icons.upload,
-                self.snapshot.counts.uploads.completed,
-              ),
-              self.config.theme.text,
+          vec![self.span(
+            format!(
+              "∑ {} {}  {} {}  {} {}  {} {}",
+              self.icons.done,
+              self.snapshot.counts.builds.completed,
+              self.icons.failed,
+              failed,
+              self.icons.download,
+              self.snapshot.counts.downloads.completed,
+              self.icons.upload,
+              self.snapshot.counts.uploads.completed,
             ),
-          ]),
-          Line::from(vec![
-            self.span(status_prefix, self.config.theme.connector),
-            self.span(text, color),
-          ]),
+            self.config.theme.text,
+          )],
+          status,
         ]
       },
       SummaryStyle::Full => {
-        let mut lines = vec![Line::from(vec![
-          self.span(
-            if connected { "├─ " } else { "" },
-            self.config.theme.connector,
+        let mut rows =
+          vec![vec![self.span("Build Summary", self.config.theme.text)]];
+        rows.push(vec![self.span(
+          format!(
+            "Builds: {} completed, {failed} failed",
+            self.snapshot.counts.builds.completed,
           ),
-          self.span("Build Summary", self.config.theme.text),
-        ])];
-        lines.push(Line::from(vec![
-          self.span(
-            if connected { "│  " } else { "  " },
-            self.config.theme.connector,
-          ),
-          self.span(
-            format!(
-              "Builds: {} completed, {failed} failed",
-              self.snapshot.counts.builds.completed,
-            ),
-            self.config.theme.text,
-          ),
-        ]));
+          self.config.theme.text,
+        )]);
         let downloads = self.snapshot.counts.downloads.completed;
         let uploads = self.snapshot.counts.uploads.completed;
         if downloads + uploads > 0 {
-          lines.push(Line::from(vec![
-            self.span(
-              if connected { "│  " } else { "  " },
-              self.config.theme.connector,
-            ),
-            self.span(
-              format!("Transfers: {downloads} downloaded, {uploads} uploaded"),
-              self.config.theme.text,
-            ),
-          ]));
+          rows.push(vec![self.span(
+            format!("Transfers: {downloads} downloaded, {uploads} uploaded"),
+            self.config.theme.text,
+          )]);
         }
-        lines.push(Line::from(vec![
-          self.span(
-            if connected { "╰─ " } else { "" },
-            self.config.theme.connector,
-          ),
-          self.span(text, color),
-        ]));
-        lines
+        rows.push(status);
+        rows
       },
+    };
+    if connected {
+      return self.status_box(rows);
     }
+    // Unboxed, rows between the first and last are indented instead.
+    let count = rows.len();
+    rows
+      .into_iter()
+      .enumerate()
+      .map(|(index, row)| {
+        let indent = if index == 0 || index + 1 == count {
+          ""
+        } else {
+          "  "
+        };
+        let mut spans = vec![self.span(indent, self.config.theme.connector)];
+        spans.extend(row);
+        Line::from(spans)
+      })
+      .collect()
   }
 
   pub(super) fn final_status(&self) -> (String, Color) {
