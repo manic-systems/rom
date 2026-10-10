@@ -90,7 +90,7 @@ impl BuildReportCache {
       };
 
       let report = BuildReport {
-        duration_secs: row.build_seconds as f64,
+        duration_secs: row.build_seconds,
         completed_at,
       };
 
@@ -144,7 +144,7 @@ impl BuildReportCache {
     for entries in merged.values_mut() {
       let mut seen = HashSet::new();
       entries.retain(|report| {
-        seen.insert((report.completed_at, report.duration_secs as u64))
+        seen.insert((report.completed_at, report.duration_secs))
       });
       entries.sort_by_key(|entry| std::cmp::Reverse(entry.completed_at));
       entries.truncate(HISTORY_LIMIT);
@@ -175,7 +175,7 @@ impl BuildReportCache {
             derivation_name: derivation_name.clone(),
             utc_time:        format_utc_time(report.completed_at)
               .map_err(io::Error::other)?,
-            build_seconds:   report.duration_secs as u64,
+            build_seconds:   report.duration_secs,
           };
           csv_writer.serialize(row)?;
         }
@@ -204,7 +204,7 @@ impl BuildReportCache {
     }
 
     let mut durations: Vec<u64> =
-      reports.iter().map(|r| r.duration_secs as u64).collect();
+      reports.iter().map(|r| r.duration_secs).collect();
     durations.sort_unstable();
 
     let len = durations.len();

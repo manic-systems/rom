@@ -16,12 +16,13 @@ use super::{
   fit_line,
   format_bytes,
   format_duration,
+  format_secs,
   model::TransferPlacement,
   progress_bar,
   spans_width,
   truncate_text,
 };
-use crate::state::{BuildStatus, DerivationId};
+use crate::state::{BuildStatus, DerivationId, elapsed};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum RowId {
@@ -601,7 +602,7 @@ impl Renderer<'_> {
             "  {}{}{}",
             self.icons.clock,
             self.icons.gap,
-            format_duration(self.now - build.start)
+            format_duration(elapsed(build.start, self.now))
           ));
         }
         if let Some(estimate) = build.estimate
@@ -611,7 +612,7 @@ impl Renderer<'_> {
             "  ({}{}{})",
             self.icons.estimate,
             self.icons.gap,
-            format_duration(estimate as f64)
+            format_secs(estimate)
           ));
         }
         let mut seen = HashSet::new();
@@ -849,7 +850,7 @@ impl Renderer<'_> {
         format!("{}/{}", format_bytes(transfer.done), format_bytes(total))
       },
     );
-    let elapsed = format_duration(self.now - transfer.start);
+    let duration = format_duration(elapsed(transfer.start, self.now));
     let essential = percent.map_or(8, |value| 7 + value.to_string().len());
     let available = usize::from(self.width).saturating_sub(occupied);
     let mut spans =
@@ -873,12 +874,12 @@ impl Renderer<'_> {
     if available > essential + bytes.len() + 2 {
       spans.push(self.span(format!("  {bytes}"), self.config.theme.muted));
     }
-    if available > essential + bytes.len() + elapsed.len() + 5 {
-      spans.push(self.span(format!("  {elapsed}"), self.config.theme.muted));
+    if available > essential + bytes.len() + duration.len() + 5 {
+      spans.push(self.span(format!("  {duration}"), self.config.theme.muted));
     }
     if transfer.host != "localhost"
       && available
-        > essential + bytes.len() + elapsed.len() + transfer.host.len() + 9
+        > essential + bytes.len() + duration.len() + transfer.host.len() + 9
     {
       spans.push(
         self.span(format!("  {}", transfer.host), self.config.theme.host),

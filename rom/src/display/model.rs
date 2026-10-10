@@ -17,6 +17,7 @@ use crate::state::{
   StorePathId,
   StorePathInfo,
   TransferInfo,
+  elapsed,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -173,7 +174,7 @@ impl<'a> RenderSnapshot<'a> {
       placed_transfers: Vec::new(),
       source_fetches: state
         .source_fetches()
-        .filter(|fetch| now - fetch.start >= SOURCE_FETCH_DELAY)
+        .filter(|fetch| elapsed(fetch.start, now) >= SOURCE_FETCH_DELAY)
         .collect(),
     };
     snapshot.collect_transfers(state.store_paths(), now);
@@ -200,7 +201,7 @@ impl<'a> RenderSnapshot<'a> {
       self.add_transfer(store_paths, path, transfer, Direction::Upload);
     }
     for (&path, transfer) in &self.summary.completed_downloads {
-      if now - transfer.end <= 1.0 {
+      if elapsed(transfer.end, now) <= 1.0 {
         self.add_completed_transfer(
           store_paths,
           path,
@@ -210,7 +211,7 @@ impl<'a> RenderSnapshot<'a> {
       }
     }
     for (&path, transfer) in &self.summary.completed_uploads {
-      if now - transfer.end <= 1.0 {
+      if elapsed(transfer.end, now) <= 1.0 {
         self.add_completed_transfer(
           store_paths,
           path,

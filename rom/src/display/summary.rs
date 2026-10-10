@@ -7,7 +7,10 @@ use ratatui_core::{
 use unicode_width::UnicodeWidthStr;
 
 use super::{Renderer, fit_line, format_duration, spans_width};
-use crate::types::{LegendStyle, SummaryStyle};
+use crate::{
+  state::elapsed,
+  types::{LegendStyle, SummaryStyle},
+};
 
 impl Renderer<'_> {
   pub(super) fn legend(&self) -> Vec<Line<'static>> {
@@ -67,7 +70,7 @@ impl Renderer<'_> {
           "{}{}{}",
           self.icons.clock,
           self.icons.gap,
-          format_duration(self.now - self.snapshot.start_time)
+          format_duration(elapsed(self.snapshot.start_time, self.now))
         ),
         self.config.theme.text,
       ),
@@ -203,7 +206,7 @@ impl Renderer<'_> {
           "{}{}{name}  {}",
           self.icons.running,
           self.icons.gap,
-          format_duration(self.now - build.start)
+          format_duration(elapsed(build.start, self.now))
         ),
         self.config.theme.running,
       )];
@@ -331,16 +334,16 @@ impl Renderer<'_> {
     let active = self.snapshot.counts.builds.running
       + self.snapshot.counts.downloads.running
       + self.snapshot.counts.uploads.running;
-    let elapsed = format_duration(self.now - self.snapshot.start_time);
+    let duration = format_duration(elapsed(self.snapshot.start_time, self.now));
     if failed > 0 {
       (
-        format!("Exited with {failed} failed build(s) after {elapsed}"),
+        format!("Exited with {failed} failed build(s) after {duration}"),
         self.config.theme.failed,
       )
     } else if self.snapshot.error_count > 0 {
       (
         format!(
-          "Exited with {} Nix error(s) after {elapsed}",
+          "Exited with {} Nix error(s) after {duration}",
           self.snapshot.error_count
         ),
         self.config.theme.failed,
@@ -352,19 +355,19 @@ impl Renderer<'_> {
         "activities"
       };
       (
-        format!("Input ended with {active} unfinished {noun} after {elapsed}"),
+        format!("Input ended with {active} unfinished {noun} after {duration}"),
         self.config.theme.running,
       )
     } else if self.snapshot.counts.builds.waiting > 0 {
       let waiting = self.snapshot.counts.builds.waiting;
       let noun = if waiting == 1 { "build" } else { "builds" };
       (
-        format!("Input ended with {waiting} planned {noun} after {elapsed}"),
+        format!("Input ended with {waiting} planned {noun} after {duration}"),
         self.config.theme.planned,
       )
     } else {
       (
-        format!("Finished after {elapsed}"),
+        format!("Finished after {duration}"),
         self.config.theme.completed,
       )
     }

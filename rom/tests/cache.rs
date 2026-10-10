@@ -10,7 +10,7 @@ use rom::{
   state::BuildReport,
 };
 
-const fn report(duration_secs: f64) -> BuildReport {
+const fn report(duration_secs: u64) -> BuildReport {
   BuildReport {
     duration_secs,
     completed_at: SystemTime::UNIX_EPOCH,
@@ -19,13 +19,13 @@ const fn report(duration_secs: f64) -> BuildReport {
 
 #[test]
 fn calculate_median_odd() {
-  let reports = vec![report(10.0), report(20.0), report(30.0)];
+  let reports = vec![report(10), report(20), report(30)];
   assert_eq!(BuildReportCache::calculate_median(&reports), Some(20));
 }
 
 #[test]
 fn calculate_median_even() {
-  let reports = vec![report(10.0), report(20.0)];
+  let reports = vec![report(10), report(20)];
   assert_eq!(BuildReportCache::calculate_median(&reports), Some(15));
 }
 
@@ -52,9 +52,7 @@ fn saving_loaded_history_does_not_duplicate_it() {
   let directory = tempfile::tempdir().unwrap();
   let cache = BuildReportCache::new(directory.path().join("history.csv"));
   let mut history = BTreeMap::new();
-  history.insert(("localhost".to_owned(), "demo".to_owned()), vec![report(
-    2.0,
-  )]);
+  history.insert(("localhost".to_owned(), "demo".to_owned()), vec![report(2)]);
   cache.save(&history).unwrap();
   let loaded = cache.load();
   cache.save(&loaded).unwrap();

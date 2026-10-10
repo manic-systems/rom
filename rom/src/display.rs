@@ -25,14 +25,19 @@ use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 use self::model::{Direction, RenderSnapshot, Transfer, aggregate_transfers};
 use crate::{
   icons::Icons,
-  state::{DerivationId, SourceFetch, State},
+  state::{DerivationId, SourceFetch, State, elapsed, whole_seconds},
   types::{DisplayFormat, RenderConfig},
 };
 
 /// Formats a duration without introducing sub-second redraw noise.
 #[must_use]
 pub fn format_duration(secs: f64) -> String {
-  let secs = secs.max(0.0) as u64;
+  format_secs(whole_seconds(secs))
+}
+
+/// Formats whole seconds, such as `1m5s`.
+#[must_use]
+pub fn format_secs(secs: u64) -> String {
   if secs < 60 {
     format!("{secs}s")
   } else if secs < 3600 {
@@ -44,6 +49,11 @@ pub fn format_duration(secs: f64) -> String {
 
 /// Formats a byte count with binary units, such as `1.5 MiB`.
 #[must_use]
+#[expect(
+  clippy::cast_precision_loss,
+  clippy::float_arithmetic,
+  reason = "fractional units are rounded for display"
+)]
 pub fn format_bytes(bytes: u64) -> String {
   const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
   let mut value = bytes as f64;
@@ -187,6 +197,11 @@ impl<'a> Renderer<'a> {
     }
   }
 
+  #[expect(
+    clippy::cast_sign_loss,
+    clippy::float_arithmetic,
+    reason = "the frame index is clamped to zero"
+  )]
   fn spinner(&self) -> &'static str {
     ["\u{25d0}", "\u{25d3}", "\u{25d1}", "\u{25d2}"] // ◐ ◓ ◑ ◒
       [((self.now * 4.0).max(0.0) as usize) % 4]
@@ -203,7 +218,7 @@ impl<'a> Renderer<'a> {
     let detail = format!(
       "  {} copying  {}",
       self.spinner(),
-      format_duration(self.now - fetch.start)
+      format_duration(elapsed(fetch.start, self.now))
     );
     let name = Path::new(&fetch.source)
       .file_name()

@@ -10,7 +10,7 @@ use crossterm::{
 
 use crate::{
   display::{render_frame, write_final},
-  state::State,
+  state::{State, elapsed},
   types::RenderConfig,
 };
 
@@ -128,7 +128,7 @@ impl<W: Write> LiveTerminal<W> {
       self.partial_since = None;
     } else {
       let since = *self.partial_since.get_or_insert(now);
-      if now - since >= PARTIAL_LINE_GRACE {
+      if elapsed(since, now) >= PARTIAL_LINE_GRACE {
         self.partial_since = None;
         self.partial_line = true;
         self.clear_graph()?;

@@ -258,7 +258,7 @@ pub struct SourceFetch {
 #[derive(Debug, Clone)]
 pub struct BuildReport {
   /// Build duration in seconds.
-  pub duration_secs: f64,
+  pub duration_secs: u64,
   /// Wall-clock time the build completed.
   pub completed_at:  SystemTime,
 }
@@ -763,7 +763,7 @@ impl State {
       .entry((build.host.name().to_owned(), info.name.name.clone()))
       .or_default()
       .push(BuildReport {
-        duration_secs: now - build.start,
+        duration_secs: whole_seconds(elapsed(build.start, now)),
         completed_at,
       });
     info.build_status = BuildStatus::Built {
@@ -1097,6 +1097,20 @@ pub fn current_time() -> f64 {
     .duration_since(SystemTime::UNIX_EPOCH)
     .unwrap_or(Duration::ZERO)
     .as_secs_f64()
+}
+
+/// Returns the seconds from `start` to `now`.
+#[must_use]
+#[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
+pub const fn elapsed(start: f64, now: f64) -> f64 {
+  now - start
+}
+
+/// Converts seconds to whole seconds, clamping negative values to zero.
+#[must_use]
+#[expect(clippy::cast_sign_loss, reason = "negative values are clamped first")]
+pub const fn whole_seconds(secs: f64) -> u64 {
+  secs.max(0.0) as u64
 }
 
 #[cfg(test)]

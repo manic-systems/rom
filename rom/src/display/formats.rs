@@ -7,8 +7,10 @@ use super::{
   aggregate_transfers,
   fit_line,
   format_duration,
+  format_secs,
   spans_width,
 };
+use crate::state::{elapsed, whole_seconds};
 
 impl Renderer<'_> {
   pub(super) fn plain(&self) -> Vec<Line<'static>> {
@@ -23,7 +25,7 @@ impl Renderer<'_> {
           "  {}{}{}",
           self.icons.clock,
           self.icons.gap,
-          format_duration(self.now - self.snapshot.start_time)
+          format_duration(elapsed(self.snapshot.start_time, self.now))
         ),
         self.config.theme.muted,
       ));
@@ -84,18 +86,18 @@ impl Renderer<'_> {
       }
       if self.config.show_timers {
         spans.push(self.span(
-          format!("  {}", format_duration(self.now - build.start)),
+          format!("  {}", format_duration(elapsed(build.start, self.now))),
           self.config.theme.muted,
         ));
       }
       if let Some(estimate) = build.estimate {
-        let elapsed = (self.now - build.start).max(0.0) as u64;
+        let spent = whole_seconds(elapsed(build.start, self.now));
         spans.push(self.span(
           format!(
             "  {}{}{}",
             self.icons.estimate,
             self.icons.gap,
-            format_duration(estimate.saturating_sub(elapsed) as f64)
+            format_secs(estimate.saturating_sub(spent))
           ),
           self.config.theme.muted,
         ));
@@ -231,7 +233,7 @@ impl Renderer<'_> {
         self.span("\u{2502}  ", self.config.theme.connector), // │
         self.span("Duration  \u{2502} ", self.config.theme.muted), // │
         self.span(
-          format_duration(self.now - self.snapshot.start_time),
+          format_duration(elapsed(self.snapshot.start_time, self.now)),
           self.config.theme.muted,
         ),
       ],
