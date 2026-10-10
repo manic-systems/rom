@@ -1,0 +1,13 @@
+0 @nix {"action":"msg","level":3,"msg":"these 3 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/00000000000000000000000000000003-dep-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/00000000000000000000000000000002-lib-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/00000000000000000000000000000001-app-1.0.drv"}
+50 = planned
+100 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000003-dep-1.0.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000003-dep-1.0.drv","",1,1]}
+150 = first-running
+300 @nix {"action":"stop","id":10}
+300 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000002-lib-1.0.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000002-lib-1.0.drv","",1,1]}
+350 = second-running
+500 @nix {"action":"stop","id":11}
+500 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-app-1.0.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-app-1.0.drv","",1,1]}
+700 @nix {"action":"stop","id":12}

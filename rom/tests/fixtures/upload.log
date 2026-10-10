@@ -1,0 +1,5 @@
+0 @nix {"action":"start","id":30,"level":3,"parent":0,"text":"copying path '/nix/store/00000000000000000000000000000002-app-1.0' to 'ssh://builder'","type":100,"fields":["/nix/store/00000000000000000000000000000002-app-1.0","local","ssh://builder"]}
+200 @nix {"action":"result","id":30,"type":105,"fields":[5242880,20971520,1,0]}
+200 = uploading
+600 @nix {"action":"result","id":30,"type":105,"fields":[20971520,20971520,1,0]}
+600 @nix {"action":"stop","id":30}

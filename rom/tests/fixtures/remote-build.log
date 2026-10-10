@@ -1,0 +1,4 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-hello-2.12.3.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-hello-2.12.3.drv","ssh://builder",1,1]}
+50 @nix {"action":"result","id":10,"type":104,"fields":["buildPhase"]}
+100 = building
+500 @nix {"action":"stop","id":10}

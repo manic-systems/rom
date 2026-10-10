@@ -1,40 +1,110 @@
 [workspace]
-members = ["crates/*", "rom"]
 resolver = "3"
+members = ["crates/cognos", "rom"]
 
 [workspace.package]
 version = "0.2.1"
 edition = "2024"
-description = "Pretty build graphs for your pretty Nix builds"
 rust-version = "1.92.0"
-license = "EUPL-1.2"
+description = "Pretty build graphs for your pretty Nix builds"
 homepage = "https://github.com/manic-systems/rom"
+license = "EUPL-1.2"
 
 [workspace.dependencies]
-rom-core = { path = "./crates/rom-core", version = "0.2.1" }
-rom-cli = { path = "./crates/rom-cli", version = "0.2.1" }
-cognos = { path = "./crates/cognos", version = "1.0.1" }     # cognos is versioned independently
+cognos = { path = "./crates/cognos", version = "1.0.1" }  # cognos is versioned independently
 
-anyhow = "1.0.102"
-clap = { version = "4.6.1", features = ["derive"] }
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
-serde_repr = "0.1.20"
 crossterm = "0.29.0"
-ratatui = "0.30.0"
-indexmap = { version = "2.14.0", features = ["serde"] }
 csv = "1.4.0"
-chrono = "0.4.44"
-thiserror = "2.0.18"
+etcetera = "0.11.0"
+indexmap = { version = "2.14.2", features = ["serde"] }
+jiff = { version = "0.2.37", default-features = false, features = ["std"] }
+libc = "0.2.189"
+misstep = { version = "0.3.0", features = ["pretty"] }
+pound = "0.1.8"
+ratatui-core = { version = "0.1.2", features = ["scrolling-regions"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+serde_repr = "0.1.21"
+signal-hook = "0.4.4"
+tempfile = "3.27.0"
+thiserror = "2.0.20"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-eyre = "0.6.12"
-dirs = "6.0.0"
-tempfile = "3.27.0"
-has-nerd-font = "0.20260228.0"
+unicode-width = "0.2.2"
+
+[workspace.lints.clippy]
+cargo = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
+blanket_clippy_restriction_lints = "allow"
+restriction = { level = "warn", priority = -1 }
+
+cargo_common_metadata = "allow"
+
+absolute_paths = "allow"
+allow_attributes = "allow"
+allow_attributes_without_reason = "allow"
+arbitrary_source_item_ordering = "allow"
+arithmetic_side_effects = "allow"
+as_conversions = "allow"
+big_endian_bytes = "allow"
+cast_possible_truncation = "allow"
+cast_possible_wrap = "allow"
+cognitive_complexity = "allow"
+decimal_literal_representation = "allow"
+default_numeric_fallback = "allow"
+definition_in_module_root = "allow"
+else_if_without_else = "allow"
+error_impl_error = "allow"
+exhaustive_enums = "allow"
+exhaustive_structs = "allow"
+expect_used = "allow"
+implicit_return = "allow"
+indexing_slicing = "allow"
+inline_modules = "allow"
+inline_trait_bounds = "allow"
+integer_division = "allow"
+integer_division_remainder_used = "allow"
+let_underscore_must_use = "allow"
+let_underscore_untyped = "allow"
+little_endian_bytes = "allow"
+map_err_ignore = "allow"
+min_ident_chars = "allow"
+missing_docs_in_private_items = "allow"
+missing_errors_doc = "allow"
+missing_inline_in_public_items = "allow"
+missing_panics_doc = "allow"
+missing_trait_methods = "allow"
+mod_module_files = "allow"
+module_name_repetitions = "allow"
+multiple_crate_versions = "allow"
+must_use_without_reason = "allow"
+needless_raw_strings = "allow"
+pattern_type_mismatch = "allow"
+pub_use = "allow"
+pub_with_shorthand = "allow"
+question_mark_used = "allow"
+ref_patterns = "allow"
+rest_pattern_accessible_field = "allow"
+result_large_err = "allow"
+separated_literal_suffix = "allow"
+shadow_reuse = "allow"
+shadow_unrelated = "allow"
+significant_drop_tightening = "allow"
+single_call_fn = "allow"
+single_char_lifetime_names = "allow"
+std_instead_of_alloc = "allow"
+std_instead_of_core = "allow"
+string_slice = "allow"
+too_many_lines = "allow"
+unseparated_literal_suffix = "allow"
+unused_trait_names = "allow"
+unwrap_used = "allow"
+wildcard_enum_match_arm = "allow"
 
 [profile.release]
 opt-level = 3
-lto = true
+strip = "symbols"
+lto = "thin"
 codegen-units = 1
-strip = true

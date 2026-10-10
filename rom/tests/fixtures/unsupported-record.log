@@ -1,0 +1,5 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-hello-2.12.3.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-hello-2.12.3.drv","",1,1]}
+100 @nix {"action":"start","id":50,"level":3,"parent":10,"text":"a future activity","type":199,"fields":[]}
+150 @nix {"action":"start","id":51,"level":3,"parent":10,"text":"the same future activity","type":199,"fields":[]}
+200 = building
+300 @nix {"action":"stop","id":10}

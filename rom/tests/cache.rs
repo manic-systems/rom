@@ -1,0 +1,62 @@
+//! Build history persistence and median estimates.
+
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+
+use std::{collections::BTreeMap, time::SystemTime};
+
+use rom::{
+  cache::{BuildReportCache, format_utc_time, parse_utc_time},
+  state::BuildReport,
+};
+
+const fn report(duration_secs: u64) -> BuildReport {
+  BuildReport {
+    duration_secs,
+    completed_at: SystemTime::UNIX_EPOCH,
+  }
+}
+
+#[test]
+fn calculate_median_odd() {
+  let reports = vec![report(10), report(20), report(30)];
+  assert_eq!(BuildReportCache::calculate_median(&reports), Some(20));
+}
+
+#[test]
+fn calculate_median_even() {
+  let reports = vec![report(10), report(20)];
+  assert_eq!(BuildReportCache::calculate_median(&reports), Some(15));
+}
+
+#[test]
+fn calculate_median_empty() {
+  assert_eq!(BuildReportCache::calculate_median(&[]), None);
+}
+
+#[test]
+fn format_parse_utc_time() {
+  let time = SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_000_000);
+  let formatted = format_utc_time(time).unwrap();
+  let parsed = parse_utc_time(&formatted).unwrap();
+
+  let diff = parsed
+    .duration_since(time)
+    .unwrap_or_else(|e| e.duration())
+    .as_secs();
+  assert_eq!(diff, 0);
+}
+
+#[test]
+fn saving_loaded_history_does_not_duplicate_it() {
+  let directory = tempfile::tempdir().unwrap();
+  let cache = BuildReportCache::new(directory.path().join("history.csv"));
+  let mut history = BTreeMap::new();
+  history.insert(("localhost".to_owned(), "demo".to_owned()), vec![report(2)]);
+  cache.save(&history).unwrap();
+  let loaded = cache.load();
+  cache.save(&loaded).unwrap();
+  assert_eq!(cache.load().values().next().unwrap().len(), 1);
+}

@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
+jobs:
+  checks:
+    name: Checks (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-26.04-arm, macos-latest]
+    uses: manic-systems/workflows/.github/workflows/rust-checks.yml@06a950a6ef1291d634844fef482d44c6b3852f64 # v2.2.0
+    with:
+      os: ${{ matrix.os }}
+      flake-check: false
+      fmt: ${{ matrix.os == 'ubuntu-latest' }}
+      clippy: true
+      clippy-command: cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
+      test: true
+      test-command: cargo test --locked --workspace --all-features
+
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-26.04-arm, macos-latest]
+    permissions:
+      actions: write # purge this ref's stale cache entries
+      contents: read
+    uses: manic-systems/workflows/.github/workflows/nix-checks.yml@06a950a6ef1291d634844fef482d44c6b3852f64 # v2.2.0
+    with:
+      os: ${{ matrix.os }}
+      flake-check: false
+      build: true
+      build-command: nix build -L --no-link
+      cache: true
+      cache-save: true
+
+  actions:
+    name: Actions Lint
+    uses: manic-systems/workflows/.github/workflows/actions-lint.yml@06a950a6ef1291d634844fef482d44c6b3852f64 # v2.2.0

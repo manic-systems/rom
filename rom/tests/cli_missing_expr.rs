@@ -1,3 +1,11 @@
+//! CLI handling of missing installables and passthrough flags.
+
+#![cfg(feature = "cli")]
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+
 use std::process::Command;
 
 fn run_rom(args: &[&str]) -> (String, String, i32) {
@@ -13,7 +21,7 @@ fn run_rom(args: &[&str]) -> (String, String, i32) {
 }
 
 #[test]
-fn test_parse_args_with_separator_passthrough() {
+fn parse_args_with_separator_passthrough() {
   // This test verifies the splitting logic for passthrough args
   let args = ["--", "--rebuild", "--refresh"];
   let args: Vec<String> =
@@ -32,7 +40,7 @@ fn test_parse_args_with_separator_passthrough() {
 }
 
 #[test]
-fn test_missing_expression_errors() {
+fn missing_expression_errors() {
   // No expression, no passthrough args
   let (_out, err, _status) = run_rom(&["build"]);
   assert!(
@@ -42,7 +50,7 @@ fn test_missing_expression_errors() {
 }
 
 #[test]
-fn test_valid_expression_with_passthrough_args_succeeds() {
+fn valid_expression_with_passthrough_args_succeeds() {
   // With a package and passthrough nix flags, the expression check passes.
   // --dry-run exits quickly without building anything.
   let (_out, err, _status) =
