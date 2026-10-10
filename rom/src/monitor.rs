@@ -753,7 +753,7 @@ mod tests {
   #[test]
   fn malformed_claimed_json_is_fatal() {
     let mut stream = StreamEngine::new(EngineConfig::default());
-    assert!(stream.push_at(b"@nix nope\n", 0.0).is_err());
+    stream.push_at(b"@nix nope\n", 0.0).unwrap_err();
     assert!(!stream.engine().state().has_errors());
   }
 
@@ -764,11 +764,9 @@ mod tests {
       ..EngineConfig::default()
     };
     let mut stream = StreamEngine::new(config);
-    assert!(
-      stream
-        .push_at(b"@nix {\"action\":\"stop\",\"id\":1}\n", 0.0)
-        .is_err()
-    );
+    stream
+      .push_at(b"@nix {\"action\":\"stop\",\"id\":1}\n", 0.0)
+      .unwrap_err();
   }
 
   #[test]
@@ -778,6 +776,6 @@ mod tests {
       ..EngineConfig::default()
     };
     let mut stream = StreamEngine::new(config);
-    assert!(stream.push_at(&vec![b'x'; 1024], 0.0).is_ok());
+    stream.push_at(&vec![b'x'; 1024], 0.0).unwrap();
   }
 }

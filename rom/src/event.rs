@@ -328,6 +328,7 @@ fn parse_host(value: &str) -> Host {
 }
 
 #[cfg(test)]
+#[expect(clippy::panic, reason = "tests fail by panicking")]
 mod tests {
   use super::*;
 

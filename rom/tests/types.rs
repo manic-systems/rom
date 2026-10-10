@@ -1,3 +1,8 @@
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+
 use rom::types::{Config, DisplayFormat, InputMode, LogPrefixStyle};
 
 #[test]

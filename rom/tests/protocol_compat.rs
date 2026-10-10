@@ -1,3 +1,9 @@
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+#![expect(clippy::panic, reason = "tests fail by panicking")]
+
 use rom::{
   monitor::{Engine, Output},
   types::{EngineConfig, InputMode},
@@ -56,5 +62,7 @@ fn repeated_unsupported_records_report_once() {
 #[test]
 fn malformed_records_still_fail() {
   let mut engine = Engine::new(EngineConfig::default());
-  assert!(engine.process_record_at(b"@nix {not json", 1.0).is_err());
+  engine
+    .process_record_at(b"@nix {not json", 1.0)
+    .unwrap_err();
 }

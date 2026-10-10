@@ -1,4 +1,8 @@
 #![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+#![expect(
   clippy::non_ascii_literal,
   reason = "expected frames contain the glyphs they check"
 )]
@@ -72,7 +76,7 @@ impl DerivationResolver for Sources {
   }
 }
 
-fn feed(engine: &mut Engine, event: serde_json::Value, now: f64) {
+fn feed(engine: &mut Engine, event: &serde_json::Value, now: f64) {
   engine
     .process_record_at(format!("@nix {event}").as_bytes(), now)
     .unwrap();
@@ -81,7 +85,7 @@ fn feed(engine: &mut Engine, event: serde_json::Value, now: f64) {
 fn plan(engine: &mut Engine, path: &str) {
   feed(
     engine,
-    json!({"action":"msg", "level":3, "msg":format!("  {path}")}),
+    &json!({"action":"msg", "level":3, "msg":format!("  {path}")}),
     0.0,
   );
 }
@@ -89,13 +93,13 @@ fn plan(engine: &mut Engine, path: &str) {
 fn download(engine: &mut Engine, path: &str, id: u64, parent: u64) {
   feed(
     engine,
-    json!({"action":"start", "id":id, "parent":parent, "level":3,
+    &json!({"action":"start", "id":id, "parent":parent, "level":3,
     "text":"copying", "type":108, "fields":[path, "https://cache.nixos.org"]}),
     1.0,
   );
   feed(
     engine,
-    json!({"action":"result", "id":id, "type":105, "fields":[50, 100, 1, 0]}),
+    &json!({"action":"result", "id":id, "type":105, "fields":[50, 100, 1, 0]}),
     1.1,
   );
 }
@@ -136,13 +140,13 @@ fn source_edges_survive_resolution_and_downloads_reveal_their_ancestors() {
     .iter()
     .find(|(_, info)| info.name.path == Path::new(CONSUMER))
     .unwrap();
-  let source_consumers: Vec<_> = engine
+  let source_consumers = engine
     .state()
     .store_paths()
     .values()
     .filter(|path| path.input_for.contains(&consumer))
-    .collect();
-  assert_eq!(source_consumers.len(), 2);
+    .count();
+  assert_eq!(source_consumers, 2);
   let before = frame(&engine, DisplayFormat::Tree, 0.0, 23);
   assert!(!before.contains("source-tree"), "{before}");
   download(&mut engine, SOURCE, 10, 0);
@@ -235,7 +239,7 @@ fn late_metadata_overrides_activity_nesting_without_inventing_a_producer() {
   let mut engine = Engine::new(EngineConfig::default());
   feed(
     &mut engine,
-    json!({"action":"start", "id":1, "parent":0, "level":3,
+    &json!({"action":"start", "id":1, "parent":0, "level":3,
     "text":"building", "type":105, "fields":[ROOT, "", 1, 1]}),
     0.0,
   );
@@ -273,7 +277,7 @@ fn late_metadata_overrides_activity_nesting_without_inventing_a_producer() {
 fn completed_sources_expire_from_the_graph_but_not_the_summary() {
   let mut engine = setup(Sources::default());
   download(&mut engine, SOURCE, 10, 0);
-  feed(&mut engine, json!({"action":"stop", "id":10}), 2.0);
+  feed(&mut engine, &json!({"action":"stop", "id":10}), 2.0);
   let recent = frame(&engine, DisplayFormat::Tree, 2.1, 23);
   assert!(recent.contains("source-tree"), "{recent}");
   let later = frame(&engine, DisplayFormat::Tree, 3.1, 23);
@@ -289,7 +293,7 @@ fn unrelated_downloads_and_source_uploads_keep_the_transfer_branch() {
     if upload {
       feed(
         &mut engine,
-        json!({"action":"start", "id":10, "parent":0, "level":3,
+        &json!({"action":"start", "id":10, "parent":0, "level":3,
         "text":"copying", "type":100, "fields":[SOURCE, "", "ssh://builder"]}),
         1.0,
       );
@@ -312,15 +316,15 @@ fn later_upload_does_not_inherit_a_completed_download_parent() {
   let mut engine = Engine::new(EngineConfig::default());
   feed(
     &mut engine,
-    json!({"action":"start", "id":1, "parent":0, "level":3,
+    &json!({"action":"start", "id":1, "parent":0, "level":3,
     "text":"building", "type":105, "fields":[ROOT, "", 1, 1]}),
     0.0,
   );
   download(&mut engine, SOURCE, 10, 1);
-  feed(&mut engine, json!({"action":"stop", "id":10}), 1.0);
+  feed(&mut engine, &json!({"action":"stop", "id":10}), 1.0);
   feed(
     &mut engine,
-    json!({"action":"start", "id":11, "parent":0, "level":3,
+    &json!({"action":"start", "id":11, "parent":0, "level":3,
     "text":"copying", "type":100, "fields":[SOURCE, "", "ssh://builder"]}),
     3.0,
   );
@@ -357,7 +361,7 @@ fn shared_sources_use_stable_ties_and_prefer_a_running_consumer() {
   }
   feed(
     &mut engine,
-    json!({"action":"start", "id":1, "parent":0, "level":3,
+    &json!({"action":"start", "id":1, "parent":0, "level":3,
     "text":"building", "type":105, "fields":[OTHER, "", 1, 1]}),
     1.3,
   );
@@ -411,7 +415,7 @@ fn final_tree_filters_completed_transfers_in_every_placement() {
     let parent = if placement == "parent" {
       feed(
         &mut engine,
-        json!({"action":"start", "id":1, "parent":0,
+        &json!({"action":"start", "id":1, "parent":0,
         "level":3, "text":"building", "type":105, "fields":[ROOT, "", 1, 1]}),
         0.0,
       );
@@ -420,7 +424,7 @@ fn final_tree_filters_completed_transfers_in_every_placement() {
       0
     };
     download(&mut engine, SOURCE, 10, parent);
-    feed(&mut engine, json!({"action":"stop", "id":10}), 2.0);
+    feed(&mut engine, &json!({"action":"stop", "id":10}), 2.0);
     let config = RenderConfig::default();
     let live =
       render_frame(engine.state(), &config, 2.1, 119, 40, false).text();
@@ -445,7 +449,7 @@ fn final_source_filter_preserves_active_transfers_and_completed_totals() {
   let mut engine = setup(Sources::default());
   download(&mut engine, SOURCE, 10, 0);
   download(&mut engine, CACHED, 11, 0);
-  feed(&mut engine, json!({"action":"stop", "id":10}), 2.0);
+  feed(&mut engine, &json!({"action":"stop", "id":10}), 2.0);
   for format in [
     DisplayFormat::Tree,
     DisplayFormat::Plain,
@@ -481,7 +485,7 @@ fn source_heavy_branch_cannot_displace_another_active_build() {
   for (id, path) in [(1, CONSUMER), (2, OTHER)] {
     feed(
       &mut engine,
-      json!({"action":"start", "id":id, "parent":0,
+      &json!({"action":"start", "id":id, "parent":0,
       "level":3, "text":"building", "type":105, "fields":[path, "", 1, 1]}),
       0.0,
     );
@@ -572,8 +576,8 @@ fn active_source_details_take_priority_over_completion_grace() {
   download(&mut engine, completed, 10, 0);
   download(&mut engine, active, 11, 0);
   download(&mut engine, other_completed, 12, 0);
-  feed(&mut engine, json!({"action":"stop", "id":10}), 2.0);
-  feed(&mut engine, json!({"action":"stop", "id":12}), 2.0);
+  feed(&mut engine, &json!({"action":"stop", "id":10}), 2.0);
+  feed(&mut engine, &json!({"action":"stop", "id":12}), 2.0);
   let text = frame(&engine, DisplayFormat::Tree, 2.1, 9);
   assert!(text.contains("zzz-active"), "{text}");
   assert!(!text.contains("aaa-completed"), "{text}");

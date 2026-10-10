@@ -4,7 +4,13 @@
 //! followed by a newline, or `<ms> = <name>`, which snapshots the frame. The
 //! finished frame and the decoded log are always snapshotted last.
 
-use std::{fs, path::Path};
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+#![expect(clippy::panic, reason = "tests fail by panicking")]
+
+use std::{fmt::Write as _, fs, path::Path, time::Duration};
 
 use rom::{
   display::{format_log, render_frame},
@@ -59,7 +65,7 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
     let frame = render_frame(
       stream.engine().state(),
       &ansi,
-      at_ms as f64 / 1000.0,
+      Duration::from_millis(at_ms).as_secs_f64(),
       view.width,
       view.height,
       done,
@@ -68,7 +74,7 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
     let unstyled = strip_ansi(&styled);
     let unstyled: Vec<_> = unstyled.lines().map(str::trim_end).collect();
     assert_eq!(unstyled.join("\n"), frame.text(), "{snapshot}: {name}");
-    actual.push_str(&format!("=== {name} @ {at_ms}ms ===\n"));
+    writeln!(actual, "=== {name} @ {at_ms}ms ===").unwrap();
     actual.push_str(&visible_escapes(&styled));
     actual.push('\n');
   };
@@ -86,19 +92,31 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
     assert!(time >= at_ms, "{log}: timestamps must be monotonic");
     at_ms = time;
     if let Some(name) = rest.strip_prefix("= ") {
-      snap(&stream, name, at_ms, false)
+      snap(&stream, name, at_ms, false);
     } else {
       let processed = stream
-        .push_at(format!("{rest}\n").as_bytes(), at_ms as f64 / 1000.0)
+        .push_at(
+          format!("{rest}\n").as_bytes(),
+          Duration::from_millis(at_ms).as_secs_f64(),
+        )
         .unwrap();
       output.extend(processed.output);
     }
   }
-  output.extend(stream.finish_at(at_ms as f64 / 1000.0).unwrap().output);
+  output.extend(
+    stream
+      .finish_at(Duration::from_millis(at_ms).as_secs_f64())
+      .unwrap()
+      .output,
+  );
   snap(&stream, "finished", at_ms, true);
 
   let styled_log = render_output(&output, &ansi);
-  assert_eq!(strip_ansi(&styled_log), render_output(&output, &plain));
+  assert_eq!(
+    strip_ansi(&styled_log),
+    render_output(&output, &plain),
+    "styled and plain logs differ only by ANSI styling"
+  );
   actual.push_str("=== log ===\n");
   actual.push_str(&visible_escapes(&styled_log));
 
@@ -152,7 +170,7 @@ fn assert_or_bless(path: &Path, actual: &str) {
     "snapshot mismatch for {}\n{}",
     path.display(),
     simple_diff(&expected, actual),
-  )
+  );
 }
 
 fn simple_diff(expected: &str, actual: &str) -> String {
@@ -162,14 +180,14 @@ fn simple_diff(expected: &str, actual: &str) -> String {
   for index in 0..expected.len().max(actual.len()) {
     match (expected.get(index), actual.get(index)) {
       (Some(left), Some(right)) if left == right => {
-        diff.push_str(&format!(" {left}\n"));
+        writeln!(diff, " {left}").unwrap();
       },
       (left, right) => {
         if let Some(left) = left {
-          diff.push_str(&format!("-{left}\n"));
+          writeln!(diff, "-{left}").unwrap();
         }
         if let Some(right) = right {
-          diff.push_str(&format!("+{right}\n"));
+          writeln!(diff, "+{right}").unwrap();
         }
       },
     }

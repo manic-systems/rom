@@ -1,4 +1,9 @@
 #![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+#![expect(clippy::panic, reason = "tests fail by panicking")]
+#![expect(
   clippy::non_ascii_literal,
   reason = "expected frames contain the glyphs they check"
 )]
@@ -143,19 +148,14 @@ fn planned_records_build_a_recursive_dependency_tree() {
     ..RenderConfig::default()
   };
   engine.set_resolver(NestedResolver);
-  for (index, path) in [
+  for (now, path) in [0.0, 1.0, 2.0].into_iter().zip([
     "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-root.drv",
     "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv",
     "/nix/store/cccccccccccccccccccccccccccccccc-leaf.drv",
-  ]
-  .into_iter()
-  .enumerate()
-  {
+  ]) {
     let record =
       format!("@nix {{\"action\":\"msg\",\"level\":3,\"msg\":\"  {path}\"}}");
-    engine
-      .process_record_at(record.as_bytes(), index as f64)
-      .unwrap();
+    engine.process_record_at(record.as_bytes(), now).unwrap();
   }
 
   assert_eq!(

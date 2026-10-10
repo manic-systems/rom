@@ -235,6 +235,7 @@ pub fn parse_line(line: &str) -> Option<Actions> {
 }
 
 #[cfg(test)]
+#[expect(clippy::panic, reason = "tests fail by panicking")]
 mod tests {
   use super::*;
 
@@ -489,8 +490,8 @@ mod tests {
       },
       DecodedAction::Known(_) => panic!("unknown activity was accepted"),
     }
-    assert!(decode_action(br#"{"action":"stop","id":"bad"}"#).is_err());
-    assert!(decode_action(b"{not json").is_err());
+    decode_action(br#"{"action":"stop","id":"bad"}"#).unwrap_err();
+    decode_action(b"{not json").unwrap_err();
   }
 
   #[test]

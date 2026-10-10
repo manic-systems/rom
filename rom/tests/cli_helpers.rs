@@ -1,4 +1,8 @@
 #![cfg(feature = "cli")]
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
 
 use rom::cli::{parse_args_with_separator, replace_command_with_exit};
 
