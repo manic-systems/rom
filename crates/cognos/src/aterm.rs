@@ -1,9 +1,9 @@
-//! `ATerm` and Nix .drv file parser
+//! `ATerm` and Nix `.drv` file parser.
 //!
 //! Parses Nix .drv files in `ATerm` format to extract dependency information.
 use std::{fs, path::Path};
 
-/// Parsed derivation information from a .drv file
+/// Parsed derivation information from a `.drv` file.
 #[derive(Debug, Clone)]
 pub struct ParsedDerivation {
   /// Output names paired with their store paths.
@@ -22,7 +22,7 @@ pub struct ParsedDerivation {
   pub env:        Vec<(String, String)>,
 }
 
-/// Parse a .drv file and extract its dependency information
+/// Parses a `.drv` file and extracts its dependency information.
 ///
 /// # Errors
 ///
@@ -36,7 +36,7 @@ pub fn parse_drv_file<P: AsRef<Path>>(
   parse_drv_content(&content)
 }
 
-/// Parse the content of a .drv file
+/// Parses the content of a `.drv` file.
 ///
 /// # Errors
 ///
@@ -95,7 +95,7 @@ pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
   })
 }
 
-/// Parse the top-level comma-separated list, respecting nested brackets
+/// Parses the top-level comma-separated list, respecting nested brackets.
 fn parse_top_level_list(s: &str) -> Vec<String> {
   let mut parts = Vec::new();
   let mut current = String::new();
@@ -181,7 +181,7 @@ fn parse_tuple_list<T>(
   Ok(items)
 }
 
-/// Parse outputs: [("out","/nix/store/...","",""),...]
+/// Parses outputs: `[("out","/nix/store/...","",""),...]`.
 fn parse_outputs(s: &str) -> Result<Vec<(String, String)>, String> {
   parse_tuple_list(
     s,
@@ -191,7 +191,7 @@ fn parse_outputs(s: &str) -> Result<Vec<(String, String)>, String> {
   )
 }
 
-/// Parse input derivations: [("/nix/store/foo.drv",["out"]),...]
+/// Parses input derivations: `[("/nix/store/foo.drv",["out"]),...]`.
 fn parse_input_drvs(s: &str) -> Result<Vec<(String, Vec<String>)>, String> {
   parse_tuple_list(
     s,
@@ -210,7 +210,7 @@ fn parse_input_drvs(s: &str) -> Result<Vec<(String, Vec<String>)>, String> {
   )
 }
 
-/// Parse environment variables: [("name","value"),...]
+/// Parses environment variables: `[("name","value"),...]`.
 fn parse_env(s: &str) -> Result<Vec<(String, String)>, String> {
   parse_tuple_list(
     s,
@@ -230,7 +230,7 @@ fn parse_string_pair(
   Ok(Some((parse_string(&parts[0])?, parse_string(&parts[1])?)))
 }
 
-/// Parse a list of strings: ["foo","bar",...]
+/// Parses a list of strings: `["foo","bar",...]`.
 fn parse_string_list(s: &str) -> Result<Vec<String>, String> {
   parse_list(s, "Invalid string list format")?
     .into_iter()
@@ -238,7 +238,7 @@ fn parse_string_list(s: &str) -> Result<Vec<String>, String> {
     .collect()
 }
 
-/// Parse a quoted string: "foo" -> foo
+/// Parses a quoted string: `"foo"` becomes `foo`.
 fn parse_string(s: &str) -> Result<String, String> {
   let s = s.trim();
   let inner = s
@@ -250,7 +250,7 @@ fn parse_string(s: &str) -> Result<String, String> {
   Ok(unescape_string(inner))
 }
 
-/// Unescape a string (handle \n, \t, \\, \", etc.)
+/// Unescapes a string, handling `\n`, `\t`, `\\`, `\"`, and similar escapes.
 fn unescape_string(s: &str) -> String {
   let mut result = String::new();
   let mut chars = s.chars();
@@ -277,7 +277,7 @@ fn unescape_string(s: &str) -> String {
   result
 }
 
-/// Extract all input derivation paths from a .drv file
+/// Extracts all input derivation paths from a `.drv` file.
 ///
 /// # Errors
 ///
@@ -296,13 +296,13 @@ pub fn get_input_derivations<P: AsRef<Path>>(
   )
 }
 
-/// Extract pname from environment variables
+/// Extracts `pname` from environment variables.
 #[must_use]
 pub fn extract_pname(env: &[(String, String)]) -> Option<String> {
   extract_env(env, "pname")
 }
 
-/// Extract version from environment variables
+/// Extracts `version` from environment variables.
 #[must_use]
 pub fn extract_version(env: &[(String, String)]) -> Option<String> {
   extract_env(env, "version")

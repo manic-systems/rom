@@ -44,25 +44,25 @@ pub enum Activities {
 #[derive(Deserialize_repr, Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum ResultType {
-  /// Two ints: (`linked_count`, `total_count`)
+  /// Two ints: (`linked_count`, `total_count`).
   FileLinked       = 100,
-  /// One string: a log line emitted by the builder
+  /// One string: a log line emitted by the builder.
   BuildLogLine     = 101,
-  /// One string: store path that is not trusted
+  /// One string: store path that is not trusted.
   UntrustedPath    = 102,
-  /// One string: store path that is corrupted
+  /// One string: store path that is corrupted.
   CorruptedPath    = 103,
-  /// One string: current build phase name (e.g. "configurePhase")
+  /// One string: current build phase name, such as `configurePhase`.
   SetPhase         = 104,
-  /// Four ints: (done, expected, running, failed)
+  /// Four ints: (done, expected, running, failed).
   Progress         = 105,
-  /// Two ints: (`activity_type`, `expected_count`)
+  /// Two ints: (`activity_type`, `expected_count`).
   SetExpected      = 106,
-  /// One string: a log line from a post-build hook
+  /// One string: a log line from a post-build hook.
   PostBuildLogLine = 107,
-  /// One string: fetch status message
+  /// One string: fetch status message.
   FetchStatus      = 108,
-  /// One string: resulting store path from a fetch-to-store activity
+  /// One string: resulting store path from a fetch-to-store activity.
   FetchToStore     = 109,
 }
 
