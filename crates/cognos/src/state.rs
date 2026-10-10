@@ -39,14 +39,14 @@ impl OutputName {
   #[must_use]
   pub fn parse(name: &str) -> Self {
     match name {
-      name if name.eq_ignore_ascii_case("out") => Self::Out,
-      name if name.eq_ignore_ascii_case("doc") => Self::Doc,
-      name if name.eq_ignore_ascii_case("dev") => Self::Dev,
-      name if name.eq_ignore_ascii_case("bin") => Self::Bin,
-      name if name.eq_ignore_ascii_case("info") => Self::Info,
-      name if name.eq_ignore_ascii_case("lib") => Self::Lib,
-      name if name.eq_ignore_ascii_case("man") => Self::Man,
-      name if name.eq_ignore_ascii_case("dist") => Self::Dist,
+      _ if name.eq_ignore_ascii_case("out") => Self::Out,
+      _ if name.eq_ignore_ascii_case("doc") => Self::Doc,
+      _ if name.eq_ignore_ascii_case("dev") => Self::Dev,
+      _ if name.eq_ignore_ascii_case("bin") => Self::Bin,
+      _ if name.eq_ignore_ascii_case("info") => Self::Info,
+      _ if name.eq_ignore_ascii_case("lib") => Self::Lib,
+      _ if name.eq_ignore_ascii_case("man") => Self::Man,
+      _ if name.eq_ignore_ascii_case("dist") => Self::Dist,
       _ => Self::Other(name.to_owned()),
     }
   }

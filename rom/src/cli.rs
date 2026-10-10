@@ -368,9 +368,9 @@ fn run_monitored_command(
     .ok_or_else(|| RomError::process("missing child stderr"))?;
 
   let stdout_thread = thread::spawn(move || -> io::Result<()> {
-    let mut stdout = stdout;
+    let mut source = stdout;
     let mut destination = io::stdout().lock();
-    io::copy(&mut stdout, &mut destination)?;
+    io::copy(&mut source, &mut destination)?;
     destination.flush()
   });
   let (receiver, reader_thread) = byte_reader(stderr);
