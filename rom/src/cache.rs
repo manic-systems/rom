@@ -67,9 +67,8 @@ impl BuildReportCache {
       return BTreeMap::new();
     }
 
-    let file = match File::open(&self.cache_path) {
-      Ok(f) => f,
-      Err(_) => return BTreeMap::new(),
+    let Ok(file) = File::open(&self.cache_path) else {
+      return BTreeMap::new();
     };
 
     let reader = BufReader::new(file);
@@ -78,15 +77,13 @@ impl BuildReportCache {
     let mut reports: BTreeMap<(String, String), Vec<BuildReport>> =
       BTreeMap::new();
 
-    for result in csv_reader.deserialize() {
-      let row: BuildReportRow = match result {
-        Ok(r) => r,
-        Err(_) => continue,
+    for result in csv_reader.deserialize::<BuildReportRow>() {
+      let Ok(row) = result else {
+        continue;
       };
 
-      let completed_at = match parse_utc_time(&row.utc_time) {
-        Some(t) => t,
-        None => continue,
+      let Some(completed_at) = parse_utc_time(&row.utc_time) else {
+        continue;
       };
 
       let report = BuildReport {

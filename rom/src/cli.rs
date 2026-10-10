@@ -383,7 +383,7 @@ fn run_monitored_command(
   let (receiver, reader_thread) = byte_reader(stderr);
   let mut monitor_config = config.monitor.clone();
   monitor_config.engine.input_mode = InputMode::Auto;
-  let result = drive(receiver, monitor_config, false, &interrupted);
+  let result = drive(&receiver, monitor_config, false, &interrupted);
   if result.is_err() {
     terminate_process(&mut child);
   }
@@ -400,6 +400,13 @@ fn run_monitored_command(
   Ok(exit_status_code(status))
 }
 
+#[cfg_attr(
+  unix,
+  expect(
+    clippy::needless_pass_by_ref_mut,
+    reason = "other platforms kill through the handle"
+  )
+)]
 fn terminate_process(child: &mut std::process::Child) {
   #[cfg(unix)]
   {
@@ -422,6 +429,10 @@ struct SignalForwarder {
 
 #[cfg(unix)]
 impl SignalForwarder {
+  #[expect(
+    clippy::semicolon_outside_block,
+    reason = "semicolon_inside_block asks for the opposite"
+  )]
   fn start(process_group: u32) -> io::Result<Self> {
     use signal_hook::consts::{SIGHUP, SIGINT, SIGTERM};
     let mut signals =
@@ -467,7 +478,7 @@ fn run_input<R: Read + Send + 'static>(
   config: Config,
 ) -> misstep::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
-  drive(receiver, config, true, &AtomicBool::new(false))?;
+  drive(&receiver, config, true, &AtomicBool::new(false))?;
   reader_thread
     .join()
     .map_err(|_| RomError::process("input reader panicked"))??;
@@ -636,7 +647,7 @@ impl Presenter {
 }
 
 fn drive(
-  receiver: Receiver<io::Result<Vec<u8>>>,
+  receiver: &Receiver<io::Result<Vec<u8>>>,
   config: Config,
   semantic_failure_is_error: bool,
   interrupted: &AtomicBool,

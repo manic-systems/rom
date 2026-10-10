@@ -155,8 +155,8 @@ impl<W: Write> LiveTerminal<W> {
         usize::from(self.graph_height).saturating_sub(log_lines)
       };
       let padding = reserved.saturating_sub(usize::from(frame.height));
-      let text =
-        "\r\n".repeat(padding) + &frame.ansi_text().replace('\n', "\r\n");
+      let mut text = "\r\n".repeat(padding);
+      text.push_str(&frame.ansi_text().replace('\n', "\r\n"));
       let bytes = self.compose(logs, &text)?;
       if crossterm::terminal::size()? != (columns, rows) {
         continue;
@@ -340,9 +340,9 @@ impl<W: Write> Drop for LiveTerminal<W> {
 }
 
 impl<W: Write> Write for LiveTerminal<W> {
-  fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
-    self.write_passthrough(buffer)?;
-    Ok(buffer.len())
+  fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    self.write_passthrough(buf)?;
+    Ok(buf.len())
   }
 
   fn flush(&mut self) -> io::Result<()> {

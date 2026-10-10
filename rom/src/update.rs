@@ -196,10 +196,10 @@ fn apply_start(
     }
     | ActivitySubject::Substitute { path: None, .. }
     | ActivitySubject::CopyPath { path: None, .. }
-    | ActivitySubject::None => {},
+    | ActivitySubject::None
     // Evaluation hashes many small paths in quick succession; showing each
     // one would flash rows in and out, so only real copies are tracked.
-    ActivitySubject::FetchToStore { hashing: true, .. } => {},
+    | ActivitySubject::FetchToStore { hashing: true, .. } => {},
     ActivitySubject::FetchToStore {
       source,
       hashing: false,

@@ -69,10 +69,6 @@ impl Derivation {
     let path_buf = PathBuf::from(path);
     let file_name = path_buf.file_name()?.to_str()?;
 
-    if !file_name.ends_with(".drv") {
-      return None;
-    }
-
     let name = file_name.strip_suffix(".drv")?;
     let parts: Vec<&str> = name.splitn(2, '-').collect();
     let display_name = if parts.len() == 2 {
@@ -272,7 +268,7 @@ pub struct State {
   forest_roots:       Vec<DerivationId>,
   build_cache:        BTreeMap<(String, String), Vec<BuildReport>>,
   start_time:         f64,
-  progress_state:     ProgressState,
+  progress:           ProgressState,
   store_path_ids:     HashMap<StorePath, StorePathId>,
   derivation_ids:     HashMap<Derivation, DerivationId>,
   activities:         HashMap<ActivityId, ActivityStatus>,
@@ -300,7 +296,7 @@ impl State {
       forest_roots:       Vec::new(),
       build_cache:        BTreeMap::new(),
       start_time:         current_time(),
-      progress_state:     ProgressState::JustStarted,
+      progress:           ProgressState::JustStarted,
       store_path_ids:     HashMap::new(),
       derivation_ids:     HashMap::new(),
       activities:         HashMap::new(),
@@ -315,7 +311,7 @@ impl State {
   /// Returns how far the run has progressed.
   #[must_use]
   pub fn progress_state(&self) -> ProgressState {
-    self.progress_state.clone()
+    self.progress.clone()
   }
 
   /// Returns the start time, in seconds since the UNIX epoch.
@@ -355,16 +351,16 @@ impl State {
   }
 
   pub(crate) fn begin_at(&mut self, now: f64) -> bool {
-    if self.progress_state != ProgressState::JustStarted {
+    if self.progress != ProgressState::JustStarted {
       return false;
     }
     self.start_time = now;
-    self.progress_state = ProgressState::InputReceived;
+    self.progress = ProgressState::InputReceived;
     true
   }
 
   pub(crate) const fn finish(&mut self) {
-    self.progress_state = ProgressState::Finished;
+    self.progress = ProgressState::Finished;
   }
 
   pub(crate) fn replace_build_history(
@@ -1028,7 +1024,7 @@ impl State {
   pub(crate) fn get_activity_prefix(
     &self,
     activity_id: ActivityId,
-    prefix_style: &crate::types::LogPrefixStyle,
+    prefix_style: crate::types::LogPrefixStyle,
   ) -> Option<String> {
     use cognos::Activities;
 

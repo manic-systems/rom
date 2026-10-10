@@ -8,6 +8,7 @@ use super::{
   fit_line,
   format_duration,
   format_secs,
+  span,
   spans_width,
 };
 use crate::state::{elapsed, whole_seconds};
@@ -16,11 +17,11 @@ impl Renderer<'_> {
   pub(super) fn plain(&self) -> Vec<Line<'static>> {
     let counts = self.snapshot.counts.builds;
     let mut header = vec![
-      self.span("\u{2500} ", self.config.theme.connector), // ─
-      self.span("Builds", self.config.theme.text),
+      span("\u{2500} ", self.config.theme.connector), // ─
+      span("Builds", self.config.theme.text),
     ];
     if self.config.show_timers {
-      header.push(self.span(
+      header.push(span(
         format!(
           "  {}{}{}",
           self.icons.clock,
@@ -58,7 +59,7 @@ impl Renderer<'_> {
     ] {
       if count > 0 {
         let gap = self.icons.gap;
-        header.push(self.span(format!("  {icon}{gap}{count} {label}"), color));
+        header.push(span(format!("  {icon}{gap}{count} {label}"), color));
       }
     }
     let mut lines = vec![fit_line(header, self.width)];
@@ -75,24 +76,24 @@ impl Renderer<'_> {
     builds.sort_by(|left, right| left.0.cmp(&right.0));
     for (name, build) in builds {
       let mut spans = vec![
-        self.span("  ", self.config.theme.text),
-        self.span(
+        span("  ", self.config.theme.text),
+        span(
           format!("{}{}{name}", self.icons.running, self.icons.gap),
           self.config.theme.running,
         ),
       ];
       if let Some(phase) = &build.phase {
-        spans.push(self.span(format!("  ({phase})"), self.config.theme.muted));
+        spans.push(span(format!("  ({phase})"), self.config.theme.muted));
       }
       if self.config.show_timers {
-        spans.push(self.span(
+        spans.push(span(
           format!("  {}", format_duration(elapsed(build.start, self.now))),
           self.config.theme.muted,
         ));
       }
       if let Some(estimate) = build.estimate {
         let spent = whole_seconds(elapsed(build.start, self.now));
-        spans.push(self.span(
+        spans.push(span(
           format!(
             "  {}{}{}",
             self.icons.estimate,
@@ -104,7 +105,7 @@ impl Renderer<'_> {
       }
       let host = build.host.name();
       if host != "localhost" {
-        spans.push(self.span(format!("  {host}"), self.config.theme.host));
+        spans.push(span(format!("  {host}"), self.config.theme.host));
       }
       lines.push(fit_line(spans, self.width));
     }
@@ -125,8 +126,8 @@ impl Renderer<'_> {
     for name in failed {
       lines.push(fit_line(
         vec![
-          self.span("  ", self.config.theme.text),
-          self.span(
+          span("  ", self.config.theme.text),
+          span(
             format!("{}{}{name}", self.icons.failed, self.icons.gap),
             self.config.theme.failed,
           ),
@@ -139,14 +140,14 @@ impl Renderer<'_> {
     transfers.sort_by(|left, right| left.name.cmp(&right.name));
     for transfer in transfers {
       let mut spans = vec![
-        self.span("  ", self.config.theme.text),
-        self.span(transfer.name.clone(), self.transfer_color(transfer)),
+        span("  ", self.config.theme.text),
+        span(transfer.name.clone(), self.transfer_color(transfer)),
       ];
       spans.extend(self.transfer_suffix(transfer, spans_width(&spans)));
       lines.push(fit_line(spans, self.width));
     }
     for fetch in &self.snapshot.source_fetches {
-      let prefix = vec![self.span("  ", self.config.theme.text)];
+      let prefix = vec![span("  ", self.config.theme.text)];
       lines.push(self.source_fetch_line(prefix, fetch));
     }
     lines
@@ -204,24 +205,24 @@ impl Renderer<'_> {
     };
     let mut lines = vec![fit_line(
       vec![
-        self.span("\u{256d}\u{2500} ", self.config.theme.connector), // ╭─
-        self.span(format!("Build Dashboard: {title}"), self.config.theme.text),
+        span("\u{256d}\u{2500} ", self.config.theme.connector), // ╭─
+        span(format!("Build Dashboard: {title}"), self.config.theme.text),
       ],
       self.width,
     )];
     lines.push(fit_line(
       vec![
-        self.span("\u{2502}  ", self.config.theme.connector), // │
-        self.span("Host      \u{2502} ", self.config.theme.muted), // │
-        self.span(host.to_owned(), self.config.theme.host),
+        span("\u{2502}  ", self.config.theme.connector), // │
+        span("Host      \u{2502} ", self.config.theme.muted), // │
+        span(host.to_owned(), self.config.theme.host),
       ],
       self.width,
     ));
     lines.push(fit_line(
       vec![
-        self.span("\u{2502}  ", self.config.theme.connector), // │
-        self.span("Status    \u{2502} ", self.config.theme.muted), // │
-        self.span(
+        span("\u{2502}  ", self.config.theme.connector), // │
+        span("Status    \u{2502} ", self.config.theme.muted), // │
+        span(
           format!("{status_icon}{}{status}", self.icons.gap),
           status_color,
         ),
@@ -230,9 +231,9 @@ impl Renderer<'_> {
     ));
     lines.push(fit_line(
       vec![
-        self.span("\u{2502}  ", self.config.theme.connector), // │
-        self.span("Duration  \u{2502} ", self.config.theme.muted), // │
-        self.span(
+        span("\u{2502}  ", self.config.theme.connector), // │
+        span("Duration  \u{2502} ", self.config.theme.muted), // │
+        span(
           format_duration(elapsed(self.snapshot.start_time, self.now)),
           self.config.theme.muted,
         ),
@@ -243,17 +244,17 @@ impl Renderer<'_> {
     if transfers.peek().is_some() {
       let transfer = aggregate_transfers(transfers);
       let mut spans = vec![
-        self.span("\u{2502}  ", self.config.theme.connector), // │
-        self.span("Transfer  \u{2502}", self.config.theme.muted), // │
+        span("\u{2502}  ", self.config.theme.connector), // │
+        span("Transfer  \u{2502}", self.config.theme.muted), // │
       ];
       spans.extend(self.transfer_suffix(&transfer, spans_width(&spans)));
       lines.push(fit_line(spans, self.width));
     }
     lines.push(fit_line(
       vec![
-        self.span("\u{2570}\u{2500} ", self.config.theme.connector), // ╰─
-        self.span("Summary   \u{2502} ", self.config.theme.muted),   // │
-        self.span(
+        span("\u{2570}\u{2500} ", self.config.theme.connector), // ╰─
+        span("Summary   \u{2502} ", self.config.theme.muted),   // │
+        span(
           format!(
             "jobs={}  ok={done}  failed={failed}  waiting={planned}",
             active + planned + done + failed,

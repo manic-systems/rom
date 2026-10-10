@@ -198,14 +198,10 @@ fn parse_input_drvs(s: &str) -> Result<Vec<(String, Vec<String>)>, String> {
     "Invalid input drvs format",
     "Invalid input drv tuple format",
     |parts| {
-      if parts.len() < 2 {
+      let [path, outputs, ..] = parts else {
         return Ok(None);
-      }
-
-      Ok(Some((
-        parse_string(&parts[0])?,
-        parse_string_list(&parts[1])?,
-      )))
+      };
+      Ok(Some((parse_string(path)?, parse_string_list(outputs)?)))
     },
   )
 }
@@ -223,11 +219,10 @@ fn parse_env(s: &str) -> Result<Vec<(String, String)>, String> {
 fn parse_string_pair(
   parts: &[String],
 ) -> Result<Option<(String, String)>, String> {
-  if parts.len() < 2 {
+  let [name, value, ..] = parts else {
     return Ok(None);
-  }
-
-  Ok(Some((parse_string(&parts[0])?, parse_string(&parts[1])?)))
+  };
+  Ok(Some((parse_string(name)?, parse_string(value)?)))
 }
 
 /// Parses a list of strings: `["foo","bar",...]`.
@@ -261,13 +256,12 @@ fn unescape_string(s: &str) -> String {
         Some('n') => result.push('\n'),
         Some('t') => result.push('\t'),
         Some('r') => result.push('\r'),
-        Some('\\') => result.push('\\'),
+        Some('\\') | None => result.push('\\'),
         Some('"') => result.push('"'),
         Some(c) => {
           result.push('\\');
           result.push(c);
         },
-        None => result.push('\\'),
       }
     } else {
       result.push(ch);

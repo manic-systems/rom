@@ -112,7 +112,7 @@ impl<'a> Renderer<'a> {
     if matches!(self.config.format, DisplayFormat::Tree) {
       if final_render && self.max_height <= 1 {
         let (text, color) = self.final_status();
-        return vec![fit_line(vec![self.span(text, color)], self.width)];
+        return vec![fit_line(vec![span(text, color)], self.width)];
       }
       let tail = if final_render {
         self.final_summary(true)
@@ -141,7 +141,7 @@ impl<'a> Renderer<'a> {
     if lines.len() > maximum {
       if final_render && maximum == 1 {
         let (text, color) = self.final_status();
-        return vec![fit_line(vec![self.span(text, color)], self.width)];
+        return vec![fit_line(vec![span(text, color)], self.width)];
       }
       if final_render {
         let final_line = lines.pop().expect("final render has a summary");
@@ -152,7 +152,7 @@ impl<'a> Renderer<'a> {
       let hidden = lines.len() - maximum + 1;
       lines.truncate(maximum.saturating_sub(1));
       lines.push(Line::from(vec![
-        self.span(
+        span(
           if matches!(self.config.format, DisplayFormat::Plain) {
             ""
           } else {
@@ -160,7 +160,7 @@ impl<'a> Renderer<'a> {
           },
           self.config.theme.connector,
         ),
-        self.span(format!("… {hidden} hidden"), self.config.theme.muted),
+        span(format!("… {hidden} hidden"), self.config.theme.muted),
       ]));
     }
     lines
@@ -227,16 +227,17 @@ impl<'a> Renderer<'a> {
       });
     let available = usize::from(self.width)
       .saturating_sub(spans_width(&spans) + detail.width());
-    spans.push(
-      self.span(truncate_text(name, available), self.config.theme.running),
-    );
-    spans.push(self.span(detail, self.config.theme.muted));
+    spans.push(span(
+      truncate_text(name, available),
+      self.config.theme.running,
+    ));
+    spans.push(span(detail, self.config.theme.muted));
     fit_line(spans, self.width)
   }
+}
 
-  fn span(&self, value: impl Into<String>, color: Color) -> Span<'static> {
-    Span::styled(value.into(), Style::default().fg(color))
-  }
+fn span(value: impl Into<String>, color: Color) -> Span<'static> {
+  Span::styled(value.into(), Style::default().fg(color))
 }
 
 fn preserve_last(
@@ -269,13 +270,13 @@ fn progress_bar(
   }
   let halves = u128::from(done.min(total)).saturating_mul((width * 2) as u128)
     / u128::from(total);
-  let full = (halves / 2) as usize;
+  let filled = (halves / 2) as usize;
   let half = halves % 2 == 1;
-  let empty = width - full - usize::from(half);
+  let empty = width - filled - usize::from(half);
   let mut spans = Vec::new();
-  if full > 0 {
+  if filled > 0 {
     spans.push(Span::styled(
-      "\u{2501}".repeat(full), // ━
+      "\u{2501}".repeat(filled), // ━
       Style::default().fg(fill),
     ));
   }

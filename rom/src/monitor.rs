@@ -205,7 +205,7 @@ impl Engine {
   }
 
   /// Sets the source of `.drv` metadata.
-  pub fn set_resolver(&mut self, resolver: impl DerivationResolver + 'static) {
+  pub fn set_resolver<R: DerivationResolver + 'static>(&mut self, resolver: R) {
     self.resolver = Some(Box::new(resolver));
   }
 
@@ -330,7 +330,7 @@ impl Engine {
     let prefix = log.activity.map_or_else(String::new, |id| {
       self
         .state
-        .get_activity_prefix(id, &self.config.log_prefix_style)
+        .get_activity_prefix(id, self.config.log_prefix_style)
         .unwrap_or_default()
     });
     if let Some(id) = log.activity {
@@ -478,12 +478,10 @@ impl DerivationTree<'_> {
 
     let mut changed = false;
     for id in due {
-      let Some(produced) = self.resolver.produced(&self.producers[&id].path)
-      else {
+      let Some(drv) = self.resolver.produced(&self.producers[&id].path) else {
         continue;
       };
-      let Some(derivation) = produced.to_str().and_then(Derivation::parse)
-      else {
+      let Some(derivation) = drv.to_str().and_then(Derivation::parse) else {
         continue;
       };
       let Some(producer) = self.producers.remove(&id) else {
@@ -496,11 +494,13 @@ impl DerivationTree<'_> {
       }
       // A text output is named after its derivation, so a produced
       // `x.drv.drv` is itself the producer of `x.drv`.
-      let stem = produced.file_stem().and_then(|stem| stem.to_str());
-      if stem.is_some_and(|stem| stem.ends_with(".drv")) {
-        self.register(&produced, producer.consumers);
+      let stem = drv.file_stem().map(Path::new);
+      if stem
+        .is_some_and(|stem| stem.extension().is_some_and(|ext| ext == "drv"))
+      {
+        self.register(&drv, producer.consumers);
       }
-      changed |= self.resolve(produced);
+      changed |= self.resolve(drv);
     }
     changed
   }
