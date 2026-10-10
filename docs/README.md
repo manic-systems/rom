@@ -53,18 +53,18 @@ selected automatically for Ghostty, WezTerm, Kitty, and Superset. For other
 terminals with a patched font, set `NERD_FONTS=1`.
 
 Downloads and uploads are first-class activities. Known-size transfers use a
-line bar, heavy `━╸` for the finished part and a light
-`─` track, with half-cell steps, colored by the active `Theme`.
-Unknown-size transfers show transferred bytes and a spinner rather than a fake
-percentage. Source downloads with no known producer appear beneath a consuming
-build, keeping that branch visible while the transfer is active. Shared sources
-appear once, prefer a running or planned consumer, and show how many builds use
-them; global transfer counts remain unique. Cached sources stay hidden, and
-completed transfers disappear after the existing one-second live grace period.
-Final frames omit completed transfer rows immediately while retaining their
-global completion totals. Unrelated transfers remain in the separate Transfers
-branch. A source edge expresses a dependency, not proof that Nix is currently
-blocked on that download.
+line bar, heavy `━╸` for the finished part and a light `─` track, with half-cell
+steps, colored by the active `Theme`. Unknown-size transfers show transferred
+bytes and a spinner rather than a fake percentage. Source downloads with no
+known producer appear beneath a consuming build, keeping that branch visible
+while the transfer is active. Shared sources appear once, prefer a running or
+planned consumer, and show how many builds use them; global transfer counts
+remain unique. Cached sources stay hidden, and completed transfers disappear
+after the existing one-second live grace period. Final frames omit completed
+transfer rows immediately while retaining their global completion totals.
+Unrelated transfers remain in the separate Transfers branch. A source edge
+expresses a dependency, not proof that Nix is currently blocked on that
+download.
 
 Like nix-output-monitor, ROM uses synchronized updates on every direct
 interactive terminal without a capability round trip. Pending logs and the
@@ -100,8 +100,8 @@ let update = engine.process_record_at(
 )?;
 ```
 
-Library-only consumers can disable ROM's default `cli` feature to omit pound, the
-tracing subscriber, and Unix process-signal dependencies.
+Library-only consumers can disable ROM's default `cli` feature to omit pound,
+the tracing subscriber, and Unix process-signal dependencies.
 
 `StreamEngine` adds incremental framing without accumulating arbitrarily long
 passthrough lines. `Monitor` is the append-only `BufRead`/`Write` convenience
@@ -110,8 +110,8 @@ services; the CLI supplies filesystem-backed implementations.
 
 ## Reproducible visual fixtures
 
-Fixtures are timed raw Nix logs. Each line of `rom/tests/fixtures/<log>.log`
-is either `<ms> <raw line>`, written to ROM followed by a newline, or
+Fixtures are timed raw Nix logs. Each line of `rom/tests/fixtures/<log>.log` is
+either `<ms> <raw line>`, written to ROM followed by a newline, or
 `<ms> = <checkpoint>`, which snapshots the frame at that time:
 
 ```text
