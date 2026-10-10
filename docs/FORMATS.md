@@ -102,10 +102,10 @@ All formats use consistent icons:
 
 | Icon | Meaning           | Color   |
 | ---- | ----------------- | ------- |
-| ⏵    | Building/Running  | Blue    |
+| ⏵    | Building/Running  | Yellow  |
 | ✔    | Completed/Success | Green   |
 | ✗    | Failed/Error      | Red     |
-| ⏸    | Planned/Waiting   | Yellow  |
+| ⏸    | Planned/Waiting   | Blue    |
 | ⏱    | Time/Duration     | Grey    |
 | ↓    | Downloading       | Cyan    |
 | ↑    | Uploading         | Magenta |

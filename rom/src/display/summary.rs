@@ -109,7 +109,7 @@ impl Renderer<'_> {
         (text, color)
       };
       [
-        (label.to_owned(), theme.connector),
+        (label.to_owned(), theme.text),
         cell(0, theme.running),
         cell(1, theme.completed),
         cell(2, theme.planned),
