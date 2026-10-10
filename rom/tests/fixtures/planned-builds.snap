@@ -1,29 +1,29 @@
 === planned @ 50ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m├─ ⏸ dep-1.0\e[0m
-\e[0;34m├─ ⏸ lib-1.0\e[0m
-\e[0;34m├─ ⏸ app-1.0\e[0m
-\e[0;34m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 3       \e[0;31m✗ 0      \e[0m∑ 3
-\e[0;34m┗━ \e[0mElapsed ⏱ 0s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m├─ ⏸ dep-1.0\e[0m
+\e[0;33m├─ ⏸ lib-1.0\e[0m
+\e[0;33m├─ ⏸ app-1.0\e[0m
+\e[0;33m┢━ \e[0mStatus      \e[0;34mRunning   \e[0;32mCompleted   \e[0;33mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;33m┃  Builds      \e[0;34m⏵ 0       \e[0;32m✔ 0         \e[0;33m⏸ 3       \e[0;31m✗ 0      \e[0m∑ 3
+\e[0;33m┗━ \e[0mElapsed ⏱ 0s
 === first-running @ 150ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m├─ \e[0;33m⏵ dep-1.0\e[0;90m  ⏱ 0s\e[0m
-\e[0;34m├─ ⏸ lib-1.0\e[0m
-\e[0;34m├─ ⏸ app-1.0\e[0m
-\e[0;34m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;34m┃  Builds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 2       \e[0;31m✗ 0      \e[0m∑ 3
-\e[0;34m┗━ \e[0mElapsed ⏱ 0s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m├─ \e[0;34m⏵ dep-1.0\e[0;90m  ⏱ 0s\e[0m
+\e[0;33m├─ ⏸ lib-1.0\e[0m
+\e[0;33m├─ ⏸ app-1.0\e[0m
+\e[0;33m┢━ \e[0mStatus      \e[0;34mRunning   \e[0;32mCompleted   \e[0;33mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;33m┃  Builds      \e[0;34m⏵ 1       \e[0;32m✔ 0         \e[0;33m⏸ 2       \e[0;31m✗ 0      \e[0m∑ 3
+\e[0;33m┗━ \e[0mElapsed ⏱ 0s
 === second-running @ 350ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m├─ \e[0;33m⏵ lib-1.0\e[0;90m  ⏱ 0s\e[0m
-\e[0;34m├─ ⏸ app-1.0\e[0m
-\e[0;34m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;34m┃  Builds      \e[0;33m⏵ 1       \e[0;32m✔ 1         \e[0;34m⏸ 1       \e[0;31m✗ 0      \e[0m∑ 3
-\e[0;34m┗━ \e[0mElapsed ⏱ 0s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m├─ \e[0;34m⏵ lib-1.0\e[0;90m  ⏱ 0s\e[0m
+\e[0;33m├─ ⏸ app-1.0\e[0m
+\e[0;33m┢━ \e[0mStatus      \e[0;34mRunning   \e[0;32mCompleted   \e[0;33mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;33m┃  Builds      \e[0;34m⏵ 1       \e[0;32m✔ 1         \e[0;33m⏸ 1       \e[0;31m✗ 0      \e[0m∑ 3
+\e[0;33m┗━ \e[0mElapsed ⏱ 0s
 === finished @ 700ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m┕━ \e[0;32mFinished after 0s\e[0m
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m┕━ \e[0;32mFinished after 0s\e[0m
 === log ===
 these 3 derivations will be built:\e[0m
   /nix/store/00000000000000000000000000000003-dep-1.0.drv\e[0m

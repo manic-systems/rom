@@ -1,31 +1,31 @@
 === starting @ 600ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 0
-\e[0;34m┗━ \e[0mElapsed ⏱ 0s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m┢━ \e[0mStatus      \e[0;34mRunning   \e[0;32mCompleted   \e[0;33mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;33m┃  Builds      \e[0;34m⏵ 0       \e[0;32m✔ 0         \e[0;33m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 0
+\e[0;33m┗━ \e[0mElapsed ⏱ 0s
 === fetching @ 1200ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m├─ \e[0mTransfers
-\e[0;34m│  ├─ \e[0;33mapp\e[0;90m  ◐ copying  1s\e[0m
-\e[0;34m│  ╰─ \e[0;33mec9a6634fc6c422271eb03bb0c4ae6d3d1fecd14?narHash=sha256-51\e[0;90m  ◐ copying  1s\e[0m
-\e[0;34m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 0
-\e[0;34m┗━ \e[0mElapsed ⏱ 1s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m├─ \e[0mTransfers
+\e[0;33m│  ├─ \e[0;34mapp\e[0;90m  ◐ copying  1s\e[0m
+\e[0;33m│  ╰─ \e[0;34mec9a6634fc6c422271eb03bb0c4ae6d3d1fecd14?narHash=sha256-51\e[0;90m  ◐ copying  1s\e[0m
+\e[0;33m┢━ \e[0mStatus      \e[0;34mRunning   \e[0;32mCompleted   \e[0;33mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;33m┃  Builds      \e[0;34m⏵ 0       \e[0;32m✔ 0         \e[0;33m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 0
+\e[0;33m┗━ \e[0mElapsed ⏱ 1s
 === one-left @ 1400ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m├─ \e[0mTransfers
-\e[0;34m│  ╰─ \e[0;33mapp\e[0;90m  ◓ copying  1s\e[0m
-\e[0;34m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 0
-\e[0;34m┗━ \e[0mElapsed ⏱ 1s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m├─ \e[0mTransfers
+\e[0;33m│  ╰─ \e[0;34mapp\e[0;90m  ◓ copying  1s\e[0m
+\e[0;33m┢━ \e[0mStatus      \e[0;34mRunning   \e[0;32mCompleted   \e[0;33mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;33m┃  Builds      \e[0;34m⏵ 0       \e[0;32m✔ 0         \e[0;33m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 0
+\e[0;33m┗━ \e[0mElapsed ⏱ 1s
 === cached-inputs @ 1505ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m├─ \e[0mTransfers
-\e[0;34m│  ╰─ \e[0;33mapp\e[0;90m  ◑ copying  1s\e[0m
-\e[0;34m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;34m┃  Builds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 0
-\e[0;34m┗━ \e[0mElapsed ⏱ 1s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m├─ \e[0mTransfers
+\e[0;33m│  ╰─ \e[0;34mapp\e[0;90m  ◑ copying  1s\e[0m
+\e[0;33m┢━ \e[0mStatus      \e[0;34mRunning   \e[0;32mCompleted   \e[0;33mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;33m┃  Builds      \e[0;34m⏵ 0       \e[0;32m✔ 0         \e[0;33m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 0
+\e[0;33m┗━ \e[0mElapsed ⏱ 1s
 === finished @ 2000ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m┕━ \e[0;32mFinished after 2s\e[0m
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m┕━ \e[0;32mFinished after 2s\e[0m
 === log ===

@@ -163,15 +163,15 @@ pub enum IconMode {
 impl Default for Theme {
   fn default() -> Self {
     Self {
-      connector:      Color::Blue,
+      connector:      Color::Yellow,
       // The terminal's own foreground, readable on light and dark themes.
       text:           Color::Reset,
       muted:          Color::DarkGray,
-      planned:        Color::Blue,
-      running:        Color::Yellow,
+      planned:        Color::Yellow,
+      running:        Color::Blue,
       completed:      Color::Green,
       failed:         Color::Red,
-      log_prefix:     Color::Blue,
+      log_prefix:     Color::Yellow,
       host:           Color::Magenta,
       download:       Color::Cyan,
       upload:         Color::Magenta,

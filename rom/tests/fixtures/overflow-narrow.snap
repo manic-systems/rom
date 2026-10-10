@@ -1,26 +1,26 @@
 === all-running @ 300ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m├─ \e[0;33m⏵ system\e[0;90m  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ bash\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ coreutils\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ gcc\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ glibc\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ╰─ \e[0;33m⏵ openssl\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m├─ \e[0;90m… 11 active\e[0m
-\e[0;34m┢━ Builds    \e[0;33m⏵ 17 \e[0;32m✔ 0 \e[0;34m⏸ 0 \e[0;31m✗ 0 \e[0m∑ 17
-\e[0;34m┗━ \e[0mElapsed ⏱ 0s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m├─ \e[0;34m⏵ system\e[0;90m  ⏱ 0s\e[0m
+\e[0;33m│  ├─ \e[0;34m⏵ bash\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m│  ├─ \e[0;34m⏵ coreutils\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m│  ├─ \e[0;34m⏵ gcc\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m│  ├─ \e[0;34m⏵ glibc\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m│  ╰─ \e[0;34m⏵ openssl\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m├─ \e[0;90m… 11 active\e[0m
+\e[0;33m┢━ Builds    \e[0;34m⏵ 17 \e[0;32m✔ 0 \e[0;33m⏸ 0 \e[0;31m✗ 0 \e[0m∑ 17
+\e[0;33m┗━ \e[0mElapsed ⏱ 0s
 === half-done @ 500ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m├─ \e[0;33m⏵ system\e[0;90m  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ perl\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ git\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ ncurses\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ├─ \e[0;33m⏵ readline\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m│  ╰─ \e[0;33m⏵ sqlite\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m├─ \e[0;90m… 3 active\e[0m
-\e[0;34m┢━ Builds    \e[0;33m⏵ 9 \e[0;32m✔ 8 \e[0;34m⏸ 0 \e[0;31m✗ 0 \e[0m∑ 17
-\e[0;34m┗━ \e[0mElapsed ⏱ 0s
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m├─ \e[0;34m⏵ system\e[0;90m  ⏱ 0s\e[0m
+\e[0;33m│  ├─ \e[0;34m⏵ perl\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m│  ├─ \e[0;34m⏵ git\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m│  ├─ \e[0;34m⏵ ncurses\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m│  ├─ \e[0;34m⏵ readline\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m│  ╰─ \e[0;34m⏵ sqlite\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
+\e[0;33m├─ \e[0;90m… 3 active\e[0m
+\e[0;33m┢━ Builds    \e[0;34m⏵ 9 \e[0;32m✔ 8 \e[0;33m⏸ 0 \e[0;31m✗ 0 \e[0m∑ 17
+\e[0;33m┗━ \e[0mElapsed ⏱ 0s
 === finished @ 700ms ===
-\e[0;34m╭─ \e[0mBuilds
-\e[0;34m┕━ \e[0;32mFinished after 0s\e[0m
+\e[0;33m╭─ \e[0mBuilds
+\e[0;33m┕━ \e[0;32mFinished after 0s\e[0m
 === log ===

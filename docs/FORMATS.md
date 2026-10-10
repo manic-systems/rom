@@ -100,12 +100,12 @@ the screen. At this moment they only affect the **tree format**.
 
 All formats use consistent icons:
 
-| Icon | Meaning           | Color  |
-| ---- | ----------------- | ------ |
-| ⏵    | Building/Running  | Yellow |
-| ✔    | Completed/Success | Green  |
-| ✗    | Failed/Error      | Red    |
-| ⏸    | Planned/Waiting   | Grey   |
-| ⏱    | Time/Duration     | Grey   |
-| ↓    | Downloading       | Yellow |
-| ↑    | Uploading         | Yellow |
+| Icon | Meaning           | Color   |
+| ---- | ----------------- | ------- |
+| ⏵    | Building/Running  | Blue    |
+| ✔    | Completed/Success | Green   |
+| ✗    | Failed/Error      | Red     |
+| ⏸    | Planned/Waiting   | Yellow  |
+| ⏱    | Time/Duration     | Grey    |
+| ↓    | Downloading       | Cyan    |
+| ↑    | Uploading         | Magenta |
