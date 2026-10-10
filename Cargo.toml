@@ -1,15 +1,14 @@
 [workspace]
 resolver = "3"
 members = ["crates/cognos", "rom"]
-resolver = "3"
 
 [workspace.package]
 version = "0.2.1"
 edition = "2024"
-description = "Pretty build graphs for your pretty Nix builds"
 rust-version = "1.92.0"
-license = "EUPL-1.2"
+description = "Pretty build graphs for your pretty Nix builds"
 homepage = "https://github.com/manic-systems/rom"
+license = "EUPL-1.2"
 
 [workspace.dependencies]
 cognos = { path = "./crates/cognos", version = "1.0.1" }  # cognos is versioned independently
@@ -26,26 +25,12 @@ ratatui-core = { version = "0.1.2", features = ["scrolling-regions"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 serde_repr = "0.1.21"
-crossterm = "0.29.0"
-ratatui-core = { version = "0.1.2", features = ["scrolling-regions"] }
-indexmap = { version = "2.14.2", features = ["serde"] }
-csv = "1.4.0"
-jiff = { version = "0.2.37", default-features = false, features = ["std"] }
+signal-hook = "0.4.4"
+tempfile = "3.27.0"
 thiserror = "2.0.20"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-misstep = { version = "0.3.0", features = ["pretty"] }
-etcetera = "0.11.0"
-tempfile = "3.27.0"
 unicode-width = "0.2.2"
-libc = "0.2.189"
-signal-hook = "0.4.4"
-
-[profile.release]
-codegen-units = 1
-lto = "thin"
-opt-level = 3
-strip = "symbols"
 
 [workspace.lints.clippy]
 cargo = { level = "warn", priority = -1 }
