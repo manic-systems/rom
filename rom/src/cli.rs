@@ -122,7 +122,7 @@ pub fn run() -> eyre::Result<ExitCode> {
     .and_then(|path| {
       PathBuf::from(path).file_name()?.to_str().map(str::to_owned)
     })
-    .unwrap_or_else(|| "rom".to_string());
+    .unwrap_or_else(|| "rom".to_owned());
   let mut arguments = process_args
     .map(|argument| {
       argument
@@ -131,9 +131,9 @@ pub fn run() -> eyre::Result<ExitCode> {
     })
     .collect::<eyre::Result<Vec<_>>>()?;
   match program.as_str() {
-    "rom-build" => arguments.insert(0, "build".to_string()),
-    "rom-shell" => arguments.insert(0, "shell".to_string()),
-    "rom-develop" => arguments.insert(0, "develop".to_string()),
+    "rom-build" => arguments.insert(0, "build".to_owned()),
+    "rom-shell" => arguments.insert(0, "shell".to_owned()),
+    "rom-develop" => arguments.insert(0, "develop".to_owned()),
     _ => {},
   }
   let (rom_args, nix_flags) = parse_args_with_separator(&arguments);
@@ -202,8 +202,7 @@ pub fn run() -> eyre::Result<ExitCode> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor.clone())
-          .map(|()| ExitCode::SUCCESS)
+        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
       } else {
         build(packages, nix_flags, &config)
       }
@@ -212,8 +211,7 @@ pub fn run() -> eyre::Result<ExitCode> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor.clone())
-          .map(|()| ExitCode::SUCCESS)
+        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
       } else {
         shell(packages, nix_flags, &config)
       }
@@ -222,15 +220,12 @@ pub fn run() -> eyre::Result<ExitCode> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor.clone())
-          .map(|()| ExitCode::SUCCESS)
+        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
       } else {
         develop(packages, nix_flags, &config)
       }
     },
-    None => {
-      run_input(io::stdin(), config.monitor.clone()).map(|()| ExitCode::SUCCESS)
-    },
+    None => run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS),
   }
 }
 
@@ -266,10 +261,10 @@ fn build(
 ) -> eyre::Result<ExitCode> {
   require_packages("build", &packages)?;
   let mut arguments = vec![
-    "build".to_string(),
+    "build".to_owned(),
     nix_verbosity_flag(config.verbose),
-    "--log-format".to_string(),
-    "internal-json".to_string(),
+    "--log-format".to_owned(),
+    "internal-json".to_owned(),
   ];
   arguments.extend(packages);
   arguments.extend(nix_flags);
@@ -288,10 +283,10 @@ fn shell(
   require_packages("shell", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
-    "shell".to_string(),
+    "shell".to_owned(),
     nix_verbosity_flag(config.verbose),
-    "--log-format".to_string(),
-    "internal-json".to_string(),
+    "--log-format".to_owned(),
+    "internal-json".to_owned(),
   ];
   monitored.extend(replace_command_with_exit(&original));
   let code =
@@ -299,7 +294,7 @@ fn shell(
   if code != 0 {
     return Ok(exit_code(code));
   }
-  let mut arguments = vec!["shell".to_string()];
+  let mut arguments = vec!["shell".to_owned()];
   arguments.extend(packages);
   arguments.extend(nix_flags);
   Ok(exit_code(run_inherited(
@@ -316,10 +311,10 @@ fn develop(
   require_packages("develop", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
-    "develop".to_string(),
+    "develop".to_owned(),
     nix_verbosity_flag(config.verbose),
-    "--log-format".to_string(),
-    "internal-json".to_string(),
+    "--log-format".to_owned(),
+    "internal-json".to_owned(),
   ];
   monitored.extend(replace_command_with_exit(&original));
   let code =
@@ -327,7 +322,7 @@ fn develop(
   if code != 0 {
     return Ok(exit_code(code));
   }
-  let mut arguments = vec!["develop".to_string()];
+  let mut arguments = vec!["develop".to_owned()];
   arguments.extend(packages);
   arguments.extend(nix_flags);
   Ok(exit_code(run_inherited(
@@ -379,15 +374,15 @@ fn run_monitored_command(
     .ok_or_else(|| RomError::process("missing child stderr"))?;
 
   let stdout_thread = thread::spawn(move || -> io::Result<()> {
-    let mut stdout = stdout;
+    let mut source = stdout;
     let mut destination = io::stdout().lock();
-    io::copy(&mut stdout, &mut destination)?;
+    io::copy(&mut source, &mut destination)?;
     destination.flush()
   });
   let (receiver, reader_thread) = byte_reader(stderr);
   let mut monitor_config = config.monitor.clone();
   monitor_config.engine.input_mode = InputMode::Auto;
-  let result = drive(receiver, monitor_config, false, &interrupted);
+  let result = drive(&receiver, monitor_config, false, &interrupted);
   if result.is_err() {
     terminate_process(&mut child);
   }
@@ -404,6 +399,13 @@ fn run_monitored_command(
   Ok(exit_status_code(status))
 }
 
+#[cfg_attr(
+  unix,
+  expect(
+    clippy::needless_pass_by_ref_mut,
+    reason = "other platforms kill through the handle"
+  )
+)]
 fn terminate_process(child: &mut std::process::Child) {
   #[cfg(unix)]
   {
@@ -426,6 +428,10 @@ struct SignalForwarder {
 
 #[cfg(unix)]
 impl SignalForwarder {
+  #[expect(
+    clippy::semicolon_outside_block,
+    reason = "semicolon_inside_block asks for the opposite"
+  )]
   fn start(process_group: u32) -> io::Result<Self> {
     use signal_hook::consts::{SIGHUP, SIGINT, SIGTERM};
     let mut signals =
@@ -471,7 +477,7 @@ fn run_input<R: Read + Send + 'static>(
   config: Config,
 ) -> eyre::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
-  drive(receiver, config, true, &AtomicBool::new(false))?;
+  drive(&receiver, config, true, &AtomicBool::new(false))?;
   reader_thread
     .join()
     .map_err(|_| RomError::process("input reader panicked"))??;
@@ -640,7 +646,7 @@ impl Presenter {
 }
 
 fn drive(
-  receiver: Receiver<io::Result<Vec<u8>>>,
+  receiver: &Receiver<io::Result<Vec<u8>>>,
   config: Config,
   semantic_failure_is_error: bool,
   interrupted: &AtomicBool,
@@ -653,7 +659,9 @@ fn drive(
   stream.engine_mut().load_history(&history);
   let mut presenter = Presenter::new(silent);
   let mut dirty = false;
-  let mut last_frame = Instant::now() - Duration::from_secs(1);
+  let mut last_frame = Instant::now()
+    .checked_sub(Duration::from_secs(1))
+    .unwrap_or_else(Instant::now);
   let mut last_timer = Instant::now();
   if !silent && presenter.render_initial(&stream, &render, current_time())? {
     last_frame = Instant::now();
@@ -711,6 +719,8 @@ fn available_derivations(
   state: &State,
   interrupted: &AtomicBool,
 ) -> io::Result<Vec<DerivationId>> {
+  #[cfg(unix)] use std::os::unix::process::CommandExt;
+
   let mut relevant: HashSet<_> = state
     .derivations()
     .iter()
@@ -749,10 +759,7 @@ fn available_derivations(
     // Its own group keeps a terminal Ctrl-C from killing the query, which
     // would read as a missing output and split the batch further.
     #[cfg(unix)]
-    {
-      use std::os::unix::process::CommandExt;
-      query.process_group(0);
-    }
+    query.process_group(0);
     let output = query
       .args([
         "path-info",
@@ -795,7 +802,7 @@ pub fn replace_command_with_exit(arguments: &[String]) -> Vec<String> {
     }
     result.push(argument.clone());
   }
-  result.extend(["--command", "sh", "-c", "exit"].map(str::to_string));
+  result.extend(["--command", "sh", "-c", "exit"].map(str::to_owned));
   result
 }
 

@@ -17,12 +17,14 @@ use super::{
   fit_line,
   format_bytes,
   format_duration,
+  format_secs,
   model::TransferPlacement,
   progress_bar,
+  span,
   spans_width,
   truncate_text,
 };
-use crate::state::{BuildStatus, DerivationId};
+use crate::state::{BuildStatus, DerivationId, elapsed};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum RowId {
@@ -71,8 +73,16 @@ impl TreePlan {
       .saturating_add(1)
   }
 
+  fn focus_active(&self) -> bool {
+    self.rows.values().any(|row| row.active)
+  }
+
   fn row(&self, id: RowId) -> &PlannedRow {
     &self.rows[&id]
+  }
+
+  fn row_mut(&mut self, id: RowId) -> &mut PlannedRow {
+    self.rows.get_mut(&id).expect("planned row exists")
   }
 }
 
@@ -84,6 +94,10 @@ struct TreeSelection<'a> {
   maximum: usize,
 }
 
+#[expect(
+  clippy::multiple_inherent_impl,
+  reason = "rendering is split across modules by section"
+)]
 impl Renderer<'_> {
   /// Builds one typed row graph.
   ///
@@ -301,8 +315,8 @@ impl Renderer<'_> {
     }
     // The status box below continues the tree's line, so no row closes it.
     let mut lines = vec![Line::from(vec![
-      self.span("╭─ ", self.config.theme.connector),
-      self.span("Builds", self.config.theme.text),
+      span("\u{256d}\u{2500} ", self.config.theme.connector), // ╭─
+      span("Builds", self.config.theme.text),
     ])];
     for &root in &selection.roots {
       self.push_row(&mut lines, root, &[], false, &selection);
@@ -324,8 +338,8 @@ impl Renderer<'_> {
         (running, rest) => format!("… {running} active, {rest} more"),
       };
       lines.push(Line::from(vec![
-        self.span("├─ ", self.config.theme.connector),
-        self.span(label, self.config.theme.muted),
+        span("\u{251c}\u{2500} ", self.config.theme.connector), // ├─
+        span(label, self.config.theme.muted),
       ]));
     }
     lines
@@ -350,7 +364,7 @@ impl Renderer<'_> {
     if maximum <= 1 {
       return selection;
     }
-    let focus_active = self.focus_active(plan);
+    let focus_active = plan.focus_active();
     let mut frontier = BinaryHeap::new();
     let mut sequence = 0_usize;
     for &root in &plan.roots {
@@ -521,10 +535,6 @@ impl Renderer<'_> {
     })
   }
 
-  fn focus_active(&self, plan: &TreePlan) -> bool {
-    plan.rows.values().any(|row| row.active)
-  }
-
   fn push_row(
     &mut self,
     lines: &mut Vec<Line<'static>>,
@@ -582,7 +592,7 @@ impl Renderer<'_> {
     if selection.parents[&RowId::Build(id)]
       .is_some_and(|parent| !selection.rows.contains(&parent))
     {
-      spans.push(self.span("… ", self.config.theme.muted));
+      spans.push(span("\u{2026} ", self.config.theme.muted)); // …
     }
     let (icon, color, suffix) = match &info.build_status {
       BuildStatus::Unknown => {
@@ -594,33 +604,32 @@ impl Renderer<'_> {
       BuildStatus::Building(build) => {
         let mut suffix = Vec::new();
         if let Some(phase) = &build.phase {
-          let label = format!("  ({phase})");
-          suffix.push(self.span(label, self.config.theme.muted));
+          suffix.push(span(format!("  ({phase})"), self.config.theme.muted));
         }
         if self.config.show_timers {
-          suffix.push(self.span(
+          suffix.push(span(
             format!(
               "  {}{}{}",
               self.icons.clock,
               self.icons.gap,
-              format_duration(self.now - build.start)
+              format_duration(elapsed(build.start, self.now))
             ),
             self.config.theme.timer,
           ));
         }
         if let Host::Remote(machine) = &build.host {
           let label = format!(" @{machine}");
-          suffix.push(self.span(label, self.config.theme.host));
+          suffix.push(span(label, self.config.theme.host));
         }
         if let Some(estimate) = build.estimate
           && !self.snapshot.shared_names.contains(info.name.name.as_str())
         {
-          suffix.push(self.span(
+          suffix.push(span(
             format!(
               "  ({}{}{})",
               self.icons.estimate,
               self.icons.gap,
-              format_duration(estimate as f64)
+              format_secs(estimate)
             ),
             self.config.theme.timer,
           ));
@@ -645,8 +654,10 @@ impl Renderer<'_> {
           }
         }
         if unseen > 0 {
-          let label = format!("  (+{unseen} waiting)");
-          suffix.push(self.span(label, self.config.theme.planned));
+          suffix.push(span(
+            format!("  (+{unseen} waiting)"),
+            self.config.theme.planned,
+          ));
         }
         (self.icons.running, self.config.theme.running, suffix)
       },
@@ -660,7 +671,7 @@ impl Renderer<'_> {
         (self.icons.failed, self.config.theme.muted, Vec::new())
       },
     };
-    spans.push(self.span(format!("{icon}{}", self.icons.gap), color));
+    spans.push(span(format!("{icon}{}", self.icons.gap), color));
     let transfer = (!row.inline.is_empty()).then(|| {
       aggregate_transfers(
         row
@@ -676,7 +687,7 @@ impl Renderer<'_> {
     );
     let name_width =
       usize::from(self.width).saturating_sub(spans_width(&spans) + reserve);
-    spans.push(self.span(truncate_text(&info.name.name, name_width), color));
+    spans.push(span(truncate_text(&info.name.name, name_width), color));
     if let Some(aggregate) = transfer {
       spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
     }
@@ -712,7 +723,7 @@ impl Renderer<'_> {
     let hidden_sources = source_count.saturating_sub(shown_sources);
     if hidden_sources > 0 {
       let plural = if hidden_sources == 1 { "" } else { "s" };
-      spans.push(self.span(
+      spans.push(span(
         format!("  ({hidden_sources} source download{plural} hidden)"),
         self.config.theme.muted,
       ));
@@ -752,12 +763,12 @@ impl Renderer<'_> {
       .collect();
     let hidden = row.children.len() - shown.len();
     let label = if hidden == 0 {
-      "Transfers".to_string()
+      "Transfers".to_owned()
     } else {
       format!("Transfers ({hidden} hidden)")
     };
     let mut spans = self.prefix(ancestors, last);
-    spans.push(self.span(label, self.config.theme.text));
+    spans.push(span(label, self.config.theme.text));
     lines.push(Line::from(spans));
 
     let mut descendants = ancestors.to_vec();
@@ -777,13 +788,17 @@ impl Renderer<'_> {
   fn prefix(&self, ancestors: &[bool], last: bool) -> Vec<Span<'static>> {
     let mut spans = Vec::new();
     for &continues in ancestors {
-      spans.push(self.span(
-        if continues { "│  " } else { "   " },
+      spans.push(span(
+        if continues { "\u{2502}  " } else { "   " }, // │
         self.config.theme.connector,
       ));
     }
-    spans.push(self.span(
-      if last { "╰─ " } else { "├─ " },
+    spans.push(span(
+      if last {
+        "\u{2570}\u{2500} " // ╰─
+      } else {
+        "\u{251c}\u{2500} " // ├─
+      },
       self.config.theme.connector,
     ));
     spans
@@ -812,9 +827,10 @@ impl Renderer<'_> {
     };
     let name =
       truncate_text(&transfer.name, available.saturating_sub(shared.width()));
-    spans.push(
-      self.span(format!("{name}{shared}"), self.transfer_color(transfer)),
-    );
+    spans.push(span(
+      format!("{name}{shared}"),
+      self.transfer_color(transfer),
+    ));
     spans.extend(self.transfer_suffix(transfer, spans_width(&spans)));
     lines.push(fit_line(spans, self.width));
   }
@@ -839,11 +855,10 @@ impl Renderer<'_> {
         format!("{}/{}", format_bytes(transfer.done), format_bytes(total))
       },
     );
-    let elapsed = format_duration(self.now - transfer.start);
+    let duration = format_duration(elapsed(transfer.start, self.now));
     let essential = percent.map_or(8, |value| 7 + value.to_string().len());
     let available = usize::from(self.width).saturating_sub(occupied);
-    let mut spans =
-      vec![self.span(format!("  {arrow}{}", self.icons.gap), color)];
+    let mut spans = vec![span(format!("  {arrow}{}", self.icons.gap), color)];
     if let Some(value) = percent {
       let bar_width = available.saturating_sub(essential).min(32);
       if bar_width >= 4 {
@@ -856,30 +871,22 @@ impl Renderer<'_> {
         ));
         spans.push(Span::raw(" "));
       }
-      spans.push(self.span(format!("{value:>3}%"), color));
+      spans.push(span(format!("{value:>3}%"), color));
     } else {
-      spans.push(self.span(self.spinner(), color));
+      spans.push(span(self.spinner(), color));
     }
     if available > essential + bytes.len() + 2 {
-      spans.push(self.span(format!("  {bytes}"), self.config.theme.muted));
+      spans.push(span(format!("  {bytes}"), self.config.theme.muted));
     }
-    if available > essential + bytes.len() + elapsed.len() + 5 {
-      spans.push(self.span(format!("  {elapsed}"), self.config.theme.timer));
+    if available > essential + bytes.len() + duration.len() + 5 {
+      spans.push(span(format!("  {duration}"), self.config.theme.timer));
     }
     if transfer.host != "localhost"
       && available
-        > essential + bytes.len() + elapsed.len() + transfer.host.len() + 9
+        > essential + bytes.len() + duration.len() + transfer.host.len() + 9
     {
-      spans.push(
-        self.span(format!("  {}", transfer.host), self.config.theme.host),
-      );
+      spans.push(span(format!("  {}", transfer.host), self.config.theme.host));
     }
     spans
-  }
-}
-
-impl TreePlan {
-  fn row_mut(&mut self, id: RowId) -> &mut PlannedRow {
-    self.rows.get_mut(&id).expect("planned row exists")
   }
 }

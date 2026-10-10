@@ -1,6 +1,6 @@
 //! State management for ROM.
 use std::{
-  collections::{BTreeMap, HashMap, HashSet},
+  collections::{BTreeMap, BTreeSet, HashMap, HashSet},
   path::PathBuf,
   time::{Duration, SystemTime},
 };
@@ -47,8 +47,8 @@ impl StorePath {
 
     Some(Self {
       path: path_buf.clone(),
-      hash: parts[0].to_string(),
-      name: parts[1].to_string(),
+      hash: parts[0].to_owned(),
+      name: parts[1].to_owned(),
     })
   }
 }
@@ -69,16 +69,12 @@ impl Derivation {
     let path_buf = PathBuf::from(path);
     let file_name = path_buf.file_name()?.to_str()?;
 
-    if !file_name.ends_with(".drv") {
-      return None;
-    }
-
     let name = file_name.strip_suffix(".drv")?;
     let parts: Vec<&str> = name.splitn(2, '-').collect();
     let display_name = if parts.len() == 2 {
-      parts[1].to_string()
+      parts[1].to_owned()
     } else {
-      name.to_string()
+      name.to_owned()
     };
 
     Some(Self {
@@ -207,7 +203,7 @@ pub struct DerivationInfo {
   /// Current build status.
   pub build_status:       BuildStatus,
   /// Derivations that depend on this one.
-  pub derivation_parents: HashSet<DerivationId>,
+  pub derivation_parents: BTreeSet<DerivationId>,
   /// Package name from the derivation's environment.
   pub pname:              Option<String>,
   /// System the derivation builds for.
@@ -221,15 +217,15 @@ pub struct DerivationInfo {
 #[derive(Debug, Clone, Default)]
 pub struct DependencySummary {
   /// Downloads that have not started yet.
-  pub planned_downloads:   HashSet<StorePathId>,
+  pub planned_downloads:   BTreeSet<StorePathId>,
   /// Finished downloads.
-  pub completed_downloads: HashMap<StorePathId, CompletedTransferInfo>,
+  pub completed_downloads: BTreeMap<StorePathId, CompletedTransferInfo>,
   /// Finished uploads.
-  pub completed_uploads:   HashMap<StorePathId, CompletedTransferInfo>,
+  pub completed_uploads:   BTreeMap<StorePathId, CompletedTransferInfo>,
   /// Downloads in progress.
-  pub running_downloads:   HashMap<StorePathId, TransferInfo>,
+  pub running_downloads:   BTreeMap<StorePathId, TransferInfo>,
   /// Uploads in progress.
-  pub running_uploads:     HashMap<StorePathId, TransferInfo>,
+  pub running_uploads:     BTreeMap<StorePathId, TransferInfo>,
 }
 
 /// Activity status tracking.
@@ -258,7 +254,7 @@ pub struct SourceFetch {
 #[derive(Debug, Clone)]
 pub struct BuildReport {
   /// Build duration in seconds.
-  pub duration_secs: f64,
+  pub duration_secs: u64,
   /// Wall-clock time the build completed.
   pub completed_at:  SystemTime,
 }
@@ -270,9 +266,9 @@ pub struct State {
   store_path_infos:   IndexMap<StorePathId, StorePathInfo>,
   full_summary:       DependencySummary,
   forest_roots:       Vec<DerivationId>,
-  build_cache:        HashMap<(String, String), Vec<BuildReport>>,
+  build_cache:        BTreeMap<(String, String), Vec<BuildReport>>,
   start_time:         f64,
-  progress_state:     ProgressState,
+  progress:           ProgressState,
   store_path_ids:     HashMap<StorePath, StorePathId>,
   derivation_ids:     HashMap<Derivation, DerivationId>,
   activities:         HashMap<ActivityId, ActivityStatus>,
@@ -298,9 +294,9 @@ impl State {
       store_path_infos:   IndexMap::new(),
       full_summary:       DependencySummary::default(),
       forest_roots:       Vec::new(),
-      build_cache:        HashMap::new(),
+      build_cache:        BTreeMap::new(),
       start_time:         current_time(),
-      progress_state:     ProgressState::JustStarted,
+      progress:           ProgressState::JustStarted,
       store_path_ids:     HashMap::new(),
       derivation_ids:     HashMap::new(),
       activities:         HashMap::new(),
@@ -315,7 +311,7 @@ impl State {
   /// Returns how far the run has progressed.
   #[must_use]
   pub fn progress_state(&self) -> ProgressState {
-    self.progress_state.clone()
+    self.progress.clone()
   }
 
   /// Returns the start time, in seconds since the UNIX epoch.
@@ -355,28 +351,28 @@ impl State {
   }
 
   pub(crate) fn begin_at(&mut self, now: f64) -> bool {
-    if self.progress_state != ProgressState::JustStarted {
+    if self.progress != ProgressState::JustStarted {
       return false;
     }
     self.start_time = now;
-    self.progress_state = ProgressState::InputReceived;
+    self.progress = ProgressState::InputReceived;
     true
   }
 
-  pub(crate) fn finish(&mut self) {
-    self.progress_state = ProgressState::Finished;
+  pub(crate) const fn finish(&mut self) {
+    self.progress = ProgressState::Finished;
   }
 
   pub(crate) fn replace_build_history(
     &mut self,
-    history: HashMap<(String, String), Vec<BuildReport>>,
+    history: BTreeMap<(String, String), Vec<BuildReport>>,
   ) {
     self.build_cache = history;
   }
 
-  pub(crate) fn build_history(
+  pub(crate) const fn build_history(
     &self,
-  ) -> &HashMap<(String, String), Vec<BuildReport>> {
+  ) -> &BTreeMap<(String, String), Vec<BuildReport>> {
     &self.build_cache
   }
 
@@ -387,7 +383,7 @@ impl State {
   ) -> Option<&[BuildReport]> {
     self
       .build_cache
-      .get(&(host.name().to_string(), derivation.to_string()))
+      .get(&(host.name().to_owned(), derivation.to_owned()))
       .map(Vec::as_slice)
   }
 
@@ -427,7 +423,7 @@ impl State {
       name:               drv.clone(),
       input_derivations:  Vec::new(),
       build_status:       BuildStatus::Unknown,
-      derivation_parents: HashSet::new(),
+      derivation_parents: BTreeSet::new(),
       pname:              None,
       platform:           None,
     });
@@ -456,6 +452,10 @@ impl State {
     original_id
   }
 
+  #[expect(
+    clippy::iter_over_hash_type,
+    reason = "every entry is rewritten in place, so order does not matter"
+  )]
   fn merge_derivations(
     &mut self,
     original: DerivationId,
@@ -745,21 +745,21 @@ impl State {
     let Some(info) = self.derivation_infos.get_mut(&id) else {
       return false;
     };
-    if !matches!(info.build_status, BuildStatus::Building(_)) {
-      return false;
-    }
-    let BuildStatus::Building(build) =
-      std::mem::replace(&mut info.build_status, BuildStatus::Unknown)
-    else {
-      unreachable!("build status was checked");
-    };
+    let build =
+      match std::mem::replace(&mut info.build_status, BuildStatus::Unknown) {
+        BuildStatus::Building(build) => build,
+        other => {
+          info.build_status = other;
+          return false;
+        },
+      };
     let completed_at = SystemTime::now();
     self
       .build_cache
-      .entry((build.host.name().to_string(), info.name.name.clone()))
+      .entry((build.host.name().to_owned(), info.name.name.clone()))
       .or_default()
       .push(BuildReport {
-        duration_secs: now - build.start,
+        duration_secs: whole_seconds(elapsed(build.start, now)),
         completed_at,
       });
     info.build_status = BuildStatus::Built {
@@ -786,12 +786,6 @@ impl State {
     let Some(info) = self.derivation_infos.get_mut(&id) else {
       return;
     };
-    if !matches!(
-      info.build_status,
-      BuildStatus::Building(_) | BuildStatus::Built { .. }
-    ) {
-      return;
-    }
     let previous =
       std::mem::replace(&mut info.build_status, BuildStatus::Unknown);
     let build = match previous {
@@ -803,18 +797,19 @@ impl State {
       } => {
         if let Some(reports) = self
           .build_cache
-          .get_mut(&(build.host.name().to_string(), info.name.name.clone()))
+          .get_mut(&(build.host.name().to_owned(), info.name.name.clone()))
         {
           reports.retain(|report| report.completed_at != completed_at);
         }
         build
       },
-      BuildStatus::Unknown
+      other @ (BuildStatus::Unknown
       | BuildStatus::Planned
       | BuildStatus::Available
       | BuildStatus::Failed { .. }
-      | BuildStatus::DependencyFailed => {
-        unreachable!("build status was checked");
+      | BuildStatus::DependencyFailed) => {
+        info.build_status = other;
+        return;
       },
     };
     info.build_status = BuildStatus::Failed { info: build, fail };
@@ -1024,7 +1019,7 @@ impl State {
   pub(crate) fn get_activity_prefix(
     &self,
     activity_id: ActivityId,
-    prefix_style: &crate::types::LogPrefixStyle,
+    prefix_style: crate::types::LogPrefixStyle,
   ) -> Option<String> {
     use cognos::Activities;
 
@@ -1093,6 +1088,20 @@ pub fn current_time() -> f64 {
     .duration_since(SystemTime::UNIX_EPOCH)
     .unwrap_or(Duration::ZERO)
     .as_secs_f64()
+}
+
+/// Returns the seconds from `start` to `now`.
+#[must_use]
+#[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
+pub const fn elapsed(start: f64, now: f64) -> f64 {
+  now - start
+}
+
+/// Converts seconds to whole seconds, clamping negative values to zero.
+#[must_use]
+#[expect(clippy::cast_sign_loss, reason = "negative values are clamped first")]
+pub const fn whole_seconds(secs: f64) -> u64 {
+  secs.max(0.0) as u64
 }
 
 #[cfg(test)]

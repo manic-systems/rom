@@ -1,7 +1,7 @@
 //! CSV persistence of historical build durations.
 
 use std::{
-  collections::{HashMap, HashSet},
+  collections::{BTreeMap, HashSet},
   fs::{self, File, OpenOptions},
   io::{self, BufReader, BufWriter},
   path::PathBuf,
@@ -59,37 +59,35 @@ impl BuildReportCache {
 
   /// Loads build reports from the CSV file.
   ///
-  /// Returns an empty [`HashMap`] if the file doesn't exist or can't be parsed.
+  /// Returns an empty [`BTreeMap`] if the file doesn't exist or can't be
+  /// parsed.
   #[must_use]
-  pub fn load(&self) -> HashMap<(String, String), Vec<BuildReport>> {
+  pub fn load(&self) -> BTreeMap<(String, String), Vec<BuildReport>> {
     if !self.cache_path.exists() {
-      return HashMap::new();
+      return BTreeMap::new();
     }
 
-    let file = match File::open(&self.cache_path) {
-      Ok(f) => f,
-      Err(_) => return HashMap::new(),
+    let Ok(file) = File::open(&self.cache_path) else {
+      return BTreeMap::new();
     };
 
     let reader = BufReader::new(file);
     let mut csv_reader = Reader::from_reader(reader);
 
-    let mut reports: HashMap<(String, String), Vec<BuildReport>> =
-      HashMap::new();
+    let mut reports: BTreeMap<(String, String), Vec<BuildReport>> =
+      BTreeMap::new();
 
-    for result in csv_reader.deserialize() {
-      let row: BuildReportRow = match result {
-        Ok(r) => r,
-        Err(_) => continue,
+    for result in csv_reader.deserialize::<BuildReportRow>() {
+      let Ok(row) = result else {
+        continue;
       };
 
-      let completed_at = match parse_utc_time(&row.utc_time) {
-        Some(t) => t,
-        None => continue,
+      let Some(completed_at) = parse_utc_time(&row.utc_time) else {
+        continue;
       };
 
       let report = BuildReport {
-        duration_secs: row.build_seconds as f64,
+        duration_secs: row.build_seconds,
         completed_at,
       };
 
@@ -116,7 +114,7 @@ impl BuildReportCache {
   /// cannot be created, locked, written, or renamed.
   pub fn save(
     &self,
-    reports: &HashMap<(String, String), Vec<BuildReport>>,
+    reports: &BTreeMap<(String, String), Vec<BuildReport>>,
   ) -> Result<(), std::io::Error> {
     // Ensure directory exists
     if let Some(parent) = self.cache_path.parent() {
@@ -143,7 +141,7 @@ impl BuildReportCache {
     for entries in merged.values_mut() {
       let mut seen = HashSet::new();
       entries.retain(|report| {
-        seen.insert((report.completed_at, report.duration_secs as u64))
+        seen.insert((report.completed_at, report.duration_secs))
       });
       entries.sort_by_key(|entry| std::cmp::Reverse(entry.completed_at));
       entries.truncate(HISTORY_LIMIT);
@@ -174,7 +172,7 @@ impl BuildReportCache {
             derivation_name: derivation_name.clone(),
             utc_time:        format_utc_time(report.completed_at)
               .map_err(io::Error::other)?,
-            build_seconds:   report.duration_secs as u64,
+            build_seconds:   report.duration_secs,
           };
           csv_writer.serialize(row)?;
         }
@@ -203,7 +201,7 @@ impl BuildReportCache {
     }
 
     let mut durations: Vec<u64> =
-      reports.iter().map(|r| r.duration_secs as u64).collect();
+      reports.iter().map(|r| r.duration_secs).collect();
     durations.sort_unstable();
 
     let len = durations.len();
@@ -218,6 +216,7 @@ impl BuildReportCache {
 }
 
 /// Parses an RFC 3339 timestamp, returning `None` if it is invalid.
+#[must_use]
 pub fn parse_utc_time(input: &str) -> Option<SystemTime> {
   Some(input.parse::<Timestamp>().ok()?.into())
 }

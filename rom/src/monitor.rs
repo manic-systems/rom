@@ -139,7 +139,7 @@ impl Engine {
   }
 
   /// Sets the source of `.drv` metadata.
-  pub fn set_resolver(&mut self, resolver: impl DerivationResolver + 'static) {
+  pub fn set_resolver<R: DerivationResolver + 'static>(&mut self, resolver: R) {
     self.resolver = Some(Box::new(resolver));
   }
 
@@ -254,7 +254,7 @@ impl Engine {
     let prefix = log.activity.map_or_else(String::new, |id| {
       self
         .state
-        .get_activity_prefix(id, &self.config.log_prefix_style)
+        .get_activity_prefix(id, self.config.log_prefix_style)
         .unwrap_or_default()
     });
     if let Some(id) = log.activity {
@@ -267,8 +267,8 @@ impl Engine {
         return self.suppressed_logs.insert(id).then(|| {
           LogLine {
             prefix,
-            styled: "… further build logs suppressed".to_string(),
-            plain: "… further build logs suppressed".to_string(),
+            styled: "\u{2026} further build logs suppressed".to_owned(), // …
+            plain: "\u{2026} further build logs suppressed".to_owned(),  // …
           }
         });
       }
@@ -283,7 +283,7 @@ impl Engine {
 
   /// Marks the input source as closed without pretending unfinished work
   /// succeeded.
-  pub fn finish(&mut self) {
+  pub const fn finish(&mut self) {
     self.state.finish();
   }
 }
@@ -291,13 +291,13 @@ impl Engine {
 fn resolve_derivation_tree(
   state: &mut State,
   resolver: &dyn DerivationResolver,
-  resolved: &mut HashSet<PathBuf>,
+  visited: &mut HashSet<PathBuf>,
   root: PathBuf,
 ) -> bool {
   let mut pending = vec![root];
   let mut changed = false;
   while let Some(path) = pending.pop() {
-    if resolved.contains(&path) {
+    if visited.contains(&path) {
       continue;
     }
     let Some(path_str) = path.to_str() else {
@@ -316,11 +316,11 @@ fn resolve_derivation_tree(
             .map(|(dependency, _)| PathBuf::from(dependency)),
         );
         state.populate_parsed_derivation(id, parsed);
-        resolved.insert(path);
+        visited.insert(path);
         changed = true;
       },
       Err(error) => {
-        tracing::debug!("could not resolve {}: {error}", path.display())
+        tracing::debug!("could not resolve {}: {error}", path.display());
       },
     }
   }
@@ -363,7 +363,7 @@ impl StreamEngine {
   }
 
   /// Returns the wrapped engine mutably.
-  pub fn engine_mut(&mut self) -> &mut Engine {
+  pub const fn engine_mut(&mut self) -> &mut Engine {
     &mut self.engine
   }
 
@@ -498,7 +498,7 @@ impl<W: Write> Monitor<W> {
   }
 
   /// Returns the engine mutably.
-  pub fn engine_mut(&mut self) -> &mut Engine {
+  pub const fn engine_mut(&mut self) -> &mut Engine {
     self.stream.engine_mut()
   }
 
@@ -574,7 +574,7 @@ mod tests {
   #[test]
   fn malformed_claimed_json_is_fatal() {
     let mut stream = StreamEngine::new(EngineConfig::default());
-    assert!(stream.push_at(b"@nix nope\n", 0.0).is_err());
+    stream.push_at(b"@nix nope\n", 0.0).unwrap_err();
     assert!(!stream.engine().state().has_errors());
   }
 
@@ -585,11 +585,9 @@ mod tests {
       ..EngineConfig::default()
     };
     let mut stream = StreamEngine::new(config);
-    assert!(
-      stream
-        .push_at(b"@nix {\"action\":\"stop\",\"id\":1}\n", 0.0)
-        .is_err()
-    );
+    stream
+      .push_at(b"@nix {\"action\":\"stop\",\"id\":1}\n", 0.0)
+      .unwrap_err();
   }
 
   #[test]
@@ -599,6 +597,6 @@ mod tests {
       ..EngineConfig::default()
     };
     let mut stream = StreamEngine::new(config);
-    assert!(stream.push_at(&vec![b'x'; 1024], 0.0).is_ok());
+    stream.push_at(&vec![b'x'; 1024], 0.0).unwrap();
   }
 }

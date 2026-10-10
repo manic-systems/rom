@@ -1,6 +1,11 @@
 //! Live terminal behavior of the real CLI under a pseudo-terminal.
 
 #![cfg(all(unix, feature = "cli"))]
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+#![expect(clippy::panic, reason = "tests fail by panicking")]
 
 use std::{
   fs::File,
@@ -106,6 +111,10 @@ fn undersized_terminal_falls_back_without_live_control_artifacts() {
   }
 }
 
+#[expect(
+  clippy::semicolon_inside_block,
+  reason = "semicolon_outside_block asks for the opposite"
+)]
 fn replay_fixture(
   log: &str,
   multiplexer: bool,
@@ -113,6 +122,8 @@ fn replay_fixture(
   rows: u16,
 ) -> Vec<u8> {
   let (master, slave) = open_pty(columns, rows).unwrap();
+  // SAFETY: `open_pty` returned `slave` as a fresh descriptor nothing else
+  // owns.
   let slave = unsafe { File::from_raw_fd(slave) };
   let mut command = Command::new(env!("CARGO_BIN_EXE_rom"));
   command
@@ -127,19 +138,20 @@ fn replay_fixture(
   } else {
     command.env_remove("TMUX");
   }
-  // SAFETY: this closure only invokes async-signal-safe libc operations. The
-  // PTY is installed as fd 2 by Command before the hook executes.
-  unsafe {
-    command.pre_exec(move || {
-      if libc::setsid() == -1 {
-        return Err(io::Error::last_os_error());
-      }
-      if libc::ioctl(2, libc::TIOCSCTTY as _, 0) == -1 {
-        return Err(io::Error::last_os_error());
-      }
-      Ok(())
-    });
-  }
+  let hook = || {
+    // SAFETY: `setsid` has no preconditions.
+    if unsafe { libc::setsid() } == -1 {
+      return Err(io::Error::last_os_error());
+    }
+    // SAFETY: the PTY is installed as fd 2 by Command before the hook
+    // executes.
+    if unsafe { libc::ioctl(2, libc::TIOCSCTTY, 0) } == -1 {
+      return Err(io::Error::last_os_error());
+    }
+    Ok(())
+  };
+  // SAFETY: the hook only invokes async-signal-safe libc operations.
+  unsafe { command.pre_exec(hook) };
   let mut child = command.spawn().unwrap();
   // The command retains its stdio configuration; drop it so the parent's copy
   // cannot keep the slave side alive after the child exits.
@@ -165,7 +177,7 @@ fn replay_fixture(
   }
   drop(stdin);
   let status = child.wait().unwrap();
-  assert!(status.success());
+  assert!(status.success(), "rom exited with {status}");
   reader.join().unwrap()
 }
 
@@ -181,11 +193,11 @@ fn open_pty(columns: u16, rows: u16) -> io::Result<(RawFd, RawFd)> {
   // SAFETY: all output pointers are valid and `size` is initialized.
   if unsafe {
     libc::openpty(
-      &mut master,
-      &mut slave,
+      &raw mut master,
+      &raw mut slave,
       std::ptr::null_mut(),
       std::ptr::null(),
-      &size,
+      &raw const size,
     )
   } == -1
   {
