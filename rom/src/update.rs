@@ -26,7 +26,7 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub(crate) struct Effects {
+pub struct Effects {
   pub changed: bool,
   pub log:     Option<LogEffect>,
   pub resolve: Vec<PathBuf>,
@@ -34,7 +34,7 @@ pub(crate) struct Effects {
 }
 
 #[derive(Debug)]
-pub(crate) struct LogEffect {
+pub struct LogEffect {
   pub activity: Option<Id>,
   pub styled:   String,
   pub plain:    String,
@@ -42,11 +42,7 @@ pub(crate) struct LogEffect {
 }
 
 /// Applies one typed event and return every external effect caused by it.
-pub(crate) fn apply_event_at(
-  state: &mut State,
-  event: Event,
-  now: f64,
-) -> Effects {
+pub fn apply_event_at(state: &mut State, event: Event, now: f64) -> Effects {
   let mut effects = Effects::default();
   effects.changed |= state.begin_at(now);
 
@@ -197,10 +193,10 @@ fn apply_start(
     }
     | ActivitySubject::Substitute { path: None, .. }
     | ActivitySubject::CopyPath { path: None, .. }
-    | ActivitySubject::None => {},
+    | ActivitySubject::None
     // Evaluation hashes many small paths in quick succession; showing each
     // one would flash rows in and out, so only real copies are tracked.
-    ActivitySubject::FetchToStore { hashing: true, .. } => {},
+    | ActivitySubject::FetchToStore { hashing: true, .. } => {},
     ActivitySubject::FetchToStore {
       source,
       hashing: false,

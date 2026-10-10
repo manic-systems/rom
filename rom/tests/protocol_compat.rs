@@ -1,5 +1,11 @@
 //! Handling of protocol extensions and malformed records.
 
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+#![expect(clippy::panic, reason = "tests fail by panicking")]
+
 use rom::{
   monitor::{Engine, Output},
   types::{EngineConfig, InputMode},
@@ -11,7 +17,7 @@ const FETCH_RESULT: &str = r#"{"action":"result","id":2,"type":109,"fields":["/n
 fn record(json: &str, mode: InputMode) -> String {
   match mode {
     InputMode::Auto => format!("@nix {json}"),
-    InputMode::Json => json.to_string(),
+    InputMode::Json => json.to_owned(),
   }
 }
 
@@ -45,7 +51,7 @@ fn repeated_unsupported_records_report_once() {
   let record = r#"@nix {"action":"start","id":2,"level":3,"parent":0,"text":"future","type":114,"fields":[]}"#;
   let first = output(&mut engine, record);
   let second = output(&mut engine, record);
-  let [Output::Log(log)] = &first[..] else {
+  let [Output::Log(log)] = &*first else {
     panic!("missing diagnostic: {first:?}")
   };
   assert_eq!(
@@ -58,5 +64,7 @@ fn repeated_unsupported_records_report_once() {
 #[test]
 fn malformed_records_still_fail() {
   let mut engine = Engine::new(EngineConfig::default());
-  assert!(engine.process_record_at(b"@nix {not json", 1.0).is_err());
+  engine
+    .process_record_at(b"@nix {not json", 1.0)
+    .unwrap_err();
 }

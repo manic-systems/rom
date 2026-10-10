@@ -1,5 +1,15 @@
 //! Stream ingestion, passthrough, and dependency resolution.
 
+#![expect(
+  clippy::tests_outside_test_module,
+  reason = "integration tests are their own crate"
+)]
+#![expect(clippy::panic, reason = "tests fail by panicking")]
+#![expect(
+  clippy::non_ascii_literal,
+  reason = "expected frames contain the glyphs they check"
+)]
+
 use rom::{
   display::{format_log, render_frame},
   monitor::{DerivationResolver, Engine, Output, StreamEngine},
@@ -9,8 +19,8 @@ use rom::{
 fn log_line(value: &str) -> Output {
   Output::Log(LogLine {
     prefix: String::new(),
-    styled: value.to_string(),
-    plain:  value.to_string(),
+    styled: value.to_owned(),
+    plain:  value.to_owned(),
   })
 }
 
@@ -24,14 +34,14 @@ impl DerivationResolver for Resolver {
     Ok(cognos::ParsedDerivation {
       outputs:    Vec::new(),
       input_drvs: vec![(
-        "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv".to_string(),
-        vec!["out".to_string()],
+        "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv".to_owned(),
+        vec!["out".to_owned()],
       )],
       input_srcs: Vec::new(),
-      platform:   "x86_64-linux".to_string(),
-      builder:    "/bin/sh".to_string(),
+      platform:   "x86_64-linux".to_owned(),
+      builder:    "/bin/sh".to_owned(),
       args:       Vec::new(),
-      env:        vec![("pname".to_string(), "demo".to_string())],
+      env:        vec![("pname".to_owned(), "demo".to_owned())],
     })
   }
 }
@@ -56,11 +66,11 @@ impl DerivationResolver for NestedResolver {
     Ok(cognos::ParsedDerivation {
       outputs:    Vec::new(),
       input_drvs: dependency
-        .map(|path| vec![(path.to_string(), vec!["out".to_string()])])
+        .map(|path| vec![(path.to_owned(), vec!["out".to_owned()])])
         .unwrap_or_default(),
       input_srcs: Vec::new(),
-      platform:   "x86_64-linux".to_string(),
-      builder:    "/bin/sh".to_string(),
+      platform:   "x86_64-linux".to_owned(),
+      builder:    "/bin/sh".to_owned(),
       args:       Vec::new(),
       env:        Vec::new(),
     })
@@ -140,19 +150,14 @@ fn planned_records_build_a_recursive_dependency_tree() {
     ..RenderConfig::default()
   };
   engine.set_resolver(NestedResolver);
-  for (index, path) in [
+  for (now, path) in [0.0, 1.0, 2.0].into_iter().zip([
     "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-root.drv",
     "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv",
     "/nix/store/cccccccccccccccccccccccccccccccc-leaf.drv",
-  ]
-  .into_iter()
-  .enumerate()
-  {
+  ]) {
     let record =
       format!("@nix {{\"action\":\"msg\",\"level\":3,\"msg\":\"  {path}\"}}");
-    engine
-      .process_record_at(record.as_bytes(), index as f64)
-      .unwrap();
+    engine.process_record_at(record.as_bytes(), now).unwrap();
   }
 
   assert_eq!(
@@ -242,8 +247,8 @@ fn descendant_progress_does_not_overwrite_its_transfer_parent() {
        \"text\":\"copying\",\"type\":108,\"fields\":[\"{PATH}\",\
        \"https://cache.nixos.org\"]}}"
     ),
-    r#"@nix {"action":"start","id":21,"level":3,"parent":20,"text":"downloading","type":101,"fields":[]}"#.to_string(),
-    r#"@nix {"action":"result","id":20,"type":105,"fields":[197132288,1073741824,1,0]}"#.to_string(),
+    r#"@nix {"action":"start","id":21,"level":3,"parent":20,"text":"downloading","type":101,"fields":[]}"#.to_owned(),
+    r#"@nix {"action":"result","id":20,"type":105,"fields":[197132288,1073741824,1,0]}"#.to_owned(),
   ] {
     engine.process_record_at(record.as_bytes(), 0.0).unwrap();
   }

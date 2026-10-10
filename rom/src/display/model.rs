@@ -17,6 +17,7 @@ use crate::state::{
   StorePathId,
   StorePathInfo,
   TransferInfo,
+  elapsed,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -173,7 +174,7 @@ impl<'a> RenderSnapshot<'a> {
       placed_transfers: Vec::new(),
       source_fetches: state
         .source_fetches()
-        .filter(|fetch| now - fetch.start >= SOURCE_FETCH_DELAY)
+        .filter(|fetch| elapsed(fetch.start, now) >= SOURCE_FETCH_DELAY)
         .collect(),
     };
     snapshot.collect_transfers(state.store_paths(), now);
@@ -200,7 +201,7 @@ impl<'a> RenderSnapshot<'a> {
       self.add_transfer(store_paths, path, transfer, Direction::Upload);
     }
     for (&path, transfer) in &self.summary.completed_downloads {
-      if now - transfer.end <= 1.0 {
+      if elapsed(transfer.end, now) <= 1.0 {
         self.add_completed_transfer(
           store_paths,
           path,
@@ -210,7 +211,7 @@ impl<'a> RenderSnapshot<'a> {
       }
     }
     for (&path, transfer) in &self.summary.completed_uploads {
-      if now - transfer.end <= 1.0 {
+      if elapsed(transfer.end, now) <= 1.0 {
         self.add_completed_transfer(
           store_paths,
           path,
@@ -250,7 +251,7 @@ impl<'a> RenderSnapshot<'a> {
       done: transfer.bytes_transferred,
       total: transfer.total_bytes,
       start: transfer.start,
-      host: transfer.host.name().to_string(),
+      host: transfer.host.name().to_owned(),
       completed: false,
     });
   }
@@ -271,7 +272,7 @@ impl<'a> RenderSnapshot<'a> {
       done: transfer.total_bytes,
       total: Some(transfer.total_bytes),
       start: transfer.start,
-      host: transfer.host.name().to_string(),
+      host: transfer.host.name().to_owned(),
       completed: true,
     });
   }
@@ -366,11 +367,11 @@ mod tests {
   fn transfer(done: u64, total: u64, completed: bool) -> Transfer {
     Transfer {
       direction: Direction::Download,
-      name: "demo".to_string(),
+      name: "demo".to_owned(),
       done,
       total: Some(total),
       start: 0.0,
-      host: "cache".to_string(),
+      host: "cache".to_owned(),
       completed,
     }
   }

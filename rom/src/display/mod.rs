@@ -25,14 +25,19 @@ use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 use self::model::{Direction, RenderSnapshot, Transfer, aggregate_transfers};
 use crate::{
   icons::Icons,
-  state::{DerivationId, SourceFetch, State},
+  state::{DerivationId, SourceFetch, State, elapsed, whole_seconds},
   types::{DisplayFormat, RenderConfig},
 };
 
 /// Formats a duration without introducing sub-second redraw noise.
 #[must_use]
 pub fn format_duration(secs: f64) -> String {
-  let secs = secs.max(0.0) as u64;
+  format_secs(whole_seconds(secs))
+}
+
+/// Formats whole seconds, such as `1m5s`.
+#[must_use]
+pub fn format_secs(secs: u64) -> String {
   if secs < 60 {
     format!("{secs}s")
   } else if secs < 3600 {
@@ -44,6 +49,11 @@ pub fn format_duration(secs: f64) -> String {
 
 /// Formats a byte count with binary units, such as `1.5 MiB`.
 #[must_use]
+#[expect(
+  clippy::cast_precision_loss,
+  clippy::float_arithmetic,
+  reason = "fractional units are rounded for display"
+)]
 pub fn format_bytes(bytes: u64) -> String {
   const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
   let mut value = bytes as f64;
@@ -91,6 +101,24 @@ impl<'a> Renderer<'a> {
     }
   }
 
+  fn render_tree_frame(&mut self, final_render: bool) -> Vec<Line<'static>> {
+    if final_render && self.max_height <= 1 {
+      let (text, color) = self.final_status();
+      return vec![fit_line(vec![span(text, color)], self.width)];
+    }
+    let tail = if final_render {
+      self.final_summary(true)
+    } else {
+      self.legend()
+    };
+    let plan = self.tree_plan();
+    let (tail, graph_budget) =
+      self.tree_layout(tail, plan.line_count(), final_render);
+    let mut lines = self.render_tree(&plan, graph_budget);
+    lines.extend(tail);
+    lines
+  }
+
   fn render(mut self, final_render: bool) -> Vec<Line<'static>> {
     if final_render {
       self
@@ -99,26 +127,8 @@ impl<'a> Renderer<'a> {
         .retain(|item| !item.transfer.completed);
     }
 
-    if matches!(self.config.format, DisplayFormat::Tree) {
-      if final_render && self.max_height <= 1 {
-        let (text, color) = self.final_status();
-        return vec![fit_line(vec![self.span(text, color)], self.width)];
-      }
-      let tail = if final_render {
-        self.final_summary(true)
-      } else {
-        self.legend()
-      };
-      let plan = self.tree_plan();
-      let (tail, graph_budget) =
-        self.tree_layout(tail, plan.line_count(), final_render);
-      let mut lines = self.render_tree(&plan, graph_budget);
-      lines.extend(tail);
-      return lines;
-    }
-
     let mut lines = match self.config.format {
-      DisplayFormat::Tree => unreachable!("tree frames are budgeted above"),
+      DisplayFormat::Tree => return self.render_tree_frame(final_render),
       DisplayFormat::Plain => self.plain(),
       DisplayFormat::Dashboard => self.dashboard(),
     };
@@ -131,7 +141,7 @@ impl<'a> Renderer<'a> {
     if lines.len() > maximum {
       if final_render && maximum == 1 {
         let (text, color) = self.final_status();
-        return vec![fit_line(vec![self.span(text, color)], self.width)];
+        return vec![fit_line(vec![span(text, color)], self.width)];
       }
       if final_render {
         let final_line = lines.pop().expect("final render has a summary");
@@ -142,15 +152,15 @@ impl<'a> Renderer<'a> {
       let hidden = lines.len() - maximum + 1;
       lines.truncate(maximum.saturating_sub(1));
       lines.push(Line::from(vec![
-        self.span(
+        span(
           if matches!(self.config.format, DisplayFormat::Plain) {
             ""
           } else {
-            "╰─ "
+            "\u{2570}\u{2500} " // ╰─
           },
           self.config.theme.connector,
         ),
-        self.span(format!("… {hidden} hidden"), self.config.theme.muted),
+        span(format!("… {hidden} hidden"), self.config.theme.muted),
       ]));
     }
     lines
@@ -177,7 +187,7 @@ impl<'a> Renderer<'a> {
     (tail, graph_budget)
   }
 
-  fn transfer_color(&self, transfer: &Transfer) -> Color {
+  const fn transfer_color(&self, transfer: &Transfer) -> Color {
     if transfer.completed {
       return self.config.theme.completed;
     }
@@ -187,8 +197,14 @@ impl<'a> Renderer<'a> {
     }
   }
 
+  #[expect(
+    clippy::cast_sign_loss,
+    clippy::float_arithmetic,
+    reason = "the frame index is clamped to zero"
+  )]
   fn spinner(&self) -> &'static str {
-    ["◐", "◓", "◑", "◒"][((self.now * 4.0).max(0.0) as usize) % 4]
+    ["\u{25d0}", "\u{25d3}", "\u{25d1}", "\u{25d2}"] // ◐ ◓ ◑ ◒
+      [((self.now * 4.0).max(0.0) as usize) % 4]
   }
 
   /// Renders a source fetch after `prefix`.
@@ -202,7 +218,7 @@ impl<'a> Renderer<'a> {
     let detail = format!(
       "  {} copying  {}",
       self.spinner(),
-      format_duration(self.now - fetch.start)
+      format_duration(elapsed(fetch.start, self.now))
     );
     let name = Path::new(&fetch.source)
       .file_name()
@@ -211,16 +227,17 @@ impl<'a> Renderer<'a> {
       });
     let available = usize::from(self.width)
       .saturating_sub(spans_width(&spans) + detail.width());
-    spans.push(
-      self.span(truncate_text(name, available), self.config.theme.running),
-    );
-    spans.push(self.span(detail, self.config.theme.muted));
+    spans.push(span(
+      truncate_text(name, available),
+      self.config.theme.running,
+    ));
+    spans.push(span(detail, self.config.theme.muted));
     fit_line(spans, self.width)
   }
+}
 
-  fn span(&self, value: impl Into<String>, color: Color) -> Span<'static> {
-    Span::styled(value.into(), Style::default().fg(color))
-  }
+fn span(value: impl Into<String>, color: Color) -> Span<'static> {
+  Span::styled(value.into(), Style::default().fg(color))
 }
 
 fn preserve_last(
@@ -251,26 +268,32 @@ fn progress_bar(
   if width == 0 || total == 0 {
     return Vec::new();
   }
-  let halves = (done.min(total) as u128).saturating_mul((width * 2) as u128)
-    / total as u128;
-  let full = (halves / 2) as usize;
+  let halves = u128::from(done.min(total)).saturating_mul((width * 2) as u128)
+    / u128::from(total);
+  let filled = (halves / 2) as usize;
   let half = halves % 2 == 1;
-  let empty = width - full - usize::from(half);
+  let empty = width - filled - usize::from(half);
   let mut spans = Vec::new();
-  if full > 0 {
-    spans.push(Span::styled("━".repeat(full), Style::default().fg(fill)));
+  if filled > 0 {
+    spans.push(Span::styled(
+      "\u{2501}".repeat(filled), // ━
+      Style::default().fg(fill),
+    ));
   }
   if half {
-    spans.push(Span::styled("╸", Style::default().fg(fill)));
+    spans.push(Span::styled("\u{2578}", Style::default().fg(fill))); // ╸
   }
   if empty > 0 {
-    spans.push(Span::styled("─".repeat(empty), Style::default().fg(track)));
+    spans.push(Span::styled(
+      "\u{2500}".repeat(empty), // ─
+      Style::default().fg(track),
+    ));
   }
   spans
 }
 
 fn spans_width(spans: &[Span<'_>]) -> usize {
-  spans.iter().map(|span| span.width()).sum()
+  spans.iter().map(ratatui_core::text::Span::width).sum()
 }
 
 fn truncate_text(value: &str, width: usize) -> String {
@@ -343,6 +366,10 @@ pub fn render_frame(
 }
 
 #[cfg(test)]
+#[expect(
+  clippy::non_ascii_literal,
+  reason = "expected frames contain the glyphs they check"
+)]
 mod tests {
   use super::*;
   use crate::state::TransferInfo;

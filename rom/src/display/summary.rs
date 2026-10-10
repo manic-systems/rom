@@ -6,9 +6,16 @@ use ratatui_core::{
 };
 use unicode_width::UnicodeWidthStr;
 
-use super::{Renderer, fit_line, format_duration, spans_width};
-use crate::types::{LegendStyle, SummaryStyle};
+use super::{Renderer, fit_line, format_duration, span, spans_width};
+use crate::{
+  state::elapsed,
+  types::{LegendStyle, SummaryStyle},
+};
 
+#[expect(
+  clippy::multiple_inherent_impl,
+  reason = "rendering is split across modules by section"
+)]
 impl Renderer<'_> {
   pub(super) fn legend(&self) -> Vec<Line<'static>> {
     match self.config.legend_style {
@@ -35,12 +42,12 @@ impl Renderer<'_> {
       .map(|(index, row)| {
         // The light tree trunk turns into a heavy, square-cornered box.
         let corner = match index {
-          _ if count == 1 => "┕━ ",
-          0 => "┢━ ",
-          _ if index + 1 == count => "┗━ ",
-          _ => "┃  ",
+          _ if count == 1 => "\u{2515}\u{2501} ", // ┕━
+          0 => "\u{2522}\u{2501} ",               // ┢━
+          _ if index + 1 == count => "\u{2517}\u{2501} ", // ┗━
+          _ => "\u{2503}  ",                      // ┃
         };
-        let mut spans = vec![self.span(corner, self.config.theme.connector)];
+        let mut spans = vec![span(corner, self.config.theme.connector)];
         spans.extend(row);
         fit_line(spans, self.width)
       })
@@ -52,7 +59,7 @@ impl Renderer<'_> {
     // without the header and with tighter spacing.
     let rows = self.status_rows();
     let labelled =
-      self.status_grid(&[vec![self.status_header()], rows.clone()].concat(), 3);
+      status_grid(&[vec![self.status_header()], rows.clone()].concat(), 3);
     // Every box row starts with a three-column corner or vertical line.
     let fits = labelled
       .iter()
@@ -60,16 +67,16 @@ impl Renderer<'_> {
     let mut grid = if fits {
       labelled
     } else {
-      self.status_grid(&rows, 1)
+      status_grid(&rows, 1)
     };
     grid.push(vec![
-      self.span("Elapsed ", self.config.theme.text),
-      self.span(
+      span("Elapsed ", self.config.theme.text),
+      span(
         format!(
           "{}{}{}",
           self.icons.clock,
           self.icons.gap,
-          format_duration(self.now - self.snapshot.start_time)
+          format_duration(elapsed(self.snapshot.start_time, self.now))
         ),
         self.config.theme.text,
       ),
@@ -87,7 +94,7 @@ impl Renderer<'_> {
       ("Failed", theme.failed),
       ("Total", theme.text),
     ]
-    .map(|(text, color)| (text.to_string(), color))
+    .map(|(text, color)| (text.to_owned(), color))
   }
 
   fn status_rows(&self) -> Vec<StatusRow> {
@@ -102,7 +109,7 @@ impl Renderer<'_> {
         (text, color)
       };
       [
-        (label.to_string(), theme.text),
+        (label.to_owned(), theme.text),
         cell(0, theme.running),
         cell(1, theme.completed),
         cell(2, theme.planned),
@@ -151,43 +158,8 @@ impl Renderer<'_> {
     rows
   }
 
-  /// Lays out rows as aligned columns separated by `gap` spaces.
-  fn status_grid(
-    &self,
-    rows: &[StatusRow],
-    gap: usize,
-  ) -> Vec<Vec<Span<'static>>> {
-    let mut widths: [usize; 6] = std::array::from_fn(|column| {
-      rows
-        .iter()
-        .map(|row| row[column].0.width())
-        .max()
-        .unwrap_or(0)
-    });
-    // Size labels for the widest row kind so columns stay put while transfer
-    // rows come and go.
-    widths[0] = widths[0].max("Downloads".len());
-    rows
-      .iter()
-      .map(|row| {
-        let mut spans = Vec::new();
-        for (column, (text, color)) in row.iter().enumerate() {
-          let padding = if column + 1 == row.len() {
-            0
-          } else {
-            widths[column] - text.width() + gap
-          };
-          spans
-            .push(self.span(format!("{text}{}", " ".repeat(padding)), *color));
-        }
-        spans
-      })
-      .collect()
-  }
-
   fn verbose_legend(&self) -> Vec<Line<'static>> {
-    let mut rows =
-      vec![vec![self.span("Build Summary", self.config.theme.text)]];
+    let mut rows = vec![vec![span("Build Summary", self.config.theme.text)]];
     let mut builds: Vec<_> = self
       .snapshot
       .builds
@@ -200,20 +172,20 @@ impl Renderer<'_> {
     builds.sort_by(|left, right| left.0.cmp(&right.0));
     for (name, build) in builds {
       let host = build.host.name();
-      let mut spans = vec![self.span(
+      let mut spans = vec![span(
         format!(
           "{}{}{name}  {}",
           self.icons.running,
           self.icons.gap,
-          format_duration(self.now - build.start)
+          format_duration(elapsed(build.start, self.now))
         ),
         self.config.theme.running,
       )];
       if let Some(phase) = &build.phase {
-        spans.push(self.span(format!("  ({phase})"), self.config.theme.muted));
+        spans.push(span(format!("  ({phase})"), self.config.theme.muted));
       }
       if host != "localhost" {
-        spans.push(self.span(format!("  {host}"), self.config.theme.host));
+        spans.push(span(format!("  {host}"), self.config.theme.host));
       }
       rows.push(spans);
     }
@@ -254,7 +226,7 @@ impl Renderer<'_> {
       } else {
         format!(" {icon}{}{count}", self.icons.gap)
       };
-      spans.push(self.span(label, color));
+      spans.push(span(label, color));
     }
     spans
   }
@@ -262,12 +234,12 @@ impl Renderer<'_> {
   pub(super) fn final_summary(&self, connected: bool) -> Vec<Line<'static>> {
     let (text, color) = self.final_status();
     let failed = self.snapshot.counts.builds.failed;
-    let status = vec![self.span(text, color)];
+    let status = vec![span(text, color)];
     let rows = match self.config.summary_style {
       SummaryStyle::Concise => vec![status],
       SummaryStyle::Table => {
         vec![
-          vec![self.span(
+          vec![span(
             format!(
               "∑ {}{gap}{}  {}{gap}{}  {}{gap}{}  {}{gap}{}",
               self.icons.done,
@@ -287,8 +259,8 @@ impl Renderer<'_> {
       },
       SummaryStyle::Full => {
         let mut rows =
-          vec![vec![self.span("Build Summary", self.config.theme.text)]];
-        rows.push(vec![self.span(
+          vec![vec![span("Build Summary", self.config.theme.text)]];
+        rows.push(vec![span(
           format!(
             "Builds: {} completed, {failed} failed",
             self.snapshot.counts.builds.completed,
@@ -298,7 +270,7 @@ impl Renderer<'_> {
         let downloads = self.snapshot.counts.downloads.completed;
         let uploads = self.snapshot.counts.uploads.completed;
         if downloads + uploads > 0 {
-          rows.push(vec![self.span(
+          rows.push(vec![span(
             format!("Transfers: {downloads} downloaded, {uploads} uploaded"),
             self.config.theme.text,
           )]);
@@ -321,7 +293,7 @@ impl Renderer<'_> {
         } else {
           "  "
         };
-        let mut spans = vec![self.span(indent, self.config.theme.connector)];
+        let mut spans = vec![span(indent, self.config.theme.connector)];
         spans.extend(row);
         Line::from(spans)
       })
@@ -333,16 +305,16 @@ impl Renderer<'_> {
     let active = self.snapshot.counts.builds.running
       + self.snapshot.counts.downloads.running
       + self.snapshot.counts.uploads.running;
-    let elapsed = format_duration(self.now - self.snapshot.start_time);
+    let duration = format_duration(elapsed(self.snapshot.start_time, self.now));
     if failed > 0 {
       (
-        format!("Exited with {failed} failed build(s) after {elapsed}"),
+        format!("Exited with {failed} failed build(s) after {duration}"),
         self.config.theme.failed,
       )
     } else if self.snapshot.error_count > 0 {
       (
         format!(
-          "Exited with {} Nix error(s) after {elapsed}",
+          "Exited with {} Nix error(s) after {duration}",
           self.snapshot.error_count
         ),
         self.config.theme.failed,
@@ -354,23 +326,52 @@ impl Renderer<'_> {
         "activities"
       };
       (
-        format!("Input ended with {active} unfinished {noun} after {elapsed}"),
+        format!("Input ended with {active} unfinished {noun} after {duration}"),
         self.config.theme.running,
       )
     } else if self.snapshot.counts.builds.waiting > 0 {
       let waiting = self.snapshot.counts.builds.waiting;
       let noun = if waiting == 1 { "build" } else { "builds" };
       (
-        format!("Input ended with {waiting} planned {noun} after {elapsed}"),
+        format!("Input ended with {waiting} planned {noun} after {duration}"),
         self.config.theme.planned,
       )
     } else {
       (
-        format!("Finished after {elapsed}"),
+        format!("Finished after {duration}"),
         self.config.theme.completed,
       )
     }
   }
+}
+
+/// Lays out rows as aligned columns separated by `gap` spaces.
+fn status_grid(rows: &[StatusRow], gap: usize) -> Vec<Vec<Span<'static>>> {
+  let mut widths: [usize; 6] = std::array::from_fn(|column| {
+    rows
+      .iter()
+      .map(|row| row[column].0.width())
+      .max()
+      .unwrap_or(0)
+  });
+  // Size labels for the widest row kind so columns stay put while transfer
+  // rows come and go.
+  widths[0] = widths[0].max("Downloads".len());
+  rows
+    .iter()
+    .map(|row| {
+      let mut spans = Vec::new();
+      for (column, (text, color)) in row.iter().enumerate() {
+        let padding = if column + 1 == row.len() {
+          0
+        } else {
+          widths[column] - text.width() + gap
+        };
+        spans.push(span(format!("{text}{}", " ".repeat(padding)), *color));
+      }
+      spans
+    })
+    .collect()
 }
 
 /// Label, running, completed, waiting, failed, and total cells.
