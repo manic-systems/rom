@@ -4,7 +4,7 @@ use std::{
   collections::HashSet,
   io::{self, IsTerminal, Read, Write},
   path::PathBuf,
-  process::{Command, Stdio},
+  process::{Command, ExitCode, Stdio},
   sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
@@ -109,13 +109,14 @@ struct WrapperConfig {
   monitor:  Config,
 }
 
-/// Runs the CLI with the process's command-line arguments.
+/// Runs the CLI with the process's command-line arguments and returns the
+/// exit code of the wrapped Nix command.
 ///
 /// # Errors
 ///
 /// Returns an error if an argument is not valid UTF-8, the Nix process cannot
 /// be run, or the build fails or ends with unfinished work.
-pub fn run() -> misstep::Result<()> {
+pub fn run() -> misstep::Result<ExitCode> {
   let mut process_args = std::env::args_os();
   let program = process_args
     .next()
@@ -202,7 +203,7 @@ pub fn run() -> misstep::Result<()> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor)
+        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
       } else {
         build(packages, nix_flags, &config)
       }
@@ -211,7 +212,7 @@ pub fn run() -> misstep::Result<()> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor)
+        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
       } else {
         shell(packages, nix_flags, &config)
       }
@@ -220,12 +221,12 @@ pub fn run() -> misstep::Result<()> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor)
+        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
       } else {
         develop(packages, nix_flags, &config)
       }
     },
-    None => run_input(io::stdin(), config.monitor),
+    None => run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS),
   }
 }
 
@@ -258,7 +259,7 @@ fn build(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> misstep::Result<()> {
+) -> misstep::Result<ExitCode> {
   require_packages("build", &packages)?;
   let mut arguments = vec![
     "build".to_owned(),
@@ -268,18 +269,18 @@ fn build(
   ];
   arguments.extend(packages);
   arguments.extend(nix_flags);
-  exit_with(run_monitored_command(
+  Ok(exit_code(run_monitored_command(
     config.platform.binary(),
     arguments,
     config,
-  )?)
+  )?))
 }
 
 fn shell(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> misstep::Result<()> {
+) -> misstep::Result<ExitCode> {
   require_packages("shell", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
@@ -292,19 +293,22 @@ fn shell(
   let code =
     run_monitored_command(config.platform.binary(), monitored, config)?;
   if code != 0 {
-    return exit_with(code);
+    return Ok(exit_code(code));
   }
   let mut arguments = vec!["shell".to_owned()];
   arguments.extend(packages);
   arguments.extend(nix_flags);
-  exit_with(run_inherited(config.platform.binary(), &arguments)?)
+  Ok(exit_code(run_inherited(
+    config.platform.binary(),
+    &arguments,
+  )?))
 }
 
 fn develop(
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
-) -> misstep::Result<()> {
+) -> misstep::Result<ExitCode> {
   require_packages("develop", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
@@ -317,12 +321,15 @@ fn develop(
   let code =
     run_monitored_command(config.platform.binary(), monitored, config)?;
   if code != 0 {
-    return exit_with(code);
+    return Ok(exit_code(code));
   }
   let mut arguments = vec!["develop".to_owned()];
   arguments.extend(packages);
   arguments.extend(nix_flags);
-  exit_with(run_inherited(config.platform.binary(), &arguments)?)
+  Ok(exit_code(run_inherited(
+    config.platform.binary(),
+    &arguments,
+  )?))
 }
 
 fn run_inherited(command: &str, arguments: &[String]) -> io::Result<i32> {
@@ -330,11 +337,11 @@ fn run_inherited(command: &str, arguments: &[String]) -> io::Result<i32> {
   Ok(exit_status_code(status))
 }
 
-fn exit_with(code: i32) -> misstep::Result<()> {
-  if code != 0 {
-    std::process::exit(code);
-  }
-  Ok(())
+/// Converts a child's exit status to ours, keeping the low byte as `exit`
+/// does.
+fn exit_code(code: i32) -> ExitCode {
+  let [low, ..] = code.to_le_bytes();
+  ExitCode::from(low)
 }
 
 fn run_monitored_command(

@@ -37,13 +37,14 @@ pub use types::{
   Theme,
 };
 
-/// Runs the CLI with the process's command-line arguments.
+/// Runs the CLI with the process's command-line arguments and returns the
+/// exit code of the wrapped Nix command.
 ///
 /// # Errors
 ///
 /// Returns an error if an argument is not valid UTF-8, the Nix process cannot
 /// be run, or the build fails or ends with unfinished work.
 #[cfg(feature = "cli")]
-pub fn run() -> misstep::Result<()> {
+pub fn run() -> misstep::Result<std::process::ExitCode> {
   cli::run()
 }
