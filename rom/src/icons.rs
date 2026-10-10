@@ -69,6 +69,7 @@ pub static NERD: Icons = Icons {
 ///
 /// Checks `NERD_FONTS` env override first (`1` forces Nerd, `0` forces
 /// Unicode), then checks for terminals that bundle Nerd Font glyphs.
+#[must_use]
 pub fn detect() -> &'static Icons {
   // Manual override takes precedence
   if let Ok(value) = env::var("NERD_FONTS") {

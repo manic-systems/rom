@@ -43,7 +43,7 @@ fn repeated_unsupported_records_report_once() {
   let record = r#"@nix {"action":"start","id":2,"level":3,"parent":0,"text":"future","type":114,"fields":[]}"#;
   let first = output(&mut engine, record);
   let second = output(&mut engine, record);
-  let [Output::Log(log)] = &first[..] else {
+  let [Output::Log(log)] = &*first else {
     panic!("missing diagnostic: {first:?}")
   };
   assert_eq!(

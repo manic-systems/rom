@@ -8,7 +8,7 @@ use serde_json::Value;
 use crate::state::{Derivation, StorePath};
 
 #[derive(Debug, Clone)]
-pub(crate) enum Event {
+pub enum Event {
   Start(StartEvent),
   Stop { id: Id },
   Message(MessageEvent),
@@ -16,7 +16,7 @@ pub(crate) enum Event {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct StartEvent {
+pub struct StartEvent {
   pub id:       Id,
   pub parent:   Option<Id>,
   pub activity: Activities,
@@ -24,7 +24,7 @@ pub(crate) struct StartEvent {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum ActivitySubject {
+pub enum ActivitySubject {
   ResolvedDerivation {
     original: Derivation,
     resolved: Derivation,
@@ -51,7 +51,7 @@ pub(crate) enum ActivitySubject {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct MessageEvent {
+pub struct MessageEvent {
   pub level:        Verbosity,
   pub is_error:     bool,
   pub styled:       String,
@@ -61,13 +61,13 @@ pub(crate) struct MessageEvent {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum Announcement {
+pub enum Announcement {
   Derivation(Derivation),
   StorePath(StorePath),
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum ActivityResult {
+pub enum ActivityResult {
   BuildLog(String),
   PostBuildLog(String),
   SetPhase(String),
@@ -214,15 +214,17 @@ fn decode_result(result_type: ResultType, fields: &[Value]) -> ActivityResult {
       fields
         .first()
         .and_then(Value::as_str)
-        .map(|line| ActivityResult::BuildLog(line.to_owned()))
-        .unwrap_or(ActivityResult::Ignored)
+        .map_or(ActivityResult::Ignored, |line| {
+          ActivityResult::BuildLog(line.to_owned())
+        })
     },
     ResultType::PostBuildLogLine => {
       fields
         .first()
         .and_then(Value::as_str)
-        .map(|line| ActivityResult::PostBuildLog(line.to_owned()))
-        .unwrap_or(ActivityResult::Ignored)
+        .map_or(ActivityResult::Ignored, |line| {
+          ActivityResult::PostBuildLog(line.to_owned())
+        })
     },
     ResultType::Progress => {
       match fields {
@@ -239,20 +241,19 @@ fn decode_result(result_type: ResultType, fields: &[Value]) -> ActivityResult {
     },
     ResultType::UntrustedPath => {
       first_string(fields)
-        .map(ActivityResult::UntrustedPath)
-        .unwrap_or(ActivityResult::Ignored)
+        .map_or(ActivityResult::Ignored, ActivityResult::UntrustedPath)
     },
     ResultType::CorruptedPath => {
       first_string(fields)
-        .map(ActivityResult::CorruptedPath)
-        .unwrap_or(ActivityResult::Ignored)
+        .map_or(ActivityResult::Ignored, ActivityResult::CorruptedPath)
     },
     ResultType::SetPhase => {
       fields
         .first()
         .and_then(Value::as_str)
-        .map(|phase| ActivityResult::SetPhase(phase.to_owned()))
-        .unwrap_or(ActivityResult::Ignored)
+        .map_or(ActivityResult::Ignored, |phase| {
+          ActivityResult::SetPhase(phase.to_owned())
+        })
     },
     ResultType::FileLinked
     | ResultType::SetExpected

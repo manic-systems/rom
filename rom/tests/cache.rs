@@ -5,7 +5,7 @@ use rom::{
   state::BuildReport,
 };
 
-fn report(duration_secs: f64) -> BuildReport {
+const fn report(duration_secs: f64) -> BuildReport {
   BuildReport {
     duration_secs,
     completed_at: SystemTime::UNIX_EPOCH,

@@ -27,7 +27,7 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub(crate) struct Effects {
+pub struct Effects {
   pub changed: bool,
   pub log:     Option<LogEffect>,
   pub resolve: Vec<PathBuf>,
@@ -36,7 +36,7 @@ pub(crate) struct Effects {
 }
 
 #[derive(Debug)]
-pub(crate) struct LogEffect {
+pub struct LogEffect {
   pub activity: Option<Id>,
   pub styled:   String,
   pub plain:    String,
@@ -44,11 +44,7 @@ pub(crate) struct LogEffect {
 }
 
 /// Applies one typed event and return every external effect caused by it.
-pub(crate) fn apply_event_at(
-  state: &mut State,
-  event: Event,
-  now: f64,
-) -> Effects {
+pub fn apply_event_at(state: &mut State, event: Event, now: f64) -> Effects {
   let mut effects = Effects::default();
   effects.changed |= state.begin_at(now);
 

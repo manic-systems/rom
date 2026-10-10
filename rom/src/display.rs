@@ -177,7 +177,7 @@ impl<'a> Renderer<'a> {
     (tail, graph_budget)
   }
 
-  fn transfer_color(&self, transfer: &Transfer) -> Color {
+  const fn transfer_color(&self, transfer: &Transfer) -> Color {
     if transfer.completed {
       return self.config.theme.completed;
     }
@@ -251,8 +251,8 @@ fn progress_bar(
   if width == 0 || total == 0 {
     return Vec::new();
   }
-  let halves = (done.min(total) as u128).saturating_mul((width * 2) as u128)
-    / total as u128;
+  let halves = u128::from(done.min(total)).saturating_mul((width * 2) as u128)
+    / u128::from(total);
   let full = (halves / 2) as usize;
   let half = halves % 2 == 1;
   let empty = width - full - usize::from(half);
@@ -270,7 +270,7 @@ fn progress_bar(
 }
 
 fn spans_width(spans: &[Span<'_>]) -> usize {
-  spans.iter().map(|span| span.width()).sum()
+  spans.iter().map(ratatui_core::text::Span::width).sum()
 }
 
 fn truncate_text(value: &str, width: usize) -> String {

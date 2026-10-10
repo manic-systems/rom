@@ -359,7 +359,7 @@ impl Engine {
 
   /// Marks the input source as closed without pretending unfinished work
   /// succeeded.
-  pub fn finish(&mut self) {
+  pub const fn finish(&mut self) {
     self.state.finish();
   }
 }
@@ -542,7 +542,7 @@ impl StreamEngine {
   }
 
   /// Returns the wrapped engine mutably.
-  pub fn engine_mut(&mut self) -> &mut Engine {
+  pub const fn engine_mut(&mut self) -> &mut Engine {
     &mut self.engine
   }
 
@@ -677,7 +677,7 @@ impl<W: Write> Monitor<W> {
   }
 
   /// Returns the engine mutably.
-  pub fn engine_mut(&mut self) -> &mut Engine {
+  pub const fn engine_mut(&mut self) -> &mut Engine {
     self.stream.engine_mut()
   }
 

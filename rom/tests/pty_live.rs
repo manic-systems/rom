@@ -132,12 +132,12 @@ fn replay_fixture(
       if libc::setsid() == -1 {
         return Err(io::Error::last_os_error());
       }
-      if libc::ioctl(2, libc::TIOCSCTTY as _, 0) == -1 {
+      if libc::ioctl(2, libc::TIOCSCTTY, 0) == -1 {
         return Err(io::Error::last_os_error());
       }
       Ok(())
-    });
-  }
+    })
+  };
   let mut child = command.spawn().unwrap();
   // The command retains its stdio configuration; drop it so the parent's copy
   // cannot keep the slave side alive after the child exits.
@@ -179,11 +179,11 @@ fn open_pty(columns: u16, rows: u16) -> io::Result<(RawFd, RawFd)> {
   // SAFETY: all output pointers are valid and `size` is initialized.
   if unsafe {
     libc::openpty(
-      &mut master,
-      &mut slave,
+      &raw mut master,
+      &raw mut slave,
       std::ptr::null_mut(),
       std::ptr::null(),
-      &size,
+      &raw const size,
     )
   } == -1
   {

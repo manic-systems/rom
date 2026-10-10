@@ -202,7 +202,7 @@ pub fn run() -> misstep::Result<()> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor.clone())
+        run_input(io::stdin(), config.monitor)
       } else {
         build(packages, nix_flags, &config)
       }
@@ -211,7 +211,7 @@ pub fn run() -> misstep::Result<()> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor.clone())
+        run_input(io::stdin(), config.monitor)
       } else {
         shell(packages, nix_flags, &config)
       }
@@ -220,12 +220,12 @@ pub fn run() -> misstep::Result<()> {
       if packages.is_empty()
         && config.monitor.engine.input_mode == InputMode::Json
       {
-        run_input(io::stdin(), config.monitor.clone())
+        run_input(io::stdin(), config.monitor)
       } else {
         develop(packages, nix_flags, &config)
       }
     },
-    None => run_input(io::stdin(), config.monitor.clone()),
+    None => run_input(io::stdin(), config.monitor),
   }
 }
 
@@ -642,7 +642,9 @@ fn drive(
   stream.engine_mut().load_history(&history);
   let mut presenter = Presenter::new(silent);
   let mut dirty = false;
-  let mut last_frame = Instant::now() - Duration::from_secs(1);
+  let mut last_frame = Instant::now()
+    .checked_sub(Duration::from_secs(1))
+    .unwrap_or_else(Instant::now);
   let mut last_timer = Instant::now();
   if !silent && presenter.render_initial(&stream, &render, current_time())? {
     last_frame = Instant::now();
@@ -700,6 +702,8 @@ fn available_derivations(
   state: &State,
   interrupted: &AtomicBool,
 ) -> io::Result<Vec<DerivationId>> {
+  #[cfg(unix)] use std::os::unix::process::CommandExt;
+
   let mut relevant: HashSet<_> = state
     .derivations()
     .iter()
@@ -738,10 +742,7 @@ fn available_derivations(
     // Its own group keeps a terminal Ctrl-C from killing the query, which
     // would read as a missing output and split the batch further.
     #[cfg(unix)]
-    {
-      use std::os::unix::process::CommandExt;
-      query.process_group(0);
-    }
+    query.process_group(0);
     let output = query
       .args([
         "path-info",

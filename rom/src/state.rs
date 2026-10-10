@@ -363,7 +363,7 @@ impl State {
     true
   }
 
-  pub(crate) fn finish(&mut self) {
+  pub(crate) const fn finish(&mut self) {
     self.progress_state = ProgressState::Finished;
   }
 
@@ -374,7 +374,7 @@ impl State {
     self.build_cache = history;
   }
 
-  pub(crate) fn build_history(
+  pub(crate) const fn build_history(
     &self,
   ) -> &HashMap<(String, String), Vec<BuildReport>> {
     &self.build_cache

@@ -49,7 +49,7 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
   };
   let plain = RenderConfig {
     ansi: false,
-    ..ansi.clone()
+    ..ansi
   };
 
   let mut stream = StreamEngine::new(view.engine);
@@ -85,14 +85,13 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
     let time: u64 = time.parse().unwrap();
     assert!(time >= at_ms, "{log}: timestamps must be monotonic");
     at_ms = time;
-    match rest.strip_prefix("= ") {
-      Some(name) => snap(&stream, name, at_ms, false),
-      None => {
-        let processed = stream
-          .push_at(format!("{rest}\n").as_bytes(), at_ms as f64 / 1000.0)
-          .unwrap();
-        output.extend(processed.output);
-      },
+    if let Some(name) = rest.strip_prefix("= ") {
+      snap(&stream, name, at_ms, false)
+    } else {
+      let processed = stream
+        .push_at(format!("{rest}\n").as_bytes(), at_ms as f64 / 1000.0)
+        .unwrap();
+      output.extend(processed.output);
     }
   }
   output.extend(stream.finish_at(at_ms as f64 / 1000.0).unwrap().output);
@@ -148,13 +147,12 @@ fn assert_or_bless(path: &Path, actual: &str) {
       path.display()
     )
   });
-  if expected != actual {
-    panic!(
-      "snapshot mismatch for {}\n{}",
-      path.display(),
-      simple_diff(&expected, actual),
-    );
-  }
+  assert!(
+    expected == actual,
+    "snapshot mismatch for {}\n{}",
+    path.display(),
+    simple_diff(&expected, actual),
+  )
 }
 
 fn simple_diff(expected: &str, actual: &str) -> String {
@@ -263,7 +261,7 @@ fn unsupported_record() {
 #[test]
 fn log_line_limit() {
   replay("log-line-limit", "log-line-limit", |view| {
-    view.engine.log_line_limit = Some(2)
+    view.engine.log_line_limit = Some(2);
   });
 }
 
@@ -275,7 +273,7 @@ fn silent() {
 #[test]
 fn log_prefix_none() {
   replay("log-prefix-none", "download-progress", |view| {
-    view.engine.log_prefix_style = LogPrefixStyle::None
+    view.engine.log_prefix_style = LogPrefixStyle::None;
   });
 }
 
@@ -288,55 +286,55 @@ fn overflow() {
 #[test]
 fn overflow_narrow() {
   replay("overflow-narrow", "overflow", |view| {
-    (view.width, view.height) = (40, 12)
+    (view.width, view.height) = (40, 12);
   });
 }
 
 #[test]
 fn format_dashboard() {
   replay("format-dashboard", "overflow", |view| {
-    view.render.format = DisplayFormat::Dashboard
+    view.render.format = DisplayFormat::Dashboard;
   });
 }
 
 #[test]
 fn format_plain() {
   replay("format-plain", "overflow", |view| {
-    view.render.format = DisplayFormat::Plain
+    view.render.format = DisplayFormat::Plain;
   });
 }
 
 #[test]
 fn legend_compact() {
   replay("legend-compact", "failed-build", |view| {
-    view.render.legend_style = LegendStyle::Compact
+    view.render.legend_style = LegendStyle::Compact;
   });
 }
 
 #[test]
 fn legend_verbose() {
   replay("legend-verbose", "failed-build", |view| {
-    view.render.legend_style = LegendStyle::Verbose
+    view.render.legend_style = LegendStyle::Verbose;
   });
 }
 
 #[test]
 fn summary_table() {
   replay("summary-table", "failed-build", |view| {
-    view.render.summary_style = SummaryStyle::Table
+    view.render.summary_style = SummaryStyle::Table;
   });
 }
 
 #[test]
 fn summary_full() {
   replay("summary-full", "failed-build", |view| {
-    view.render.summary_style = SummaryStyle::Full
+    view.render.summary_style = SummaryStyle::Full;
   });
 }
 
 #[test]
 fn icons_nerd() {
   replay("icons-nerd", "concurrent-downloads", |view| {
-    view.render.icons = IconMode::Nerd
+    view.render.icons = IconMode::Nerd;
   });
 }
