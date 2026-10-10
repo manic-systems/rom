@@ -14,7 +14,7 @@ impl Renderer<'_> {
   pub(super) fn plain(&self) -> Vec<Line<'static>> {
     let counts = self.snapshot.counts.builds;
     let mut header = vec![
-      self.span("─ ", self.config.theme.connector),
+      self.span("\u{2500} ", self.config.theme.connector), // ─
       self.span("Builds", self.config.theme.text),
     ];
     if self.config.show_timers {
@@ -202,23 +202,23 @@ impl Renderer<'_> {
     };
     let mut lines = vec![fit_line(
       vec![
-        self.span("╭─ ", self.config.theme.connector),
+        self.span("\u{256d}\u{2500} ", self.config.theme.connector), // ╭─
         self.span(format!("Build Dashboard: {title}"), self.config.theme.text),
       ],
       self.width,
     )];
     lines.push(fit_line(
       vec![
-        self.span("│  ", self.config.theme.connector),
-        self.span("Host      │ ", self.config.theme.muted),
+        self.span("\u{2502}  ", self.config.theme.connector), // │
+        self.span("Host      \u{2502} ", self.config.theme.muted), // │
         self.span(host.to_owned(), self.config.theme.host),
       ],
       self.width,
     ));
     lines.push(fit_line(
       vec![
-        self.span("│  ", self.config.theme.connector),
-        self.span("Status    │ ", self.config.theme.muted),
+        self.span("\u{2502}  ", self.config.theme.connector), // │
+        self.span("Status    \u{2502} ", self.config.theme.muted), // │
         self.span(
           format!("{status_icon}{}{status}", self.icons.gap),
           status_color,
@@ -228,8 +228,8 @@ impl Renderer<'_> {
     ));
     lines.push(fit_line(
       vec![
-        self.span("│  ", self.config.theme.connector),
-        self.span("Duration  │ ", self.config.theme.muted),
+        self.span("\u{2502}  ", self.config.theme.connector), // │
+        self.span("Duration  \u{2502} ", self.config.theme.muted), // │
         self.span(
           format_duration(self.now - self.snapshot.start_time),
           self.config.theme.muted,
@@ -241,16 +241,16 @@ impl Renderer<'_> {
     if transfers.peek().is_some() {
       let transfer = aggregate_transfers(transfers);
       let mut spans = vec![
-        self.span("│  ", self.config.theme.connector),
-        self.span("Transfer  │", self.config.theme.muted),
+        self.span("\u{2502}  ", self.config.theme.connector), // │
+        self.span("Transfer  \u{2502}", self.config.theme.muted), // │
       ];
       spans.extend(self.transfer_suffix(&transfer, spans_width(&spans)));
       lines.push(fit_line(spans, self.width));
     }
     lines.push(fit_line(
       vec![
-        self.span("╰─ ", self.config.theme.connector),
-        self.span("Summary   │ ", self.config.theme.muted),
+        self.span("\u{2570}\u{2500} ", self.config.theme.connector), // ╰─
+        self.span("Summary   \u{2502} ", self.config.theme.muted),   // │
         self.span(
           format!(
             "jobs={}  ok={done}  failed={failed}  waiting={planned}",

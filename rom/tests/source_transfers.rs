@@ -1,3 +1,8 @@
+#![expect(
+  clippy::non_ascii_literal,
+  reason = "expected frames contain the glyphs they check"
+)]
+
 use std::path::Path;
 
 use rom::{

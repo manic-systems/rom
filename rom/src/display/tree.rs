@@ -300,7 +300,7 @@ impl Renderer<'_> {
     }
     // The status box below continues the tree's line, so no row closes it.
     let mut lines = vec![Line::from(vec![
-      self.span("╭─ ", self.config.theme.connector),
+      self.span("\u{256d}\u{2500} ", self.config.theme.connector), // ╭─
       self.span("Builds", self.config.theme.text),
     ])];
     for &root in &selection.roots {
@@ -323,7 +323,7 @@ impl Renderer<'_> {
         (running, rest) => format!("… {running} active, {rest} more"),
       };
       lines.push(Line::from(vec![
-        self.span("├─ ", self.config.theme.connector),
+        self.span("\u{251c}\u{2500} ", self.config.theme.connector), // ├─
         self.span(label, self.config.theme.muted),
       ]));
     }
@@ -581,7 +581,7 @@ impl Renderer<'_> {
     if selection.parents[&RowId::Build(id)]
       .is_some_and(|parent| !selection.rows.contains(&parent))
     {
-      spans.push(self.span("… ", self.config.theme.muted));
+      spans.push(self.span("\u{2026} ", self.config.theme.muted)); // …
     }
     let (icon, color, suffix) = match &info.build_status {
       BuildStatus::Unknown => {
@@ -784,12 +784,16 @@ impl Renderer<'_> {
     let mut spans = Vec::new();
     for &continues in ancestors {
       spans.push(self.span(
-        if continues { "│  " } else { "   " },
+        if continues { "\u{2502}  " } else { "   " }, // │
         self.config.theme.connector,
       ));
     }
     spans.push(self.span(
-      if last { "╰─ " } else { "├─ " },
+      if last {
+        "\u{2570}\u{2500} " // ╰─
+      } else {
+        "\u{251c}\u{2500} " // ├─
+      },
       self.config.theme.connector,
     ));
     spans

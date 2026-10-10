@@ -34,9 +34,9 @@ impl Renderer<'_> {
       .enumerate()
       .map(|(index, row)| {
         let corner = match index {
-          _ if index + 1 == count => "┕━ ",
-          0 => "┝━ ",
-          _ => "│  ",
+          _ if index + 1 == count => "\u{2515}\u{2501} ", // ┕━
+          0 => "\u{251d}\u{2501} ",                       // ┝━
+          _ => "\u{2502}  ",                              // │
         };
         let mut spans = vec![self.span(corner, self.config.theme.connector)];
         spans.extend(row);

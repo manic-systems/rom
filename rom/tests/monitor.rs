@@ -1,3 +1,8 @@
+#![expect(
+  clippy::non_ascii_literal,
+  reason = "expected frames contain the glyphs they check"
+)]
+
 use rom::{
   display::{format_log, render_frame},
   monitor::{DerivationResolver, Engine, Output, StreamEngine},
