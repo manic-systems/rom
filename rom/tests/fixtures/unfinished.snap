@@ -1,9 +1,9 @@
 === building @ 200ms ===
 \e[0;34m╭─ \e[0mBuilds
 \e[0;34m├─ \e[0;33m⏵ hello-2.12.3\e[0;90m  ⏱ 0s\e[0m
-\e[0;34m┝━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;34m│  Builds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 1
-\e[0;34m┕━ \e[0mElapsed ⏱ 0s
+\e[0;34m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;34m┃  Builds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 0      \e[0m∑ 1
+\e[0;34m┗━ \e[0mElapsed ⏱ 0s
 === finished @ 200ms ===
 \e[0;34m╭─ \e[0mBuilds
 \e[0;34m├─ \e[0;33m⏵ hello-2.12.3\e[0;90m  ⏱ 0s\e[0m

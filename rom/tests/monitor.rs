@@ -178,7 +178,7 @@ fn planned_records_build_a_recursive_dependency_tree() {
   assert!(text.contains("│     ╰─ ⏸\u{a0}leaf"), "{text}");
   let builds = text
     .lines()
-    .find(|line| line.starts_with("│  Builds"))
+    .find(|line| line.starts_with("┃  Builds"))
     .expect("missing build status row");
   assert!(builds.contains("⏸\u{a0}3"), "{builds}");
   assert!(builds.ends_with("∑\u{a0}3"), "{builds}");

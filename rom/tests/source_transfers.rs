@@ -390,7 +390,7 @@ fn source_rows_obey_the_live_graph_budget() {
   let lines: Vec<_> = text.lines().collect();
   let legend = lines
     .iter()
-    .position(|line| line.starts_with("┝━ Status"))
+    .position(|line| line.starts_with("┢━ Status"))
     .unwrap();
   assert_eq!(legend, 15, "{text}");
   assert!(lines[legend - 1].contains("… 19 active"), "{text}");

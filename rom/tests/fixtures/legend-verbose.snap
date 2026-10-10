@@ -2,16 +2,16 @@
 \e[0;34m╭─ \e[0mBuilds
 \e[0;34m├─ \e[0;33m⏵ app-1.0\e[0;90m  ⏱ 0s\e[0m
 \e[0;34m│  ╰─ \e[0;33m⏵ lib-1.0\e[0;90m  (buildPhase)  ⏱ 0s\e[0m
-\e[0;34m┝━ \e[0mBuild Summary
-\e[0;34m│  \e[0;33m⏵ app-1.0  0s\e[0m
-\e[0;34m│  \e[0;33m⏵ lib-1.0  0s\e[0;90m  (buildPhase)\e[0m
-\e[0;34m┕━ \e[0;33m ⏵ 2 building\e[0;32m ✔ 0 completed\e[0;31m ✗ 0 failed\e[0;34m ⏸ 0 waiting\e[0m
+\e[0;34m┢━ \e[0mBuild Summary
+\e[0;34m┃  \e[0;33m⏵ app-1.0  0s\e[0m
+\e[0;34m┃  \e[0;33m⏵ lib-1.0  0s\e[0;90m  (buildPhase)\e[0m
+\e[0;34m┗━ \e[0;33m ⏵ 2 building\e[0;32m ✔ 0 completed\e[0;31m ✗ 0 failed\e[0;34m ⏸ 0 waiting\e[0m
 === failed @ 400ms ===
 \e[0;34m╭─ \e[0mBuilds
 \e[0;34m├─ \e[0;31m✗ app-1.0\e[0m
 \e[0;34m│  ╰─ \e[0;31m✗ lib-1.0\e[0m
-\e[0;34m┝━ \e[0mBuild Summary
-\e[0;34m┕━ \e[0;33m ⏵ 0 building\e[0;32m ✔ 0 completed\e[0;31m ✗ 2 failed\e[0;34m ⏸ 0 waiting\e[0m
+\e[0;34m┢━ \e[0mBuild Summary
+\e[0;34m┗━ \e[0;33m ⏵ 0 building\e[0;32m ✔ 0 completed\e[0;31m ✗ 2 failed\e[0;34m ⏸ 0 waiting\e[0m
 === finished @ 400ms ===
 \e[0;34m╭─ \e[0mBuilds
 \e[0;34m├─ \e[0;31m✗ app-1.0\e[0m

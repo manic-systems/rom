@@ -465,7 +465,7 @@ mod tests {
     );
     let text = frame.text();
     assert!(text.starts_with("╭─ Builds\n"), "{text}");
-    assert!(text.lines().last().unwrap().starts_with("┕━"), "{text}");
+    assert!(text.lines().last().unwrap().starts_with("┗━"), "{text}");
   }
 
   fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {
