@@ -1,3 +1,5 @@
+//! Output and exit status of wrapped Nix commands.
+
 #![cfg(all(unix, feature = "cli"))]
 #![expect(
   clippy::tests_outside_test_module,

@@ -1,3 +1,5 @@
+//! Source downloads and their placement in the dependency graph.
+
 #![expect(
   clippy::tests_outside_test_module,
   reason = "integration tests are their own crate"

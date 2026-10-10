@@ -1,3 +1,5 @@
+//! Argument rewriting helpers used by the CLI wrappers.
+
 #![cfg(feature = "cli")]
 #![expect(
   clippy::tests_outside_test_module,

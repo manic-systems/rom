@@ -1,3 +1,5 @@
+//! Build history persistence and median estimates.
+
 #![expect(
   clippy::tests_outside_test_module,
   reason = "integration tests are their own crate"

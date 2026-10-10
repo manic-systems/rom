@@ -1,3 +1,5 @@
+//! Live terminal behavior of the real CLI under a pseudo-terminal.
+
 #![cfg(all(unix, feature = "cli"))]
 #![expect(
   clippy::tests_outside_test_module,

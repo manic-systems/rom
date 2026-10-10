@@ -1,3 +1,5 @@
+//! Handling of protocol extensions and malformed records.
+
 #![expect(
   clippy::tests_outside_test_module,
   reason = "integration tests are their own crate"
