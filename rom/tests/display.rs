@@ -32,7 +32,7 @@ impl DerivationResolver for ChainResolver {
       .parse::<usize>()
       .map_err(|error| format!("invalid chain index: {error}"))?;
     let input_drvs = if index + 1 < self.nodes {
-      vec![(chain_path(index + 1), vec!["out".to_string()])]
+      vec![(chain_path(index + 1), vec!["out".to_owned()])]
     } else {
       Vec::new()
     };
@@ -40,8 +40,8 @@ impl DerivationResolver for ChainResolver {
       outputs: Vec::new(),
       input_drvs,
       input_srcs: Vec::new(),
-      platform: "x86_64-linux".to_string(),
-      builder: "/bin/sh".to_string(),
+      platform: "x86_64-linux".to_owned(),
+      builder: "/bin/sh".to_owned(),
       args: Vec::new(),
       env: Vec::new(),
     })

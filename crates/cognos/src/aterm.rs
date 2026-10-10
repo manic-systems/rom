@@ -46,7 +46,7 @@ pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
 
   if !content.starts_with("Derive(") {
     return Err(
-      "Invalid derivation format: must start with 'Derive('".to_string(),
+      "Invalid derivation format: must start with 'Derive('".to_owned(),
     );
   }
 
@@ -128,7 +128,7 @@ fn parse_top_level_list(s: &str) -> Vec<String> {
         current.push(ch);
       },
       ',' if depth == 0 && !in_string => {
-        parts.push(current.trim().to_string());
+        parts.push(current.trim().to_owned());
         current.clear();
       },
       _ => {
@@ -138,7 +138,7 @@ fn parse_top_level_list(s: &str) -> Vec<String> {
   }
 
   if !current.trim().is_empty() {
-    parts.push(current.trim().to_string());
+    parts.push(current.trim().to_owned());
   }
 
   parts
@@ -406,8 +406,8 @@ mod tests {
     assert!(result.builder.contains("bash"));
 
     // Verify environment
-    assert_eq!(extract_pname(&result.env), Some("hello".to_string()));
-    assert_eq!(extract_version(&result.env), Some("2.12.2".to_string()));
+    assert_eq!(extract_pname(&result.env), Some("hello".to_owned()));
+    assert_eq!(extract_version(&result.env), Some("2.12.2".to_owned()));
   }
 
   #[test]

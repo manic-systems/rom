@@ -47,8 +47,8 @@ impl StorePath {
 
     Some(Self {
       path: path_buf.clone(),
-      hash: parts[0].to_string(),
-      name: parts[1].to_string(),
+      hash: parts[0].to_owned(),
+      name: parts[1].to_owned(),
     })
   }
 }
@@ -76,9 +76,9 @@ impl Derivation {
     let name = file_name.strip_suffix(".drv")?;
     let parts: Vec<&str> = name.splitn(2, '-').collect();
     let display_name = if parts.len() == 2 {
-      parts[1].to_string()
+      parts[1].to_owned()
     } else {
-      name.to_string()
+      name.to_owned()
     };
 
     Some(Self {
@@ -387,7 +387,7 @@ impl State {
   ) -> Option<&[BuildReport]> {
     self
       .build_cache
-      .get(&(host.name().to_string(), derivation.to_string()))
+      .get(&(host.name().to_owned(), derivation.to_owned()))
       .map(Vec::as_slice)
   }
 
@@ -756,7 +756,7 @@ impl State {
     let completed_at = SystemTime::now();
     self
       .build_cache
-      .entry((build.host.name().to_string(), info.name.name.clone()))
+      .entry((build.host.name().to_owned(), info.name.name.clone()))
       .or_default()
       .push(BuildReport {
         duration_secs: now - build.start,
@@ -803,7 +803,7 @@ impl State {
       } => {
         if let Some(reports) = self
           .build_cache
-          .get_mut(&(build.host.name().to_string(), info.name.name.clone()))
+          .get_mut(&(build.host.name().to_owned(), info.name.name.clone()))
         {
           reports.retain(|report| report.completed_at != completed_at);
         }

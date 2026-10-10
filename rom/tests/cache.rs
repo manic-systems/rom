@@ -47,7 +47,7 @@ fn saving_loaded_history_does_not_duplicate_it() {
   let directory = tempfile::tempdir().unwrap();
   let cache = BuildReportCache::new(directory.path().join("history.csv"));
   let mut history = HashMap::new();
-  history.insert(("localhost".to_string(), "demo".to_string()), vec![report(
+  history.insert(("localhost".to_owned(), "demo".to_owned()), vec![report(
     2.0,
   )]);
   cache.save(&history).unwrap();

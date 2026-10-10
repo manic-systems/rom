@@ -38,7 +38,7 @@ impl Frame {
           line.push_str(cell.symbol());
           column += cell.symbol().width().max(1);
         }
-        line.trim_end().to_string()
+        line.trim_end().to_owned()
       })
       .collect::<Vec<_>>()
       .join("\n")
@@ -97,7 +97,7 @@ fn ansi_style(
   background: Color,
   modifiers: Modifier,
 ) -> String {
-  let mut codes = vec!["0".to_string()];
+  let mut codes = vec!["0".to_owned()];
   if let Some(code) = ansi_color_code(foreground, false) {
     codes.push(code);
   }
@@ -116,7 +116,7 @@ fn ansi_style(
     (Modifier::CROSSED_OUT, "9"),
   ] {
     if modifiers.contains(modifier) {
-      codes.push(code.to_string());
+      codes.push(code.to_owned());
     }
   }
   format!("\x1b[{}m", codes.join(";"))

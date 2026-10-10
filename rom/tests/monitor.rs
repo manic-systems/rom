@@ -7,8 +7,8 @@ use rom::{
 fn log_line(value: &str) -> Output {
   Output::Log(LogLine {
     prefix: String::new(),
-    styled: value.to_string(),
-    plain:  value.to_string(),
+    styled: value.to_owned(),
+    plain:  value.to_owned(),
   })
 }
 
@@ -22,14 +22,14 @@ impl DerivationResolver for Resolver {
     Ok(cognos::ParsedDerivation {
       outputs:    Vec::new(),
       input_drvs: vec![(
-        "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv".to_string(),
-        vec!["out".to_string()],
+        "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv".to_owned(),
+        vec!["out".to_owned()],
       )],
       input_srcs: Vec::new(),
-      platform:   "x86_64-linux".to_string(),
-      builder:    "/bin/sh".to_string(),
+      platform:   "x86_64-linux".to_owned(),
+      builder:    "/bin/sh".to_owned(),
       args:       Vec::new(),
-      env:        vec![("pname".to_string(), "demo".to_string())],
+      env:        vec![("pname".to_owned(), "demo".to_owned())],
     })
   }
 }
@@ -54,11 +54,11 @@ impl DerivationResolver for NestedResolver {
     Ok(cognos::ParsedDerivation {
       outputs:    Vec::new(),
       input_drvs: dependency
-        .map(|path| vec![(path.to_string(), vec!["out".to_string()])])
+        .map(|path| vec![(path.to_owned(), vec!["out".to_owned()])])
         .unwrap_or_default(),
       input_srcs: Vec::new(),
-      platform:   "x86_64-linux".to_string(),
-      builder:    "/bin/sh".to_string(),
+      platform:   "x86_64-linux".to_owned(),
+      builder:    "/bin/sh".to_owned(),
       args:       Vec::new(),
       env:        Vec::new(),
     })
@@ -240,8 +240,8 @@ fn descendant_progress_does_not_overwrite_its_transfer_parent() {
        \"text\":\"copying\",\"type\":108,\"fields\":[\"{PATH}\",\
        \"https://cache.nixos.org\"]}}"
     ),
-    r#"@nix {"action":"start","id":21,"level":3,"parent":20,"text":"downloading","type":101,"fields":[]}"#.to_string(),
-    r#"@nix {"action":"result","id":20,"type":105,"fields":[197132288,1073741824,1,0]}"#.to_string(),
+    r#"@nix {"action":"start","id":21,"level":3,"parent":20,"text":"downloading","type":101,"fields":[]}"#.to_owned(),
+    r#"@nix {"action":"result","id":20,"type":105,"fields":[197132288,1073741824,1,0]}"#.to_owned(),
   ] {
     engine.process_record_at(record.as_bytes(), 0.0).unwrap();
   }

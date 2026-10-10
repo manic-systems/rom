@@ -85,7 +85,7 @@ impl Renderer<'_> {
       ("Failed", theme.failed),
       ("Total", theme.text),
     ]
-    .map(|(text, color)| (text.to_string(), color))
+    .map(|(text, color)| (text.to_owned(), color))
   }
 
   fn status_rows(&self) -> Vec<StatusRow> {
@@ -100,7 +100,7 @@ impl Renderer<'_> {
         (text, color)
       };
       [
-        (label.to_string(), theme.connector),
+        (label.to_owned(), theme.connector),
         cell(0, theme.running),
         cell(1, theme.completed),
         cell(2, theme.planned),

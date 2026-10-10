@@ -200,7 +200,7 @@ fn decode_subject(
         return ActivitySubject::None;
       };
       ActivitySubject::FetchToStore {
-        source:  source.to_string(),
+        source:  source.to_owned(),
         hashing: fields.get(1).and_then(Value::as_u64) == Some(1),
       }
     },
@@ -214,14 +214,14 @@ fn decode_result(result_type: ResultType, fields: &[Value]) -> ActivityResult {
       fields
         .first()
         .and_then(Value::as_str)
-        .map(|line| ActivityResult::BuildLog(line.to_string()))
+        .map(|line| ActivityResult::BuildLog(line.to_owned()))
         .unwrap_or(ActivityResult::Ignored)
     },
     ResultType::PostBuildLogLine => {
       fields
         .first()
         .and_then(Value::as_str)
-        .map(|line| ActivityResult::PostBuildLog(line.to_string()))
+        .map(|line| ActivityResult::PostBuildLog(line.to_owned()))
         .unwrap_or(ActivityResult::Ignored)
     },
     ResultType::Progress => {
@@ -251,7 +251,7 @@ fn decode_result(result_type: ResultType, fields: &[Value]) -> ActivityResult {
       fields
         .first()
         .and_then(Value::as_str)
-        .map(|phase| ActivityResult::SetPhase(phase.to_string()))
+        .map(|phase| ActivityResult::SetPhase(phase.to_owned()))
         .unwrap_or(ActivityResult::Ignored)
     },
     ResultType::FileLinked
@@ -262,7 +262,7 @@ fn decode_result(result_type: ResultType, fields: &[Value]) -> ActivityResult {
 }
 
 fn first_string(fields: &[Value]) -> Option<String> {
-  fields.first()?.as_str().map(str::to_string)
+  fields.first()?.as_str().map(str::to_owned)
 }
 
 fn announcement(level: Verbosity, message: &str) -> Option<Announcement> {
@@ -322,7 +322,7 @@ fn parse_host(value: &str) -> Host {
   if hostname.is_empty() || hostname == "localhost" {
     Host::Localhost
   } else {
-    Host::Remote(hostname.to_string())
+    Host::Remote(hostname.to_owned())
   }
 }
 
@@ -343,6 +343,6 @@ mod tests {
       panic!("expected build event");
     };
     assert_eq!(derivation.unwrap().name, "demo");
-    assert_eq!(host, Host::Remote("builder".to_string()));
+    assert_eq!(host, Host::Remote("builder".to_owned()));
   }
 }

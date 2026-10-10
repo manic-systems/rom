@@ -47,7 +47,7 @@ impl OutputName {
       name if name.eq_ignore_ascii_case("lib") => Self::Lib,
       name if name.eq_ignore_ascii_case("man") => Self::Man,
       name if name.eq_ignore_ascii_case("dist") => Self::Dist,
-      _ => Self::Other(name.to_string()),
+      _ => Self::Other(name.to_owned()),
     }
   }
 }

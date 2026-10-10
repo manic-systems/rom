@@ -758,7 +758,7 @@ impl Renderer<'_> {
       .collect();
     let hidden = row.children.len() - shown.len();
     let label = if hidden == 0 {
-      "Transfers".to_string()
+      "Transfers".to_owned()
     } else {
       format!("Transfers ({hidden} hidden)")
     };

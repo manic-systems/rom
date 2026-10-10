@@ -340,7 +340,7 @@ fn shared_sources_use_stable_ties_and_prefer_a_running_consumer() {
       .iter()
       .position(|line| line.contains("source-tree"))
       .unwrap();
-    lines[index - 1].to_string()
+    lines[index - 1].to_owned()
   };
   for _ in 0..20 {
     let text = frame(&engine, DisplayFormat::Tree, 1.2, 23);

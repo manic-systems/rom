@@ -211,7 +211,7 @@ impl Renderer<'_> {
       vec![
         self.span("│  ", self.config.theme.connector),
         self.span("Host      │ ", self.config.theme.muted),
-        self.span(host.to_string(), self.config.theme.host),
+        self.span(host.to_owned(), self.config.theme.host),
       ],
       self.width,
     ));

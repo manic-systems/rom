@@ -9,7 +9,7 @@ const FETCH_RESULT: &str = r#"{"action":"result","id":2,"type":109,"fields":["/n
 fn record(json: &str, mode: InputMode) -> String {
   match mode {
     InputMode::Auto => format!("@nix {json}"),
-    InputMode::Json => json.to_string(),
+    InputMode::Json => json.to_owned(),
   }
 }
 

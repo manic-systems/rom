@@ -250,7 +250,7 @@ impl<'a> RenderSnapshot<'a> {
       done: transfer.bytes_transferred,
       total: transfer.total_bytes,
       start: transfer.start,
-      host: transfer.host.name().to_string(),
+      host: transfer.host.name().to_owned(),
       completed: false,
     });
   }
@@ -271,7 +271,7 @@ impl<'a> RenderSnapshot<'a> {
       done: transfer.total_bytes,
       total: Some(transfer.total_bytes),
       start: transfer.start,
-      host: transfer.host.name().to_string(),
+      host: transfer.host.name().to_owned(),
       completed: true,
     });
   }
@@ -366,11 +366,11 @@ mod tests {
   fn transfer(done: u64, total: u64, completed: bool) -> Transfer {
     Transfer {
       direction: Direction::Download,
-      name: "demo".to_string(),
+      name: "demo".to_owned(),
       done,
       total: Some(total),
       start: 0.0,
-      host: "cache".to_string(),
+      host: "cache".to_owned(),
       completed,
     }
   }

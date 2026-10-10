@@ -122,7 +122,7 @@ pub fn run() -> misstep::Result<()> {
     .and_then(|path| {
       PathBuf::from(path).file_name()?.to_str().map(str::to_owned)
     })
-    .unwrap_or_else(|| "rom".to_string());
+    .unwrap_or_else(|| "rom".to_owned());
   let mut arguments = process_args
     .map(|argument| {
       argument
@@ -131,9 +131,9 @@ pub fn run() -> misstep::Result<()> {
     })
     .collect::<misstep::Result<Vec<_>>>()?;
   match program.as_str() {
-    "rom-build" => arguments.insert(0, "build".to_string()),
-    "rom-shell" => arguments.insert(0, "shell".to_string()),
-    "rom-develop" => arguments.insert(0, "develop".to_string()),
+    "rom-build" => arguments.insert(0, "build".to_owned()),
+    "rom-shell" => arguments.insert(0, "shell".to_owned()),
+    "rom-develop" => arguments.insert(0, "develop".to_owned()),
     _ => {},
   }
   let (rom_args, nix_flags) = parse_args_with_separator(&arguments);
@@ -261,10 +261,10 @@ fn build(
 ) -> misstep::Result<()> {
   require_packages("build", &packages)?;
   let mut arguments = vec![
-    "build".to_string(),
+    "build".to_owned(),
     nix_verbosity_flag(config.verbose),
-    "--log-format".to_string(),
-    "internal-json".to_string(),
+    "--log-format".to_owned(),
+    "internal-json".to_owned(),
   ];
   arguments.extend(packages);
   arguments.extend(nix_flags);
@@ -283,10 +283,10 @@ fn shell(
   require_packages("shell", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
-    "shell".to_string(),
+    "shell".to_owned(),
     nix_verbosity_flag(config.verbose),
-    "--log-format".to_string(),
-    "internal-json".to_string(),
+    "--log-format".to_owned(),
+    "internal-json".to_owned(),
   ];
   monitored.extend(replace_command_with_exit(&original));
   let code =
@@ -294,7 +294,7 @@ fn shell(
   if code != 0 {
     return exit_with(code);
   }
-  let mut arguments = vec!["shell".to_string()];
+  let mut arguments = vec!["shell".to_owned()];
   arguments.extend(packages);
   arguments.extend(nix_flags);
   exit_with(run_inherited(config.platform.binary(), &arguments)?)
@@ -308,10 +308,10 @@ fn develop(
   require_packages("develop", &packages)?;
   let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
   let mut monitored = vec![
-    "develop".to_string(),
+    "develop".to_owned(),
     nix_verbosity_flag(config.verbose),
-    "--log-format".to_string(),
-    "internal-json".to_string(),
+    "--log-format".to_owned(),
+    "internal-json".to_owned(),
   ];
   monitored.extend(replace_command_with_exit(&original));
   let code =
@@ -319,7 +319,7 @@ fn develop(
   if code != 0 {
     return exit_with(code);
   }
-  let mut arguments = vec!["develop".to_string()];
+  let mut arguments = vec!["develop".to_owned()];
   arguments.extend(packages);
   arguments.extend(nix_flags);
   exit_with(run_inherited(config.platform.binary(), &arguments)?)
@@ -784,7 +784,7 @@ pub fn replace_command_with_exit(arguments: &[String]) -> Vec<String> {
     }
     result.push(argument.clone());
   }
-  result.extend(["--command", "sh", "-c", "exit"].map(str::to_string));
+  result.extend(["--command", "sh", "-c", "exit"].map(str::to_owned));
   result
 }
 
