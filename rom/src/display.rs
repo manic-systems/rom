@@ -101,6 +101,24 @@ impl<'a> Renderer<'a> {
     }
   }
 
+  fn render_tree_frame(&mut self, final_render: bool) -> Vec<Line<'static>> {
+    if final_render && self.max_height <= 1 {
+      let (text, color) = self.final_status();
+      return vec![fit_line(vec![span(text, color)], self.width)];
+    }
+    let tail = if final_render {
+      self.final_summary(true)
+    } else {
+      self.legend()
+    };
+    let plan = self.tree_plan();
+    let (tail, graph_budget) =
+      self.tree_layout(tail, plan.line_count(), final_render);
+    let mut lines = self.render_tree(&plan, graph_budget);
+    lines.extend(tail);
+    lines
+  }
+
   fn render(mut self, final_render: bool) -> Vec<Line<'static>> {
     if final_render {
       self
@@ -109,26 +127,8 @@ impl<'a> Renderer<'a> {
         .retain(|item| !item.transfer.completed);
     }
 
-    if matches!(self.config.format, DisplayFormat::Tree) {
-      if final_render && self.max_height <= 1 {
-        let (text, color) = self.final_status();
-        return vec![fit_line(vec![span(text, color)], self.width)];
-      }
-      let tail = if final_render {
-        self.final_summary(true)
-      } else {
-        self.legend()
-      };
-      let plan = self.tree_plan();
-      let (tail, graph_budget) =
-        self.tree_layout(tail, plan.line_count(), final_render);
-      let mut lines = self.render_tree(&plan, graph_budget);
-      lines.extend(tail);
-      return lines;
-    }
-
     let mut lines = match self.config.format {
-      DisplayFormat::Tree => unreachable!("tree frames are budgeted above"),
+      DisplayFormat::Tree => return self.render_tree_frame(final_render),
       DisplayFormat::Plain => self.plain(),
       DisplayFormat::Dashboard => self.dashboard(),
     };

@@ -12,6 +12,10 @@ use crate::{
   types::{LegendStyle, SummaryStyle},
 };
 
+#[expect(
+  clippy::multiple_inherent_impl,
+  reason = "rendering is split across modules by section"
+)]
 impl Renderer<'_> {
   pub(super) fn legend(&self) -> Vec<Line<'static>> {
     match self.config.legend_style {

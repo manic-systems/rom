@@ -80,6 +80,10 @@ impl TreePlan {
   fn row(&self, id: RowId) -> &PlannedRow {
     &self.rows[&id]
   }
+
+  fn row_mut(&mut self, id: RowId) -> &mut PlannedRow {
+    self.rows.get_mut(&id).expect("planned row exists")
+  }
 }
 
 struct TreeSelection<'a> {
@@ -90,6 +94,10 @@ struct TreeSelection<'a> {
   maximum: usize,
 }
 
+#[expect(
+  clippy::multiple_inherent_impl,
+  reason = "rendering is split across modules by section"
+)]
 impl Renderer<'_> {
   /// Builds one typed row graph.
   ///
@@ -888,11 +896,5 @@ impl Renderer<'_> {
       spans.push(span(format!("  {}", transfer.host), self.config.theme.host));
     }
     spans
-  }
-}
-
-impl TreePlan {
-  fn row_mut(&mut self, id: RowId) -> &mut PlannedRow {
-    self.rows.get_mut(&id).expect("planned row exists")
   }
 }

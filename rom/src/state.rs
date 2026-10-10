@@ -745,14 +745,14 @@ impl State {
     let Some(info) = self.derivation_infos.get_mut(&id) else {
       return false;
     };
-    if !matches!(info.build_status, BuildStatus::Building(_)) {
-      return false;
-    }
-    let BuildStatus::Building(build) =
-      std::mem::replace(&mut info.build_status, BuildStatus::Unknown)
-    else {
-      unreachable!("build status was checked");
-    };
+    let build =
+      match std::mem::replace(&mut info.build_status, BuildStatus::Unknown) {
+        BuildStatus::Building(build) => build,
+        other => {
+          info.build_status = other;
+          return false;
+        },
+      };
     let completed_at = SystemTime::now();
     self
       .build_cache
@@ -786,12 +786,6 @@ impl State {
     let Some(info) = self.derivation_infos.get_mut(&id) else {
       return;
     };
-    if !matches!(
-      info.build_status,
-      BuildStatus::Building(_) | BuildStatus::Built { .. }
-    ) {
-      return;
-    }
     let previous =
       std::mem::replace(&mut info.build_status, BuildStatus::Unknown);
     let build = match previous {
@@ -809,12 +803,13 @@ impl State {
         }
         build
       },
-      BuildStatus::Unknown
+      other @ (BuildStatus::Unknown
       | BuildStatus::Planned
       | BuildStatus::Available
       | BuildStatus::Failed { .. }
-      | BuildStatus::DependencyFailed => {
-        unreachable!("build status was checked");
+      | BuildStatus::DependencyFailed) => {
+        info.build_status = other;
+        return;
       },
     };
     info.build_status = BuildStatus::Failed { info: build, fail };

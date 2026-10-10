@@ -57,7 +57,20 @@ const fn admission_from(is_terminal: bool, multiplexer: bool) -> Admission {
   }
 }
 
+/// Counts the newlines in `bytes`.
+#[expect(
+  clippy::naive_bytecount,
+  reason = "pending logs are small, so a dependency would not pay off"
+)]
+fn count_lines(bytes: &[u8]) -> usize {
+  bytes.iter().filter(|&&byte| byte == b'\n').count()
+}
+
 /// Owns the live graph region and serializes all terminal output.
+#[expect(
+  clippy::struct_excessive_bools,
+  reason = "the flags are independent lifecycle facts"
+)]
 pub struct LiveTerminal<W: Write> {
   writer:        W,
   graph_height:  u16,
@@ -148,7 +161,7 @@ impl<W: Write> LiveTerminal<W> {
       // the bottom of the screen. Keep the region's height until new log lines
       // take over the freed rows; the final frame needs no anchoring.
       let logs = &self.pending[..complete];
-      let log_lines = logs.iter().filter(|&&byte| byte == b'\n').count();
+      let log_lines = count_lines(logs);
       let reserved = if final_render {
         0
       } else {
