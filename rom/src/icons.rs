@@ -35,15 +35,15 @@ pub struct Icons {
 
 /// Standard Unicode icons, which need no special font.
 pub static UNICODE: Icons = Icons {
-  running:  "⏵",
-  done:     "✔",
-  planned:  "⏸",
-  failed:   "✗",
-  download: "↓",
-  upload:   "↑",
-  clock:    "⏱",
-  estimate: "∅",
-  summary:  "∑",
+  running:  "\u{23f5}", // ⏵
+  done:     "\u{2714}", // ✔
+  planned:  "\u{23f8}", // ⏸
+  failed:   "\u{2717}", // ✗
+  download: "\u{2193}", // ↓
+  upload:   "\u{2191}", // ↑
+  clock:    "\u{23f1}", // ⏱
+  estimate: "\u{2205}", // ∅
+  summary:  "\u{2211}", // ∑
   gap:      "\u{a0}",
 };
 
@@ -69,6 +69,7 @@ pub static NERD: Icons = Icons {
 ///
 /// Checks `NERD_FONTS` env override first (`1` forces Nerd, `0` forces
 /// Unicode), then checks for terminals that bundle Nerd Font glyphs.
+#[must_use]
 pub fn detect() -> &'static Icons {
   // Manual override takes precedence
   if let Ok(value) = env::var("NERD_FONTS") {

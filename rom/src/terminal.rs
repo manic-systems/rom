@@ -10,7 +10,7 @@ use crossterm::{
 
 use crate::{
   display::{render_frame, write_final},
-  state::State,
+  state::{State, elapsed},
   types::RenderConfig,
 };
 
@@ -57,7 +57,20 @@ const fn admission_from(is_terminal: bool, multiplexer: bool) -> Admission {
   }
 }
 
+/// Counts the newlines in `bytes`.
+#[expect(
+  clippy::naive_bytecount,
+  reason = "pending logs are small, so a dependency would not pay off"
+)]
+fn count_lines(bytes: &[u8]) -> usize {
+  bytes.iter().filter(|&&byte| byte == b'\n').count()
+}
+
 /// Owns the live graph region and serializes all terminal output.
+#[expect(
+  clippy::struct_excessive_bools,
+  reason = "the flags are independent lifecycle facts"
+)]
 pub struct LiveTerminal<W: Write> {
   writer:        W,
   graph_height:  u16,
@@ -128,7 +141,7 @@ impl<W: Write> LiveTerminal<W> {
       self.partial_since = None;
     } else {
       let since = *self.partial_since.get_or_insert(now);
-      if now - since >= PARTIAL_LINE_GRACE {
+      if elapsed(since, now) >= PARTIAL_LINE_GRACE {
         self.partial_since = None;
         self.partial_line = true;
         self.clear_graph()?;
@@ -148,15 +161,15 @@ impl<W: Write> LiveTerminal<W> {
       // the bottom of the screen. Keep the region's height until new log lines
       // take over the freed rows; the final frame needs no anchoring.
       let logs = &self.pending[..complete];
-      let log_lines = logs.iter().filter(|&&byte| byte == b'\n').count();
+      let log_lines = count_lines(logs);
       let reserved = if final_render {
         0
       } else {
         usize::from(self.graph_height).saturating_sub(log_lines)
       };
       let padding = reserved.saturating_sub(usize::from(frame.height));
-      let text =
-        "\r\n".repeat(padding) + &frame.ansi_text().replace('\n', "\r\n");
+      let mut text = "\r\n".repeat(padding);
+      text.push_str(&frame.ansi_text().replace('\n', "\r\n"));
       let bytes = self.compose(logs, &text)?;
       if crossterm::terminal::size()? != (columns, rows) {
         continue;
@@ -340,9 +353,9 @@ impl<W: Write> Drop for LiveTerminal<W> {
 }
 
 impl<W: Write> Write for LiveTerminal<W> {
-  fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
-    self.write_passthrough(buffer)?;
-    Ok(buffer.len())
+  fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    self.write_passthrough(buf)?;
+    Ok(buf.len())
   }
 
   fn flush(&mut self) -> io::Result<()> {
@@ -351,6 +364,10 @@ impl<W: Write> Write for LiveTerminal<W> {
 }
 
 #[cfg(test)]
+#[expect(
+  clippy::non_ascii_literal,
+  reason = "expected frames contain the glyphs they check"
+)]
 mod tests {
   use super::*;
 

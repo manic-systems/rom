@@ -1,3 +1,13 @@
+//! Measures reduction and rendering throughput on a synthetic build.
+
+#![expect(clippy::print_stdout, reason = "the benchmark reports to stdout")]
+#![expect(clippy::use_debug, reason = "durations print best with Debug")]
+#![expect(
+  clippy::cast_precision_loss,
+  clippy::float_arithmetic,
+  reason = "synthetic timestamps are small integers"
+)]
+
 use std::{hint::black_box, time::Instant};
 
 use rom::{Engine, EngineConfig, RenderConfig, display::render_frame};
@@ -5,6 +15,7 @@ use rom::{Engine, EngineConfig, RenderConfig, display::render_frame};
 fn main() {
   const DERIVATIONS: usize = 10_000;
   const RECORDS: usize = 100_000;
+  const FRAMES: usize = 120;
   let mut engine = Engine::new(EngineConfig::default());
   let started = Instant::now();
   for id in 1..=DERIVATIONS {
@@ -32,9 +43,12 @@ fn main() {
     "reduced {RECORDS} records and retained {} derivations in {elapsed:?}",
     engine.state().derivations().len(),
   );
-  assert_eq!(engine.state().derivations().len(), DERIVATIONS);
+  assert_eq!(
+    engine.state().derivations().len(),
+    DERIVATIONS,
+    "every derivation is tracked"
+  );
 
-  const FRAMES: usize = 120;
   let render = RenderConfig::default();
   let started = Instant::now();
   let rendered_rows: usize = (0..FRAMES)
@@ -57,5 +71,5 @@ fn main() {
     "rendered {FRAMES} frames over {DERIVATIONS} visible derivations in \
      {elapsed:?}",
   );
-  assert!(rendered_rows > 0);
+  assert!(rendered_rows > 0, "the frame renders rows");
 }

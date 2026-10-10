@@ -51,3 +51,6 @@ tempfile.workspace = true
 [[bench]]
 name = "reducer"
 harness = false
+
+[lints]
+workspace = true
