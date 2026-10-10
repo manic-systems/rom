@@ -55,8 +55,11 @@ impl DerivationResolver for FilesystemResolver {
     cognos::parse_drv_file(path)
   }
 
-  // Produced derivations have no deriver, so the realisation is the only
-  // record of which producer wrote them.
+  /// Returns the `.drv` a dynamic-derivation producer wrote to its `out`, read
+  /// from Nix's build trace.
+  ///
+  /// Produced derivations have no deriver, so the realisation is the only
+  /// record of which producer wrote them.
   fn produced(&self, producer: &Path) -> Option<PathBuf> {
     // The trace lists entries keyed by resolved derivations, including the
     // producer's own CA inputs, then the installable's realised path.
