@@ -1,3 +1,5 @@
+//! Legend, status box, and final summary rendering.
+
 use ratatui_core::{
   style::Color,
   text::{Line, Span},

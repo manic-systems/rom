@@ -1,3 +1,5 @@
+//! Decoder for `--log-format internal-json` records.
+
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 

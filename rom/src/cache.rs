@@ -1,3 +1,5 @@
+//! CSV persistence of historical build durations.
+
 use std::{
   collections::{HashMap, HashSet},
   fs::{self, File, OpenOptions},

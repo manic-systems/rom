@@ -1,3 +1,6 @@
+//! Minimalistic parsers for Nix's `ATerm` `.drv` files and
+//! `internal-json` log format.
+
 pub mod aterm;
 pub mod internal;
 mod state;

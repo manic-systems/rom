@@ -1,3 +1,5 @@
+//! Plain and dashboard display formats.
+
 use ratatui_core::text::Line;
 
 use super::{

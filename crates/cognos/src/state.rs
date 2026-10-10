@@ -1,3 +1,5 @@
+//! Small domain types shared by the parsers.
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ProgressState {
   JustStarted,

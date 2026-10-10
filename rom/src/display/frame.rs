@@ -1,3 +1,5 @@
+//! Materialized frames and their text and ANSI serialization.
+
 use std::io::{self, Write};
 
 use ratatui_core::{

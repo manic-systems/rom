@@ -1,3 +1,5 @@
+//! Dependency tree planning and rendering.
+
 use std::{
   cmp::Reverse,
   collections::{BinaryHeap, HashMap, HashSet, VecDeque},
