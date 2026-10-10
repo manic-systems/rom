@@ -24,8 +24,11 @@ const PARTIAL_LINE_GRACE: f64 = 0.5;
 /// Why live presentation was or was not admitted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Admission {
+  /// Live redraws are allowed.
   Live,
+  /// Standard error is not a terminal.
   NotATerminal,
+  /// The terminal is inside tmux or GNU Screen.
   Multiplexer,
 }
 
@@ -68,6 +71,7 @@ pub struct LiveTerminal<W: Write> {
 }
 
 impl<W: Write> LiveTerminal<W> {
+  /// Creates a live terminal that writes to `writer`.
   #[must_use]
   pub const fn new(writer: W) -> Self {
     Self {
@@ -83,6 +87,7 @@ impl<W: Write> LiveTerminal<W> {
     }
   }
 
+  /// Returns whether live rendering has stopped for good.
   #[must_use]
   pub const fn is_retired(&self) -> bool {
     self.retired

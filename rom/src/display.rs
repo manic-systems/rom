@@ -42,6 +42,7 @@ pub fn format_duration(secs: f64) -> String {
   }
 }
 
+/// Formats a byte count with binary units, such as `1.5 MiB`.
 #[must_use]
 pub fn format_bytes(bytes: u64) -> String {
   const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];

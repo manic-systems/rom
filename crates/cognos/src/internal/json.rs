@@ -7,20 +7,35 @@ use serde_repr::Deserialize_repr;
 #[derive(Deserialize_repr, Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Activities {
+  /// Activity of unknown kind.
   Unknown       = 0,
+  /// Copying one store path between stores.
   CopyPath      = 100,
+  /// Downloading a file.
   FileTransfer  = 101,
+  /// Realising derivation outputs.
   Realise       = 102,
+  /// Copying a set of store paths.
   CopyPaths     = 103,
+  /// Building a set of derivations.
   Builds        = 104,
+  /// Building one derivation.
   Build         = 105,
+  /// Deduplicating files in the store.
   OptimiseStore = 106,
+  /// Verifying a store path.
   VerifyPath    = 107,
+  /// Substituting a store path from a binary cache.
   Substitute    = 108,
+  /// Querying store path metadata from a substituter.
   QueryPathInfo = 109,
+  /// Running a post-build hook.
   PostBuildHook = 110,
+  /// Waiting for another process to release a build lock.
   BuildWaiting  = 111,
+  /// Fetching a source tree, such as a flake input.
   FetchTree     = 112,
+  /// Copying a source into the store.
   FetchToStore  = 113,
 }
 
@@ -51,41 +66,63 @@ pub enum ResultType {
   FetchToStore     = 109,
 }
 
+/// Log level of an action, from most to least severe.
 #[derive(
   Deserialize_repr, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
 )]
 #[repr(u8)]
 pub enum Verbosity {
+  /// Errors.
   Error     = 0,
+  /// Warnings.
   Warning   = 1,
+  /// Notices.
   Notice    = 2,
+  /// Informational messages.
   Info      = 3,
+  /// Talkative messages.
   Talkative = 4,
+  /// Chatty messages.
   Chatty    = 5,
+  /// Debugging messages.
   Debug     = 6,
+  /// Everything, including the noisiest tracing.
   Vomit     = 7,
 }
 
+/// Identifier of an activity.
 pub type Id = u64;
 
+/// One action record from `--log-format internal-json`.
 #[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "action")]
 pub enum Actions {
+  /// An activity has started.
   #[serde(rename = "start")]
   Start {
+    /// Identifier of the new activity.
     id:       Id,
+    /// Log level of the activity.
     level:    Verbosity,
+    /// Identifier of the parent activity, or `0` for none.
     #[serde(default)]
     parent:   Id,
+    /// Human-readable description.
     text:     String,
+    /// Kind of activity.
     #[serde(rename = "type")]
     activity: Activities,
+    /// Activity-specific fields.
     #[serde(default)]
     fields:   Vec<serde_json::Value>,
   },
 
+  /// An activity has stopped.
   #[serde(rename = "stop")]
-  Stop { id: Id },
+  Stop {
+    /// Identifier of the stopped activity.
+    id: Id,
+  },
 
   /// A log/diagnostic message.
   ///
@@ -95,7 +132,9 @@ pub enum Actions {
   /// same struct parses both.
   #[serde(rename = "msg")]
   Message {
+    /// Log level of the message.
     level:   Verbosity,
+    /// Message text, possibly with ANSI escape codes.
     msg:     String,
     /// Message without ANSI escape codes (Lix only).
     #[serde(default)]
@@ -111,25 +150,36 @@ pub enum Actions {
     column:  Option<u32>,
   },
 
+  /// An activity reported a result.
   #[serde(rename = "result")]
   Result {
+    /// Result-specific fields.
     #[serde(default)]
     fields:      Vec<serde_json::Value>,
+    /// Identifier of the activity that reported the result.
     id:          Id,
+    /// Kind of result.
     #[serde(rename = "type")]
     result_type: ResultType,
   },
 }
 
+/// A well-formed record that uses a protocol extension this crate does not
+/// know.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UnsupportedRecord {
+  /// Value of the record's `action` field.
   pub action: String,
+  /// Value of the record's `type` field, if it is an integer.
   pub kind:   Option<u64>,
 }
 
+/// Outcome of decoding one internal-JSON record.
 #[derive(Debug, Clone)]
 pub enum DecodedAction {
+  /// A record of a known action and kind.
   Known(Actions),
+  /// A well-formed record from a newer protocol version.
   Unsupported(UnsupportedRecord),
 }
 

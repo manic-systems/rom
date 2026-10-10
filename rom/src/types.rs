@@ -27,6 +27,7 @@ pub enum DisplayFormat {
 }
 
 impl DisplayFormat {
+  /// Parses a format name: `tree`, `plain`, or `dashboard`.
   #[must_use]
   pub fn parse(value: &str) -> Option<Self> {
     match value {
@@ -41,13 +42,17 @@ impl DisplayFormat {
 /// Legend detail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LegendStyle {
+  /// Status counts on a single line.
   Compact,
+  /// Status counts in a boxed table.
   #[default]
   Table,
+  /// A table with every status spelled out.
   Verbose,
 }
 
 impl LegendStyle {
+  /// Parses a legend style name: `compact`, `table`, or `verbose`.
   #[must_use]
   pub fn parse(value: &str) -> Option<Self> {
     match value {
@@ -62,13 +67,17 @@ impl LegendStyle {
 /// Final-summary detail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SummaryStyle {
+  /// A single line of totals.
   #[default]
   Concise,
+  /// Totals in a table.
   Table,
+  /// Totals and every finished build.
   Full,
 }
 
 impl SummaryStyle {
+  /// Parses a summary style name: `concise`, `table`, or `full`.
   #[must_use]
   pub fn parse(value: &str) -> Option<Self> {
     match value {
@@ -83,13 +92,17 @@ impl SummaryStyle {
 /// Prefix used for decoded builder log lines.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LogPrefixStyle {
+  /// The derivation's short name.
   #[default]
   Short,
+  /// The full derivation path.
   Full,
+  /// No prefix.
   None,
 }
 
 impl LogPrefixStyle {
+  /// Parses a log prefix style name: `short`, `full`, or `none`.
   #[must_use]
   pub fn parse(value: &str) -> Option<Self> {
     match value {
@@ -107,17 +120,29 @@ impl LogPrefixStyle {
 /// alternate renderers can share a theme without copying a palette.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Theme {
+  /// Tree connectors and box borders.
   pub connector:      Color,
+  /// Ordinary text.
   pub text:           Color,
+  /// Secondary text, such as timers.
   pub muted:          Color,
+  /// Planned work.
   pub planned:        Color,
+  /// Running work.
   pub running:        Color,
+  /// Completed work.
   pub completed:      Color,
+  /// Failed work.
   pub failed:         Color,
+  /// Builder log prefixes.
   pub log_prefix:     Color,
+  /// Host names.
   pub host:           Color,
+  /// Downloads.
   pub download:       Color,
+  /// Uploads.
   pub upload:         Color,
+  /// The unfilled part of progress bars.
   pub progress_track: Color,
 }
 
@@ -126,9 +151,12 @@ pub struct Theme {
 /// `Auto` also honors the existing `NERD_FONTS` override.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum IconMode {
+  /// Nerd Fonts if `NERD_FONTS` asks for them, otherwise Unicode.
   #[default]
   Auto,
+  /// Plain Unicode symbols.
   Unicode,
+  /// Nerd Fonts glyphs.
   Nerd,
 }
 
@@ -155,9 +183,13 @@ impl Default for Theme {
 /// Structured-input and log policy owned by the synchronous engine.
 #[derive(Debug, Clone)]
 pub struct EngineConfig {
+  /// Suppress decoded logs and presentations.
   pub silent:           bool,
+  /// Most verbose message level that is shown.
   pub verbosity:        Verbosity,
+  /// How input records are recognized.
   pub input_mode:       InputMode,
+  /// Prefix used for builder log lines.
   pub log_prefix_style: LogPrefixStyle,
   /// Maximum decoded builder log lines per activity.
   pub log_line_limit:   Option<usize>,
@@ -172,13 +204,21 @@ pub struct RenderConfig {
   ///
   /// Exact non-protocol passthrough is never changed by this setting.
   pub ansi:          bool,
+  /// Show elapsed and estimated times.
   pub show_timers:   bool,
+  /// Width override; defaults to the terminal width.
   pub width:         Option<u16>,
+  /// Height override; defaults to the terminal height.
   pub height:        Option<u16>,
+  /// Primary presentation.
   pub format:        DisplayFormat,
+  /// Legend detail.
   pub legend_style:  LegendStyle,
+  /// Final summary detail.
   pub summary_style: SummaryStyle,
+  /// Colors.
   pub theme:         Theme,
+  /// Icon selection.
   pub icons:         IconMode,
 }
 
@@ -216,7 +256,9 @@ impl Default for RenderConfig {
 /// The engine and renderer retain only their respective halves.
 #[derive(Debug, Clone, Default)]
 pub struct Config {
+  /// Engine half.
   pub engine: EngineConfig,
+  /// Renderer half.
   pub render: RenderConfig,
 }
 
@@ -226,7 +268,10 @@ pub struct Config {
 /// color the optional activity prefix.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogLine {
+  /// Activity prefix, such as the derivation name.
   pub prefix: String,
+  /// Message with the producer's ANSI styling.
   pub styled: String,
+  /// Message without styling.
   pub plain:  String,
 }

@@ -7,14 +7,23 @@ use std::env;
 
 /// A complete set of display icons.
 pub struct Icons {
+  /// Marks a running build.
   pub running:  &'static str,
+  /// Marks a finished build.
   pub done:     &'static str,
+  /// Marks a planned build.
   pub planned:  &'static str,
+  /// Marks a failed build.
   pub failed:   &'static str,
+  /// Marks a download.
   pub download: &'static str,
+  /// Marks an upload.
   pub upload:   &'static str,
+  /// Precedes elapsed time.
   pub clock:    &'static str,
+  /// Precedes an estimated duration.
   pub estimate: &'static str,
+  /// Marks the summary.
   pub summary:  &'static str,
   /// Separator printed after an icon.
   ///

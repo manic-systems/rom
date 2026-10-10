@@ -6,12 +6,19 @@ use std::{fs, path::Path};
 /// Parsed derivation information from a .drv file
 #[derive(Debug, Clone)]
 pub struct ParsedDerivation {
+  /// Output names paired with their store paths.
   pub outputs:    Vec<(String, String)>,
+  /// Input derivation paths paired with the outputs used from each.
   pub input_drvs: Vec<(String, Vec<String>)>,
+  /// Source store paths used as inputs.
   pub input_srcs: Vec<String>,
+  /// System the derivation builds for, such as `x86_64-linux`.
   pub platform:   String,
+  /// Path of the builder executable.
   pub builder:    String,
+  /// Arguments passed to the builder.
   pub args:       Vec<String>,
+  /// Environment variables set for the builder.
   pub env:        Vec<(String, String)>,
 }
 

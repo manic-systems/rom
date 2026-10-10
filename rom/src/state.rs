@@ -21,12 +21,16 @@ pub type ActivityId = Id;
 /// Store path representation.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct StorePath {
+  /// Full store path.
   pub path: PathBuf,
+  /// Hash part of the store path.
   pub hash: String,
+  /// Name part of the store path, after the hash.
   pub name: String,
 }
 
 impl StorePath {
+  /// Parses a `/nix/store` path, returning `None` if it is not one.
   #[must_use]
   pub fn parse(path: &str) -> Option<Self> {
     if !path.starts_with("/nix/store/") {
@@ -52,11 +56,14 @@ impl StorePath {
 /// Derivation representation.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Derivation {
+  /// Path of the `.drv` file.
   pub path: PathBuf,
+  /// Name without the hash or the `.drv` suffix.
   pub name: String,
 }
 
 impl Derivation {
+  /// Parses a `.drv` path, returning `None` if it is not one.
   #[must_use]
   pub fn parse(path: &str) -> Option<Self> {
     let path_buf = PathBuf::from(path);
@@ -84,84 +91,126 @@ impl Derivation {
 /// Transfer information for a download or upload.
 #[derive(Debug, Clone)]
 pub struct TransferInfo {
+  /// Start time, in seconds since the UNIX epoch.
   pub start:             f64,
+  /// Remote end of the transfer.
   pub host:              Host,
+  /// Activity performing the transfer.
   pub activity_id:       ActivityId,
+  /// Derivation the transfer was started for.
   pub parent:            Option<DerivationId>,
+  /// Bytes transferred so far.
   pub bytes_transferred: u64,
+  /// Total size, once known.
   pub total_bytes:       Option<u64>,
 }
 
 /// Completed transfer information.
 #[derive(Debug, Clone)]
 pub struct CompletedTransferInfo {
+  /// Start time, in seconds since the UNIX epoch.
   pub start:       f64,
+  /// End time, in seconds since the UNIX epoch.
   pub end:         f64,
+  /// Remote end of the transfer.
   pub host:        Host,
+  /// Derivation the transfer was started for.
   pub parent:      Option<DerivationId>,
+  /// Total size.
   pub total_bytes: u64,
 }
 
 /// Store path information.
 #[derive(Debug, Clone)]
 pub struct StorePathInfo {
+  /// Parsed store path.
   pub name:      StorePath,
+  /// Derivation that produces this path.
   pub producer:  Option<DerivationId>,
+  /// Derivations that take this path as an input.
   pub input_for: HashSet<DerivationId>,
 }
 
 /// Build information.
 #[derive(Debug, Clone)]
 pub struct BuildInfo {
+  /// Start time, in seconds since the UNIX epoch.
   pub start:    f64,
+  /// Machine running the build.
   pub host:     Host,
+  /// Expected duration in seconds, from build history.
   pub estimate: Option<u64>,
+  /// Current build phase, such as `buildPhase`.
   pub phase:    Option<String>,
 }
 
 /// Build failure information.
 #[derive(Debug, Clone)]
 pub struct BuildFail {
+  /// Failure time, in seconds since the UNIX epoch.
   pub at:        f64,
+  /// Cause of the failure.
   pub fail_type: FailType,
 }
 
 /// Failure type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FailType {
+  /// The builder exited with this status code.
   BuildFailed(i32),
+  /// The build timed out.
   Timeout,
+  /// An output's hash did not match the expected hash.
   HashMismatch,
+  /// The cause is unknown.
   Unknown,
 }
 
 /// Build status.
 #[derive(Debug, Clone)]
 pub enum BuildStatus {
+  /// Nothing is known about the derivation yet.
   Unknown,
+  /// The derivation will be built.
   Planned,
+  /// The derivation's outputs were already in the store.
   Available,
+  /// The derivation is building.
   Building(BuildInfo),
+  /// The derivation built successfully.
   Built {
+    /// Details of the build.
     info:         BuildInfo,
+    /// End time, in seconds since the UNIX epoch.
     end:          f64,
+    /// Wall-clock time the build completed.
     completed_at: SystemTime,
   },
+  /// The build failed.
   Failed {
+    /// Details of the build.
     info: BuildInfo,
+    /// Details of the failure.
     fail: BuildFail,
   },
+  /// A dependency failed, so the derivation cannot build.
   DependencyFailed,
 }
 
 /// Derivation information.
 #[derive(Debug, Clone)]
 pub struct DerivationInfo {
+  /// Parsed derivation path.
   pub name:               Derivation,
+  /// Derivations this one depends on.
   pub input_derivations:  Vec<DerivationId>,
+  /// Current build status.
   pub build_status:       BuildStatus,
+  /// Derivations that depend on this one.
   pub derivation_parents: HashSet<DerivationId>,
+  /// Package name from the derivation's environment.
   pub pname:              Option<String>,
+  /// System the derivation builds for.
   pub platform:           Option<String>,
 }
 
@@ -171,33 +220,46 @@ pub struct DerivationInfo {
 /// [`DerivationInfo::build_status`].
 #[derive(Debug, Clone, Default)]
 pub struct DependencySummary {
+  /// Downloads that have not started yet.
   pub planned_downloads:   HashSet<StorePathId>,
+  /// Finished downloads.
   pub completed_downloads: HashMap<StorePathId, CompletedTransferInfo>,
+  /// Finished uploads.
   pub completed_uploads:   HashMap<StorePathId, CompletedTransferInfo>,
+  /// Downloads in progress.
   pub running_downloads:   HashMap<StorePathId, TransferInfo>,
+  /// Uploads in progress.
   pub running_uploads:     HashMap<StorePathId, TransferInfo>,
 }
 
 /// Activity status tracking.
 #[derive(Debug, Clone)]
 pub struct ActivityStatus {
+  /// Kind of activity.
   pub activity:   Activities,
+  /// Parent activity.
   pub parent:     Option<ActivityId>,
+  /// Derivation the activity belongs to.
   pub derivation: Option<DerivationId>,
+  /// Store path the activity belongs to.
   pub store_path: Option<StorePathId>,
 }
 
 /// A local source path being copied into the store.
 #[derive(Debug, Clone)]
 pub struct SourceFetch {
+  /// Source path being copied.
   pub source: String,
+  /// Start time, in seconds since the UNIX epoch.
   pub start:  f64,
 }
 
 /// Build report for caching.
 #[derive(Debug, Clone)]
 pub struct BuildReport {
+  /// Build duration in seconds.
   pub duration_secs: f64,
+  /// Wall-clock time the build completed.
   pub completed_at:  SystemTime,
 }
 
@@ -228,6 +290,7 @@ impl Default for State {
 }
 
 impl State {
+  /// Creates empty state that starts now.
   #[must_use]
   pub fn new() -> Self {
     Self {
@@ -249,36 +312,43 @@ impl State {
     }
   }
 
+  /// Returns how far the run has progressed.
   #[must_use]
   pub fn progress_state(&self) -> ProgressState {
     self.progress_state.clone()
   }
 
+  /// Returns the start time, in seconds since the UNIX epoch.
   #[must_use]
   pub const fn start_time(&self) -> f64 {
     self.start_time
   }
 
+  /// Returns the transfer summary.
   #[must_use]
   pub const fn summary(&self) -> &DependencySummary {
     &self.full_summary
   }
 
+  /// Returns the derivations no other derivation depends on.
   #[must_use]
   pub fn roots(&self) -> &[DerivationId] {
     &self.forest_roots
   }
 
+  /// Returns every known derivation.
   #[must_use]
   pub const fn derivations(&self) -> &IndexMap<DerivationId, DerivationInfo> {
     &self.derivation_infos
   }
 
+  /// Returns every known store path.
   #[must_use]
   pub const fn store_paths(&self) -> &IndexMap<StorePathId, StorePathInfo> {
     &self.store_path_infos
   }
 
+  /// Returns the number of errors Nix reported.
   #[must_use]
   pub const fn error_count(&self) -> usize {
     self.nix_error_count
@@ -591,6 +661,7 @@ impl State {
     inserted
   }
 
+  /// Returns the derivation with the given ID.
   #[must_use]
   pub fn get_derivation_info(
     &self,
@@ -913,6 +984,7 @@ impl State {
     }
   }
 
+  /// Returns whether Nix reported an error or a build failed.
   #[must_use]
   pub fn has_errors(&self) -> bool {
     self.nix_error_count > 0
@@ -922,6 +994,7 @@ impl State {
         .any(|info| matches!(info.build_status, BuildStatus::Failed { .. }))
   }
 
+  /// Returns whether any build or transfer is still running.
   #[must_use]
   pub fn has_unfinished(&self) -> bool {
     self
@@ -932,6 +1005,7 @@ impl State {
       || !self.full_summary.running_uploads.is_empty()
   }
 
+  /// Returns the number of derivations with a known status.
   #[must_use]
   pub fn total_builds(&self) -> usize {
     self
@@ -1012,6 +1086,7 @@ fn complete_transfer(
   }
 }
 
+/// Returns the current time, in seconds since the UNIX epoch.
 #[must_use]
 pub fn current_time() -> f64 {
   SystemTime::now()

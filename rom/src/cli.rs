@@ -38,9 +38,11 @@ use crate::{
   },
 };
 
+/// Pretty build graphs for your pretty Nix builds.
 #[derive(Debug, Parse)]
 #[pound(name = "rom", version)]
 pub struct Cli {
+  /// Nix command to wrap; without one, `rom` monitors standard input.
   #[pound(subcommand)]
   pub command: Option<Commands>,
 
@@ -81,14 +83,24 @@ pub struct Cli {
   pub verbose: u8,
 }
 
+/// Nix commands that `rom` can wrap.
 #[derive(Debug, Parse)]
 pub enum Commands {
   /// Run nix/lix build with monitoring. Pass Nix flags after --.
-  Build { packages: Vec<String> },
+  Build {
+    /// Installables to build.
+    packages: Vec<String>,
+  },
   /// Realize inputs, then enter nix/lix shell. Pass Nix flags after --.
-  Shell { packages: Vec<String> },
+  Shell {
+    /// Installables to put in the shell.
+    packages: Vec<String>,
+  },
   /// Realize inputs, then enter nix/lix develop. Pass Nix flags after --.
-  Develop { packages: Vec<String> },
+  Develop {
+    /// Installable whose development environment to enter.
+    packages: Vec<String>,
+  },
 }
 
 struct WrapperConfig {
@@ -217,6 +229,7 @@ pub fn run() -> misstep::Result<()> {
   }
 }
 
+/// Splits arguments at the first `--` into ROM's arguments and Nix flags.
 #[must_use]
 pub fn parse_args_with_separator(
   args: &[String],
@@ -760,6 +773,8 @@ fn available_derivations(
   Ok(available)
 }
 
+/// Replaces any `--command` with `--command sh -c exit`, so the shell
+/// realizes its inputs and exits immediately.
 #[must_use]
 pub fn replace_command_with_exit(arguments: &[String]) -> Vec<String> {
   let mut result = Vec::new();

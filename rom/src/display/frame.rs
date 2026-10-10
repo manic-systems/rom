@@ -16,7 +16,9 @@ use crate::{
 /// A fully materialized presentation.
 #[derive(Debug, Clone)]
 pub struct Frame {
+  /// Rendered cells.
   pub buffer: Buffer,
+  /// Number of rows in use.
   pub height: u16,
 }
 
@@ -124,6 +126,7 @@ fn ansi_foreground(color: Color) -> String {
   ansi_style(color, Color::Reset, Modifier::empty())
 }
 
+/// Formats a log line, keeping its styling only when ANSI output is enabled.
 #[must_use]
 pub fn format_log(log: &LogLine, config: &RenderConfig) -> String {
   if !config.ansi {

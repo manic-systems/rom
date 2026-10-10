@@ -122,7 +122,9 @@ pub enum Output {
 /// Result of feeding one or more bytes into the engine.
 #[derive(Debug, Default)]
 pub struct Processed {
+  /// Whether the state changed.
   pub changed: bool,
+  /// Output to emit, in order.
   pub output:  Vec<Output>,
 }
 
@@ -171,6 +173,7 @@ pub struct Engine {
 }
 
 impl Engine {
+  /// Creates an engine with empty state.
   #[must_use]
   pub fn new(config: EngineConfig) -> Self {
     Self {
@@ -185,19 +188,25 @@ impl Engine {
     }
   }
 
+  /// Returns the current state.
   #[must_use]
   pub const fn state(&self) -> &State {
     &self.state
   }
 
+  /// Marks a planned derivation as available without building it.
+  ///
+  /// Returns whether its status changed.
   pub fn mark_available(&mut self, id: DerivationId) -> bool {
     self.state.mark_available(id)
   }
 
+  /// Sets the source of `.drv` metadata.
   pub fn set_resolver(&mut self, resolver: impl DerivationResolver + 'static) {
     self.resolver = Some(Box::new(resolver));
   }
 
+  /// Returns the engine's configuration.
   #[must_use]
   pub const fn config(&self) -> &EngineConfig {
     &self.config
@@ -510,6 +519,7 @@ pub struct StreamEngine {
 }
 
 impl StreamEngine {
+  /// Creates a stream engine with empty state.
   #[must_use]
   pub fn new(config: EngineConfig) -> Self {
     let record = match config.input_mode {
@@ -522,11 +532,13 @@ impl StreamEngine {
     }
   }
 
+  /// Returns the wrapped engine.
   #[must_use]
   pub const fn engine(&self) -> &Engine {
     &self.engine
   }
 
+  /// Returns the wrapped engine mutably.
   pub fn engine_mut(&mut self) -> &mut Engine {
     &mut self.engine
   }
@@ -633,6 +645,7 @@ pub struct Monitor<W: Write> {
 }
 
 impl<W: Write> Monitor<W> {
+  /// Creates a monitor that writes to `writer`.
   #[must_use]
   pub fn new(config: Config, writer: W) -> Self {
     let Config { engine, render } = config;
@@ -643,6 +656,7 @@ impl<W: Write> Monitor<W> {
     }
   }
 
+  /// Returns the current state.
   #[must_use]
   pub const fn state(&self) -> &State {
     self.stream.engine().state()
@@ -659,6 +673,7 @@ impl<W: Write> Monitor<W> {
     write_outputs(&mut self.writer, processed.output, &self.render)
   }
 
+  /// Returns the engine mutably.
   pub fn engine_mut(&mut self) -> &mut Engine {
     self.stream.engine_mut()
   }
