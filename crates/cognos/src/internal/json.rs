@@ -193,6 +193,11 @@ struct Envelope {
 
 /// Decode one internal-JSON payload while distinguishing valid future protocol
 /// extensions from malformed instances of the current protocol.
+///
+/// # Errors
+///
+/// Returns an error if `json` is not a JSON object with an `action` field, or
+/// if it is a malformed record of a known action and kind.
 pub fn decode_action(json: &[u8]) -> Result<DecodedAction, serde_json::Error> {
   let value: serde_json::Value = serde_json::from_slice(json)?;
   let envelope: Envelope = serde_json::from_value(value.clone())?;
