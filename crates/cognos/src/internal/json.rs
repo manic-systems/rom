@@ -243,7 +243,7 @@ mod tests {
   }
 
   #[test]
-  fn test_start_build_nix() {
+  fn start_build_nix() {
     // Standard Nix/Lix Build start: fields = [drv_path, host, round, nrRounds]
     let json = r#"{
       "action":"start",
@@ -273,7 +273,7 @@ mod tests {
   }
 
   #[test]
-  fn test_start_substitute() {
+  fn start_substitute() {
     let json = r#"{
       "action":"start","id":42,"level":0,"parent":0,"text":"",
       "type":108,
@@ -288,7 +288,7 @@ mod tests {
   }
 
   #[test]
-  fn test_start_no_fields_defaults_to_empty() {
+  fn start_no_fields_defaults_to_empty() {
     let json = r#"{"action":"start","id":1,"level":4,"parent":0,"text":"evaluating","type":0}"#;
     match parse(json) {
       Actions::Start { fields, .. } => assert!(fields.is_empty()),
@@ -297,7 +297,7 @@ mod tests {
   }
 
   #[test]
-  fn test_stop() {
+  fn stop() {
     match parse(r#"{"action":"stop","id":1234}"#) {
       Actions::Stop { id } => assert_eq!(id, 1234),
       _ => panic!("expected Stop"),
@@ -305,7 +305,7 @@ mod tests {
   }
 
   #[test]
-  fn test_message_nix() {
+  fn message_nix() {
     let json = r#"{"action":"msg","level":0,"msg":"error: build failed"}"#;
     match parse(json) {
       Actions::Message {
@@ -328,7 +328,7 @@ mod tests {
   }
 
   #[test]
-  fn test_message_nix_trace() {
+  fn message_nix_trace() {
     match parse(r#"{"action":"msg","level":0,"msg":"trace: hello from nix"}"#) {
       Actions::Message { msg, raw_msg, .. } => {
         assert_eq!(msg, "trace: hello from nix");
@@ -339,7 +339,7 @@ mod tests {
   }
 
   #[test]
-  fn test_message_lix_with_source_location() {
+  fn message_lix_with_source_location() {
     let json = r#"{
       "action":"msg",
       "level":0,
@@ -369,7 +369,7 @@ mod tests {
   }
 
   #[test]
-  fn test_message_lix_raw_msg_only() {
+  fn message_lix_raw_msg_only() {
     let json = r#"{
       "action":"msg","level":1,
       "msg":"\u001b[33mwarning:\u001b[0m something",
@@ -391,7 +391,7 @@ mod tests {
   }
 
   #[test]
-  fn test_result_build_log_line() {
+  fn result_build_log_line() {
     let json = r#"{"action":"result","fields":["checking for gcc... gcc"],"id":99,"type":101}"#;
     match parse(json) {
       Actions::Result {
@@ -408,7 +408,7 @@ mod tests {
   }
 
   #[test]
-  fn test_result_set_phase() {
+  fn result_set_phase() {
     match parse(
       r#"{"action":"result","fields":["configurePhase"],"id":5,"type":104}"#,
     ) {
@@ -425,7 +425,7 @@ mod tests {
   }
 
   #[test]
-  fn test_result_progress() {
+  fn result_progress() {
     match parse(r#"{"action":"result","fields":[3,10,2,0],"id":7,"type":105}"#)
     {
       Actions::Result {
@@ -444,7 +444,7 @@ mod tests {
   }
 
   #[test]
-  fn test_result_set_expected() {
+  fn result_set_expected() {
     match parse(r#"{"action":"result","fields":[105,8],"id":3,"type":106}"#) {
       Actions::Result {
         result_type,
@@ -460,7 +460,7 @@ mod tests {
   }
 
   #[test]
-  fn test_result_post_build_log_line() {
+  fn result_post_build_log_line() {
     match parse(
       r#"{"action":"result","fields":["hook output"],"id":1,"type":107}"#,
     ) {
@@ -472,7 +472,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_line_prefix() {
+  fn parse_line_prefix() {
     let line = r#"@nix {"action":"stop","id":42}"#;
     match parse_line(line).unwrap() {
       Actions::Stop { id } => assert_eq!(id, 42),
@@ -494,7 +494,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_line_non_nix() {
+  fn parse_line_non_nix() {
     assert!(parse_line("some other output").is_none());
     assert!(parse_line("").is_none());
   }

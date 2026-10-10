@@ -317,14 +317,14 @@ mod tests {
   use super::*;
 
   #[test]
-  fn test_parse_string() {
+  fn parses_string() {
     assert_eq!(parse_string(r#""hello""#).unwrap(), "hello");
     assert_eq!(parse_string(r#""hello world""#).unwrap(), "hello world");
     assert_eq!(parse_string(r#""hello\nworld""#).unwrap(), "hello\nworld");
   }
 
   #[test]
-  fn test_parse_string_list() {
+  fn parses_string_list() {
     let list = r#"["foo","bar","baz"]"#;
     let result = parse_string_list(list).unwrap();
     assert_eq!(result, vec!["foo", "bar", "baz"]);
@@ -335,7 +335,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_outputs() {
+  fn parses_outputs() {
     let outputs = r#"[("out","/nix/store/abc-foo","","")]"#;
     let result = parse_outputs(outputs).unwrap();
     assert_eq!(result.len(), 1);
@@ -344,7 +344,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_input_drvs() {
+  fn parses_input_drvs() {
     let input = r#"[("/nix/store/abc-foo.drv",["out"]),("/nix/store/def-bar.drv",["out","dev"])]"#;
     let result = parse_input_drvs(input).unwrap();
     assert_eq!(result.len(), 2);
@@ -355,7 +355,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_minimal_drv() {
+  fn parse_minimal_drv() {
     let drv = r#"Derive([("out","/nix/store/output","","")],[],[],"x86_64-linux","/bin/sh",[],[("name","value")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.outputs.len(), 1);
@@ -365,7 +365,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_with_dependencies() {
+  fn parse_with_dependencies() {
     let drv = r#"Derive([("out","/nix/store/abc-foo","","")],[("/nix/store/dep1.drv",["out"]),("/nix/store/dep2.drv",["out","dev"])],[],"x86_64-linux","/bin/sh",[],[("name","foo")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.input_drvs.len(), 2);
@@ -376,7 +376,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_real_world_hello_drv() {
+  fn parse_real_world_hello_drv() {
     // Stripped down version of a real hello.drv
     let drv = r#"Derive([("out","/nix/store/00000000000000000000000000000001-hello-2.12.2","","")],[("/nix/store/00000000000000000000000000000002-hello-2.12.2.tar.gz.drv",["out"]),("/nix/store/00000000000000000000000000000003-bash-5.3p3.drv",["out"]),("/nix/store/00000000000000000000000000000004-version-check-hook.drv",["out"]),("/nix/store/00000000000000000000000000000005-stdenv-linux.drv",["out"])],["/nix/store/00000000000000000000000000000006-source-stdenv.sh","/nix/store/00000000000000000000000000000007-default-builder.sh"],"x86_64-linux","/nix/store/00000000000000000000000000000008-bash-5.3p3/bin/bash",["-e","/nix/store/00000000000000000000000000000006-source-stdenv.sh"],[("name","hello-2.12.2"),("pname","hello"),("version","2.12.2"),("system","x86_64-linux")])"#;
 
@@ -411,7 +411,7 @@ mod tests {
   }
 
   #[test]
-  fn test_get_input_derivations() {
+  fn gets_input_derivations() {
     let drv = r#"Derive([("out","/nix/store/out","","")],[("/nix/store/dep.drv",["out"])],[],"x86_64-linux","/bin/sh",[],[("pname","hello"),("version","1.0")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.input_drvs.len(), 1);

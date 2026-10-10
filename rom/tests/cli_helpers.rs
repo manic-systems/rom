@@ -3,7 +3,7 @@
 use rom::cli::{parse_args_with_separator, replace_command_with_exit};
 
 #[test]
-fn test_replace_command_with_exit() {
+fn replaces_command_with_exit() {
   let args = vec![
     "nixpkgs#hello".to_owned(),
     "--command".to_owned(),
@@ -18,7 +18,7 @@ fn test_replace_command_with_exit() {
 }
 
 #[test]
-fn test_replace_command_short_form() {
+fn replace_command_short_form() {
   let args = vec![
     "nixpkgs#hello".to_owned(),
     "-c".to_owned(),
@@ -32,7 +32,7 @@ fn test_replace_command_short_form() {
 }
 
 #[test]
-fn test_parse_args_with_separator() {
+fn splits_args_at_separator() {
   // Test with separator
   let args = vec![
     "nixpkgs#hello".to_owned(),

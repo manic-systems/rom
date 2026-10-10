@@ -1,7 +1,7 @@
 use rom::types::{Config, DisplayFormat, InputMode, LogPrefixStyle};
 
 #[test]
-fn test_config_default() {
+fn config_default() {
   let config = Config::default();
   assert!(!config.engine.silent);
   assert_eq!(config.engine.input_mode, InputMode::Auto);
@@ -12,7 +12,7 @@ fn test_config_default() {
 }
 
 #[test]
-fn test_input_mode_comparison() {
+fn input_mode_comparison() {
   assert_eq!(InputMode::Json, InputMode::Json);
   assert_ne!(InputMode::Json, InputMode::Auto);
 }
