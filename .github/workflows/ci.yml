@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
+jobs:
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-26.04-arm, macos-latest]
+    uses: manic-systems/workflows/.github/workflows/rust-checks.yml@06a950a6ef1291d634844fef482d44c6b3852f64 # v2.2.0
+    with:
+      os: ${{ matrix.os }}
+      flake-check: false
+      fmt: ${{ matrix.os == 'ubuntu-latest' }}
+      clippy: true
+      test: true
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-26.04-arm, macos-latest]
+    permissions:
+      actions: write # purge this ref's stale cache entries
+      contents: read
+    uses: manic-systems/workflows/.github/workflows/nix-checks.yml@06a950a6ef1291d634844fef482d44c6b3852f64 # v2.2.0
+    with:
+      os: ${{ matrix.os }}
+      flake-check: false
+      build: true
+      cache: true
+      cache-save: true
+
+  actions:
+    uses: manic-systems/workflows/.github/workflows/actions-lint.yml@06a950a6ef1291d634844fef482d44c6b3852f64 # v2.2.0
+
+  markdown:
+    uses: manic-systems/workflows/.github/workflows/deno-fmt.yml@06a950a6ef1291d634844fef482d44c6b3852f64 # v2.2.0
