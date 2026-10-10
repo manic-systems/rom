@@ -143,9 +143,14 @@ fn replay_fixture(
     if unsafe { libc::setsid() } == -1 {
       return Err(io::Error::last_os_error());
     }
+    // The request is a `c_ulong`, but macOS declares `TIOCSCTTY` as a `u32`.
+    #[cfg(target_os = "macos")]
+    let request = libc::c_ulong::from(libc::TIOCSCTTY);
+    #[cfg(not(target_os = "macos"))]
+    let request = libc::TIOCSCTTY;
     // SAFETY: the PTY is installed as fd 2 by Command before the hook
     // executes.
-    if unsafe { libc::ioctl(2, libc::TIOCSCTTY, 0) } == -1 {
+    if unsafe { libc::ioctl(2, request, 0) } == -1 {
       return Err(io::Error::last_os_error());
     }
     Ok(())
@@ -184,7 +189,8 @@ fn replay_fixture(
 fn open_pty(columns: u16, rows: u16) -> io::Result<(RawFd, RawFd)> {
   let mut master = -1;
   let mut slave = -1;
-  let size = libc::winsize {
+  // macOS takes the window size as `*mut`, so it needs a mutable binding.
+  let mut size = libc::winsize {
     ws_row:    rows,
     ws_col:    columns,
     ws_xpixel: 0,
@@ -196,8 +202,8 @@ fn open_pty(columns: u16, rows: u16) -> io::Result<(RawFd, RawFd)> {
       &raw mut master,
       &raw mut slave,
       std::ptr::null_mut(),
-      std::ptr::null(),
-      &raw const size,
+      std::ptr::null_mut(),
+      &raw mut size,
     )
   } == -1
   {
