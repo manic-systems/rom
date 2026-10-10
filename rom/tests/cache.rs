@@ -3,7 +3,7 @@
   reason = "integration tests are their own crate"
 )]
 
-use std::{collections::HashMap, time::SystemTime};
+use std::{collections::BTreeMap, time::SystemTime};
 
 use rom::{
   cache::{BuildReportCache, format_utc_time, parse_utc_time},
@@ -51,7 +51,7 @@ fn format_parse_utc_time() {
 fn saving_loaded_history_does_not_duplicate_it() {
   let directory = tempfile::tempdir().unwrap();
   let cache = BuildReportCache::new(directory.path().join("history.csv"));
-  let mut history = HashMap::new();
+  let mut history = BTreeMap::new();
   history.insert(("localhost".to_owned(), "demo".to_owned()), vec![report(
     2.0,
   )]);

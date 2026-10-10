@@ -1,7 +1,7 @@
 //! CSV persistence of historical build durations.
 
 use std::{
-  collections::{HashMap, HashSet},
+  collections::{BTreeMap, HashSet},
   fs::{self, File, OpenOptions},
   io::{self, BufReader, BufWriter},
   path::PathBuf,
@@ -59,23 +59,24 @@ impl BuildReportCache {
 
   /// Loads build reports from the CSV file.
   ///
-  /// Returns an empty [`HashMap`] if the file doesn't exist or can't be parsed.
+  /// Returns an empty [`BTreeMap`] if the file doesn't exist or can't be
+  /// parsed.
   #[must_use]
-  pub fn load(&self) -> HashMap<(String, String), Vec<BuildReport>> {
+  pub fn load(&self) -> BTreeMap<(String, String), Vec<BuildReport>> {
     if !self.cache_path.exists() {
-      return HashMap::new();
+      return BTreeMap::new();
     }
 
     let file = match File::open(&self.cache_path) {
       Ok(f) => f,
-      Err(_) => return HashMap::new(),
+      Err(_) => return BTreeMap::new(),
     };
 
     let reader = BufReader::new(file);
     let mut csv_reader = Reader::from_reader(reader);
 
-    let mut reports: HashMap<(String, String), Vec<BuildReport>> =
-      HashMap::new();
+    let mut reports: BTreeMap<(String, String), Vec<BuildReport>> =
+      BTreeMap::new();
 
     for result in csv_reader.deserialize() {
       let row: BuildReportRow = match result {
@@ -116,7 +117,7 @@ impl BuildReportCache {
   /// cannot be created, locked, written, or renamed.
   pub fn save(
     &self,
-    reports: &HashMap<(String, String), Vec<BuildReport>>,
+    reports: &BTreeMap<(String, String), Vec<BuildReport>>,
   ) -> Result<(), std::io::Error> {
     // Ensure directory exists
     if let Some(parent) = self.cache_path.parent() {

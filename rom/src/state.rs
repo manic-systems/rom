@@ -1,6 +1,6 @@
 //! State management for ROM.
 use std::{
-  collections::{BTreeMap, HashMap, HashSet},
+  collections::{BTreeMap, BTreeSet, HashMap, HashSet},
   path::PathBuf,
   time::{Duration, SystemTime},
 };
@@ -207,7 +207,7 @@ pub struct DerivationInfo {
   /// Current build status.
   pub build_status:       BuildStatus,
   /// Derivations that depend on this one.
-  pub derivation_parents: HashSet<DerivationId>,
+  pub derivation_parents: BTreeSet<DerivationId>,
   /// Package name from the derivation's environment.
   pub pname:              Option<String>,
   /// System the derivation builds for.
@@ -221,15 +221,15 @@ pub struct DerivationInfo {
 #[derive(Debug, Clone, Default)]
 pub struct DependencySummary {
   /// Downloads that have not started yet.
-  pub planned_downloads:   HashSet<StorePathId>,
+  pub planned_downloads:   BTreeSet<StorePathId>,
   /// Finished downloads.
-  pub completed_downloads: HashMap<StorePathId, CompletedTransferInfo>,
+  pub completed_downloads: BTreeMap<StorePathId, CompletedTransferInfo>,
   /// Finished uploads.
-  pub completed_uploads:   HashMap<StorePathId, CompletedTransferInfo>,
+  pub completed_uploads:   BTreeMap<StorePathId, CompletedTransferInfo>,
   /// Downloads in progress.
-  pub running_downloads:   HashMap<StorePathId, TransferInfo>,
+  pub running_downloads:   BTreeMap<StorePathId, TransferInfo>,
   /// Uploads in progress.
-  pub running_uploads:     HashMap<StorePathId, TransferInfo>,
+  pub running_uploads:     BTreeMap<StorePathId, TransferInfo>,
 }
 
 /// Activity status tracking.
@@ -270,7 +270,7 @@ pub struct State {
   store_path_infos:   IndexMap<StorePathId, StorePathInfo>,
   full_summary:       DependencySummary,
   forest_roots:       Vec<DerivationId>,
-  build_cache:        HashMap<(String, String), Vec<BuildReport>>,
+  build_cache:        BTreeMap<(String, String), Vec<BuildReport>>,
   start_time:         f64,
   progress_state:     ProgressState,
   store_path_ids:     HashMap<StorePath, StorePathId>,
@@ -298,7 +298,7 @@ impl State {
       store_path_infos:   IndexMap::new(),
       full_summary:       DependencySummary::default(),
       forest_roots:       Vec::new(),
-      build_cache:        HashMap::new(),
+      build_cache:        BTreeMap::new(),
       start_time:         current_time(),
       progress_state:     ProgressState::JustStarted,
       store_path_ids:     HashMap::new(),
@@ -369,14 +369,14 @@ impl State {
 
   pub(crate) fn replace_build_history(
     &mut self,
-    history: HashMap<(String, String), Vec<BuildReport>>,
+    history: BTreeMap<(String, String), Vec<BuildReport>>,
   ) {
     self.build_cache = history;
   }
 
   pub(crate) const fn build_history(
     &self,
-  ) -> &HashMap<(String, String), Vec<BuildReport>> {
+  ) -> &BTreeMap<(String, String), Vec<BuildReport>> {
     &self.build_cache
   }
 
@@ -427,7 +427,7 @@ impl State {
       name:               drv.clone(),
       input_derivations:  Vec::new(),
       build_status:       BuildStatus::Unknown,
-      derivation_parents: HashSet::new(),
+      derivation_parents: BTreeSet::new(),
       pname:              None,
       platform:           None,
     });
@@ -456,6 +456,10 @@ impl State {
     original_id
   }
 
+  #[expect(
+    clippy::iter_over_hash_type,
+    reason = "every entry is rewritten in place, so order does not matter"
+  )]
   fn merge_derivations(
     &mut self,
     original: DerivationId,
