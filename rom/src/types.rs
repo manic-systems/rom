@@ -124,8 +124,10 @@ pub struct Theme {
   pub connector:      Color,
   /// Ordinary text.
   pub text:           Color,
-  /// Secondary text, such as timers.
+  /// Secondary text, such as build phases.
   pub muted:          Color,
+  /// Timers and estimates.
+  pub timer:          Color,
   /// Planned work.
   pub planned:        Color,
   /// Running work.
@@ -167,11 +169,12 @@ impl Default for Theme {
       // The terminal's own foreground, readable on light and dark themes.
       text:           Color::Reset,
       muted:          Color::DarkGray,
+      timer:          Color::Gray,
       planned:        Color::Blue,
       running:        Color::Yellow,
       completed:      Color::Green,
       failed:         Color::Red,
-      log_prefix:     Color::DarkGray,
+      log_prefix:     Color::Indexed(67),
       host:           Color::Magenta,
       download:       Color::Cyan,
       upload:         Color::Magenta,

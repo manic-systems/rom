@@ -28,7 +28,7 @@ impl Renderer<'_> {
           self.icons.gap,
           format_duration(elapsed(self.snapshot.start_time, self.now))
         ),
-        self.config.theme.muted,
+        self.config.theme.timer,
       ));
     }
     for (icon, count, label, color) in [
@@ -88,7 +88,7 @@ impl Renderer<'_> {
       if self.config.show_timers {
         spans.push(span(
           format!("  {}", format_duration(elapsed(build.start, self.now))),
-          self.config.theme.muted,
+          self.config.theme.timer,
         ));
       }
       if let Some(estimate) = build.estimate {
@@ -100,7 +100,7 @@ impl Renderer<'_> {
             self.icons.gap,
             format_secs(estimate.saturating_sub(spent))
           ),
-          self.config.theme.muted,
+          self.config.theme.timer,
         ));
       }
       let host = build.host.name();
@@ -235,7 +235,7 @@ impl Renderer<'_> {
         span("Duration  \u{2502} ", self.config.theme.muted), // │
         span(
           format_duration(elapsed(self.snapshot.start_time, self.now)),
-          self.config.theme.muted,
+          self.config.theme.timer,
         ),
       ],
       self.width,

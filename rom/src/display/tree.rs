@@ -3,7 +3,6 @@
 use std::{
   cmp::Reverse,
   collections::{BinaryHeap, HashMap, HashSet, VecDeque},
-  fmt::Write as _,
 };
 
 use ratatui_core::text::{Line, Span};
@@ -596,36 +595,39 @@ impl Renderer<'_> {
     }
     let (icon, color, suffix) = match &info.build_status {
       BuildStatus::Unknown => {
-        (self.icons.planned, self.config.theme.muted, None)
+        (self.icons.planned, self.config.theme.muted, Vec::new())
       },
       BuildStatus::Planned => {
-        (self.icons.planned, self.config.theme.planned, None)
+        (self.icons.planned, self.config.theme.planned, Vec::new())
       },
       BuildStatus::Building(build) => {
-        let mut suffix = build
-          .phase
-          .as_ref()
-          .map(|phase| format!("  ({phase})"))
-          .unwrap_or_default();
+        let mut suffix = Vec::new();
+        if let Some(phase) = &build.phase {
+          suffix.push(span(format!("  ({phase})"), self.config.theme.muted));
+        }
         if self.config.show_timers {
-          let _ = write!(
-            suffix,
-            "  {}{}{}",
-            self.icons.clock,
-            self.icons.gap,
-            format_duration(elapsed(build.start, self.now))
-          );
+          suffix.push(span(
+            format!(
+              "  {}{}{}",
+              self.icons.clock,
+              self.icons.gap,
+              format_duration(elapsed(build.start, self.now))
+            ),
+            self.config.theme.timer,
+          ));
         }
         if let Some(estimate) = build.estimate
           && !self.snapshot.shared_names.contains(info.name.name.as_str())
         {
-          let _ = write!(
-            suffix,
-            "  ({}{}{})",
-            self.icons.estimate,
-            self.icons.gap,
-            format_secs(estimate)
-          );
+          suffix.push(span(
+            format!(
+              "  ({}{}{})",
+              self.icons.estimate,
+              self.icons.gap,
+              format_secs(estimate)
+            ),
+            self.config.theme.timer,
+          ));
         }
         let mut seen = HashSet::new();
         let mut above = vec![id];
@@ -647,22 +649,21 @@ impl Renderer<'_> {
           }
         }
         if unseen > 0 {
-          let _ = write!(suffix, "  (+{unseen} waiting)");
+          suffix.push(span(
+            format!("  (+{unseen} waiting)"),
+            self.config.theme.planned,
+          ));
         }
-        (
-          self.icons.running,
-          self.config.theme.running,
-          (!suffix.is_empty()).then_some(suffix),
-        )
+        (self.icons.running, self.config.theme.running, suffix)
       },
       BuildStatus::Built { .. } | BuildStatus::Available => {
-        (self.icons.done, self.config.theme.completed, None)
+        (self.icons.done, self.config.theme.completed, Vec::new())
       },
       BuildStatus::Failed { .. } => {
-        (self.icons.failed, self.config.theme.failed, None)
+        (self.icons.failed, self.config.theme.failed, Vec::new())
       },
       BuildStatus::DependencyFailed => {
-        (self.icons.failed, self.config.theme.muted, None)
+        (self.icons.failed, self.config.theme.muted, Vec::new())
       },
     };
     let host = match &info.build_status {
@@ -682,10 +683,7 @@ impl Renderer<'_> {
     });
     let has_transfer = transfer.is_some();
     let reserve = transfer.as_ref().map_or_else(
-      || {
-        suffix.as_ref().map_or(0, |value| value.width())
-          + host.as_ref().map_or(0, |value| value.width())
-      },
+      || spans_width(&suffix) + host.as_ref().map_or(0, |value| value.width()),
       |item| if item.total.is_some() { 12 } else { 8 },
     );
     let name_width =
@@ -695,9 +693,7 @@ impl Renderer<'_> {
       spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
     }
     if !has_transfer {
-      if let Some(suffix) = suffix {
-        spans.push(span(suffix, self.config.theme.muted));
-      }
+      spans.extend(suffix);
       if let Some(host) = host {
         spans.push(span(host, self.config.theme.host));
       }
@@ -887,7 +883,7 @@ impl Renderer<'_> {
       spans.push(span(format!("  {bytes}"), self.config.theme.muted));
     }
     if available > essential + bytes.len() + duration.len() + 5 {
-      spans.push(span(format!("  {duration}"), self.config.theme.muted));
+      spans.push(span(format!("  {duration}"), self.config.theme.timer));
     }
     if transfer.host != "localhost"
       && available
