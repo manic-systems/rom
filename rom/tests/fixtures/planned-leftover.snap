@@ -1,0 +1,16 @@
+=== planned @ 100ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ a-1.0\e[0m
+\e[0;90m├─ \e[0;34m⏸ b-1.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 2       \e[0;31m✗ 0      \e[0m∑ 2
+\e[0;90m┗━ \e[0mElapsed ⏱ 0s
+=== finished @ 100ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ a-1.0\e[0m
+\e[0;90m├─ \e[0;34m⏸ b-1.0\e[0m
+\e[0;90m┕━ \e[0;34mInput ended with 2 planned builds after 0s\e[0m
+=== log ===
+these 2 derivations will be built:\e[0m
+  /nix/store/00000000000000000000000000000001-a-1.0.drv\e[0m
+  /nix/store/00000000000000000000000000000002-b-1.0.drv\e[0m

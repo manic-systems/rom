@@ -1,7 +1,8 @@
-/// Internal log format parsers.
-///
-/// Each submodule handles one wire format emitted by a Nix-family evaluator.
-/// New formats should be added as sibling modules here.
+//! Evaluator platforms and their internal log formats.
+//!
+//! Each submodule handles one wire format emitted by a Nix-family evaluator.
+//! New formats should be added as sibling modules here.
+
 pub mod json;
 
 use std::{process::Command, str::FromStr};
@@ -64,8 +65,8 @@ impl FromStr for Platform {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     match s {
-      s if s.eq_ignore_ascii_case("nix") => Ok(Self::Nix),
-      s if s.eq_ignore_ascii_case("lix") => Ok(Self::Lix),
+      _ if s.eq_ignore_ascii_case("nix") => Ok(Self::Nix),
+      _ if s.eq_ignore_ascii_case("lix") => Ok(Self::Lix),
       _ => Err(()),
     }
   }

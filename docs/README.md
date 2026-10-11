@@ -1,114 +1,169 @@
 # ROM
 
-Visual build monitor for Nix that transforms cryptic build logs into a clean,
-real-time dependency graph. Think of it as `NOM`, but written in Rust with a
-focus on speed, configurability, and showing you exactly what Nix is doing with
-your builds.
+ROM turns Nix and Lix `internal-json` logs into a connected, real-time build
+graph. It is both an installable command and a synchronous Rust library.
 
-Built with a modular parser under [`crates/cognos`](../crates/cognos) that handles
-the ATerm and internal-json log formats from Nix.
+ROM is under active development. Its Rust API and presentation are explicitly
+unstable and carry no compatibility guarantee yet.
 
-> [!NOTE]
-> ROM is still under active development. Things may break, output formats may
-> change, and bugs are to be expected. If you encounter any issues, please
-> report them!
+## Commands and streams
 
-## Usage
+Wrap the evaluator directly:
 
-ROM is primarily designed to wrap the Nix installation on your system. As such,
-the _recommended_ interface is using `rom build`, `rom shell` and `rom develop`
-for their Nix counterparts.
-
-<!--markdownlint-disable MD013-->
-
-```terminal
-$ rom -h
-ROM - A Nix build output monitor
-
-Usage: rom [OPTIONS] [COMMAND]
-
-Commands:
-  build    Run nix build with monitoring
-  shell    Run nix shell with monitoring
-  develop  Run nix develop with monitoring
-  help     Print this message or the help of the given subcommand(s)
-
-Options:
-      --json                     Parse JSON output from nix --log-format=internal-json
-      --silent                   Minimal output
-      --format <FORMAT>          Output format: tree, plain, dashboard [default: tree]
-      --legend <LEGEND>          Legend display style: compact, table, verbose [default: table]
-      --summary <SUMMARY>        Summary display style: concise, table, full [default: concise]
-      --log-prefix <LOG_PREFIX>  Log prefix style: short, full, none [default: short]
-      --log-lines <LOG_LINES>    Maximum number of log lines to display
-      --platform <PLATFORM>      Nix-family evaluator to use. Auto-detected by default
-  -v...                          Increase verbosity; controls nix log level and rom diagnostic output. Repeatable: -v (info), -vv (debug), -vvv (trace)
-  -h, --help                     Print help
-  -V, --version                  Print version
+```console
+rom build nixpkgs#hello
+rom shell nixpkgs#python3
+rom develop .#default
 ```
 
-<!--markdownlint-enable MD013-->
+Arguments following `--` are passed to Nix or Lix:
 
-To build a package with Nix, let's say `pkgs.hello`, you can do:
-
-```terminal
-$ rom build nixpkgs#hello
-┏━ Dependency Graph:
-┃ ⏵ hello-2.12.2 (configurePhase) ⏱ 2s
-┣━━━ Builds
-┗━ ∑ ⏵ 1 │ ✔ 0 │ ✗ 0 │ ⏸ 4 │ ⏱ 2s
+```console
+rom build nixpkgs#hello -- --rebuild
 ```
 
-and the dependency tree will appear below. Each package in your closure appears
-as a node, with spinners and timers showing real-time progress. When a build
-finishes, you'll see a clear status with neat little glyphs.
+ROM also accepts an existing stream. By default it decodes lines beginning with
+`@nix` and passes every other byte through exactly once:
 
-### Argument Passthrough
-
-At times, especially while you're calling ROM as a standalone executable, you
-might need to pass additional flags to the Nix command being invoked. ROM allows
-for this behaviour by accepting `--` as a delimiter and passing any arguments
-that come after to Nix. For example:
-
-```terminal
-$ rom develop nixpkgs#hello -- --substituters ""
-fetching git input 'git+file:///home/notashelf/Dev/notashelf/rom'
-┗━ ⏵ 0 │ ✔ 2 │ ✗ 0 │ ⏸ 0 │ ⏱ 1s
-
-
-notashelf@enyo ~/Dev/notashelf/rom [git:(9e83f57...) *]
-i $ hello
-Hello, world!
+```console
+nix build nixpkgs#hello -v --log-format internal-json 2>&1 | rom
 ```
 
-## FAQ
+Use `--json` only for an unprefixed stream containing one internal-JSON object
+per record. A malformed record that claims to be structured input is an error.
+Syntactically valid future actions or numeric variants are ignored with a
+nonfatal diagnostic so newer protocol extensions do not break ROM. Stream I/O
+failures and oversized structured records remain errors.
 
-**Q**: If "NOM" is nix-output-monitor, what does "ROM stand for"?
+ROM sends its presentation, decoded logs, passthrough, and diagnostics to
+stderr. A wrapped child's stdout is relayed concurrently and byte-for-byte to
+stdout, so store paths remain safe to pipe into another program.
 
-**A**: It doesn't stand for anything, I named it _rom_ because it sounds like
-_rum_. I like rum. However you may choose to name it "rusty output monitor" or
-"raf's output monitor" at your convenience. I don't know, be creative.
+On an interactive stderr, decoded log records retain their ANSI colors and
+attributes and ROM colors their activity prefixes. On a redirected stderr,
+decoded records are stripped of ANSI. Non-protocol passthrough is always
+byte-exact, so producer-supplied escape bytes in passthrough remain untouched.
 
-## Attributions
+## Presentations
 
-This project is clearly inspired by the famous
-<https://github.com/maralorn/nix-output-monitor>. I am a huge fan of NOM's
-design, but I am a little disappointed by its lack of configurability. This is a
-more flexible replacement that makes both my life, and displaying build graphs
-easier.
+The existing tree, plain, and dashboard formats remain available, along with
+compact/table/verbose legends, concise/table/full summaries, log-prefix modes,
+timers, and the `NERD_FONTS=0` or `NERD_FONTS=1` override. Nerd Font icons are
+selected automatically for Ghostty, WezTerm, Kitty, and Superset. For other
+terminals with a patched font, set `NERD_FONTS=1`.
 
-The ATerm and internal-json log parser was inspired, and mostly copied from
-<https://git.atagen.co/atagen/nous> with consolidation, cleaner repo layout, and
-a better separation of concerns. rom builds on the ideas previously pondered by
-nous, and provides a subcrate under [`crates/cognos`](../crates/cognos) for easy
-parsing. Thank you Atagen for letting me play with the idea.
+Downloads and uploads are first-class activities. Known-size transfers use a
+line bar, heavy `━╸` for the finished part and a light `─` track, with half-cell
+steps, colored by the active `Theme`. Unknown-size transfers show transferred
+bytes and a spinner rather than a fake percentage. Source downloads with no
+known producer appear beneath a consuming build, keeping that branch visible
+while the transfer is active. Shared sources appear once, prefer a running or
+planned consumer, and show how many builds use them; global transfer counts
+remain unique. Cached sources stay hidden, and completed transfers disappear
+after the existing one-second live grace period. Final frames omit completed
+transfer rows immediately while retaining their global completion totals.
+Unrelated transfers remain in the separate Transfers branch. A source edge
+expresses a dependency, not proof that Nix is currently blocked on that
+download.
+
+Like nix-output-monitor, ROM uses synchronized updates on every direct
+interactive terminal without a capability round trip. Pending logs and the
+complete connected graph are composed into one write; the previous graph is
+cleared line-by-line in that same transaction. ROM deliberately avoids a
+protected scrolling region. tmux and GNU Screen remain on the no-cursor path
+until their passthrough behavior is validated: one initial connected graph, then
+logs and the final summary. Redirected output remains logs plus the final
+summary. As in nix-output-monitor, producer controls are preserved without
+classification and are emitted with the pending logs inside the next atomic
+graph commit. ROM uses the normal screen and preserves scrollback.
+
+The live tree reserves its bottom rows for the selected legend and limits the
+dependency graph above it to two-thirds of the usable terminal height. It
+budgets connected activity branches before individual transfer details, so a
+source-heavy consumer cannot spend the rows reserved for another selected build.
+Direct live rendering requires at least 20 columns by 8 rows; smaller terminals
+use the append-only fallback rather than dropping legend rows or drawing a
+disconnected tree.
+
+## Library
+
+`Engine` is the deterministic reducer. It owns no terminal, threads, global
+clock, or async runtime:
+
+```rust
+use rom::{monitor::Engine, EngineConfig};
+
+let mut engine = Engine::new(EngineConfig::default());
+let update = engine.process_record_at(
+    br#"@nix {"action":"msg","level":3,"msg":"hello"}"#,
+    0.0,
+)?;
+```
+
+Library-only consumers can disable ROM's default `cli` feature to omit pound,
+the tracing subscriber, and Unix process-signal dependencies.
+
+`StreamEngine` adds incremental framing without accumulating arbitrarily long
+passthrough lines. `Monitor` is the append-only `BufRead`/`Write` convenience
+adapter. Build-history storage and `.drv` resolution are optional injected
+services; the CLI supplies filesystem-backed implementations.
+
+## Reproducible visual fixtures
+
+Fixtures are timed raw Nix logs. Each line of `rom/tests/fixtures/<log>.log` is
+either `<ms> <raw line>`, written to ROM followed by a newline, or
+`<ms> = <checkpoint>`, which snapshots the frame at that time:
+
+```text
+0 @nix {"action":"start","id":10,...}
+100 = build-started
+```
+
+`rom/tests/fixtures.rs` replays a log with a virtual clock and writes one
+`<snapshot>.snap` per test: every checkpoint frame, the finished frame, and the
+decoded log, with exact SGR sequences stored as visible `\e` escapes. One log
+can back several snapshots at different sizes or formats. Plain output is not
+snapshotted; the harness asserts it equals the ANSI output with escapes removed.
+
+A PTY integration test additionally runs the real CLI and proves that the
+synchronized live path commits styled and over-width logs together with a
+complete graph, while the no-cursor multiplexer fallback still shows the first
+graph:
+
+```console
+cargo test --test fixtures
+cargo test --test pty_live
+```
+
+Snapshots are changed only through an explicit Miri-style blessing pass:
+
+```console
+ROM_BLESS=1 cargo test --test fixtures
+jj diff rom/tests/fixtures
+```
+
+The same log can be watched through the real binary:
+
+```console
+cargo build -p rom
+nu scripts/replay-fixture.nu download-progress
+nu scripts/replay-fixture.nu overflow --speed 0.25
+nu scripts/replay-fixture.nu failed-build --step
+nu scripts/replay-fixture.nu overflow -- --format dashboard
+```
+
+Arguments after `--` are passed to ROM. The replay helper never builds ROM
+implicitly.
+
+## Attribution
+
+ROM is inspired by
+[nix-output-monitor](https://github.com/maralorn/nix-output-monitor). Cognos's
+ATerm and internal-JSON parser was inspired by
+[nous](https://git.atagen.co/atagen/nous).
 
 ## License
 
-<!--markdownlint-disable MD059-->
-
-This project is made available under Mozilla Public License (MPL) version 2.0.
-See [LICENSE](LICENSE) for more details on the exact conditions. An online copy
-is provided [here](https://www.mozilla.org/en-US/MPL/2.0/).
-
-<!--markdownlint-enable MD059-->
+ROM and Cognos are licensed under the European Union Public Licence v. 1.2
+([EUPL-1.2](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)). See
+[`LICENSE`](../LICENSE).

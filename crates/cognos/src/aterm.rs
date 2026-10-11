@@ -1,21 +1,33 @@
-//! `ATerm` and Nix .drv file parser
+//! `ATerm` and Nix `.drv` file parser.
 //!
 //! Parses Nix .drv files in `ATerm` format to extract dependency information.
 use std::{fs, path::Path};
 
-/// Parsed derivation information from a .drv file
+/// Parsed derivation information from a `.drv` file.
 #[derive(Debug, Clone)]
 pub struct ParsedDerivation {
+  /// Output names paired with their store paths.
   pub outputs:    Vec<(String, String)>,
+  /// Input derivation paths paired with the outputs used from each.
   pub input_drvs: Vec<(String, Vec<String>)>,
+  /// Source store paths used as inputs.
   pub input_srcs: Vec<String>,
+  /// System the derivation builds for, such as `x86_64-linux`.
   pub platform:   String,
+  /// Path of the builder executable.
   pub builder:    String,
+  /// Arguments passed to the builder.
   pub args:       Vec<String>,
+  /// Environment variables set for the builder.
   pub env:        Vec<(String, String)>,
 }
 
-/// Parse a .drv file and extract its dependency information
+/// Parses a `.drv` file and extracts its dependency information.
+///
+/// # Errors
+///
+/// Returns a description of the failure if the file cannot be read or is not a
+/// valid derivation.
 pub fn parse_drv_file<P: AsRef<Path>>(
   path: P,
 ) -> Result<ParsedDerivation, String> {
@@ -24,13 +36,17 @@ pub fn parse_drv_file<P: AsRef<Path>>(
   parse_drv_content(&content)
 }
 
-/// Parse the content of a .drv file
+/// Parses the content of a `.drv` file.
+///
+/// # Errors
+///
+/// Returns a description of the failure if `content` is not a valid derivation.
 pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
   let content = content.trim();
 
   if !content.starts_with("Derive(") {
     return Err(
-      "Invalid derivation format: must start with 'Derive('".to_string(),
+      "Invalid derivation format: must start with 'Derive('".to_owned(),
     );
   }
 
@@ -79,7 +95,7 @@ pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
   })
 }
 
-/// Parse the top-level comma-separated list, respecting nested brackets
+/// Parses the top-level comma-separated list, respecting nested brackets.
 fn parse_top_level_list(s: &str) -> Vec<String> {
   let mut parts = Vec::new();
   let mut current = String::new();
@@ -112,7 +128,7 @@ fn parse_top_level_list(s: &str) -> Vec<String> {
         current.push(ch);
       },
       ',' if depth == 0 && !in_string => {
-        parts.push(current.trim().to_string());
+        parts.push(current.trim().to_owned());
         current.clear();
       },
       _ => {
@@ -122,7 +138,7 @@ fn parse_top_level_list(s: &str) -> Vec<String> {
   }
 
   if !current.trim().is_empty() {
-    parts.push(current.trim().to_string());
+    parts.push(current.trim().to_owned());
   }
 
   parts
@@ -165,7 +181,7 @@ fn parse_tuple_list<T>(
   Ok(items)
 }
 
-/// Parse outputs: [("out","/nix/store/...","",""),...]
+/// Parses outputs: `[("out","/nix/store/...","",""),...]`.
 fn parse_outputs(s: &str) -> Result<Vec<(String, String)>, String> {
   parse_tuple_list(
     s,
@@ -175,26 +191,22 @@ fn parse_outputs(s: &str) -> Result<Vec<(String, String)>, String> {
   )
 }
 
-/// Parse input derivations: [("/nix/store/foo.drv",["out"]),...]
+/// Parses input derivations: `[("/nix/store/foo.drv",["out"]),...]`.
 fn parse_input_drvs(s: &str) -> Result<Vec<(String, Vec<String>)>, String> {
   parse_tuple_list(
     s,
     "Invalid input drvs format",
     "Invalid input drv tuple format",
     |parts| {
-      if parts.len() < 2 {
+      let [path, outputs, ..] = parts else {
         return Ok(None);
-      }
-
-      Ok(Some((
-        parse_string(&parts[0])?,
-        parse_string_list(&parts[1])?,
-      )))
+      };
+      Ok(Some((parse_string(path)?, parse_string_list(outputs)?)))
     },
   )
 }
 
-/// Parse environment variables: [("name","value"),...]
+/// Parses environment variables: `[("name","value"),...]`.
 fn parse_env(s: &str) -> Result<Vec<(String, String)>, String> {
   parse_tuple_list(
     s,
@@ -207,14 +219,13 @@ fn parse_env(s: &str) -> Result<Vec<(String, String)>, String> {
 fn parse_string_pair(
   parts: &[String],
 ) -> Result<Option<(String, String)>, String> {
-  if parts.len() < 2 {
+  let [name, value, ..] = parts else {
     return Ok(None);
-  }
-
-  Ok(Some((parse_string(&parts[0])?, parse_string(&parts[1])?)))
+  };
+  Ok(Some((parse_string(name)?, parse_string(value)?)))
 }
 
-/// Parse a list of strings: ["foo","bar",...]
+/// Parses a list of strings: `["foo","bar",...]`.
 fn parse_string_list(s: &str) -> Result<Vec<String>, String> {
   parse_list(s, "Invalid string list format")?
     .into_iter()
@@ -222,7 +233,7 @@ fn parse_string_list(s: &str) -> Result<Vec<String>, String> {
     .collect()
 }
 
-/// Parse a quoted string: "foo" -> foo
+/// Parses a quoted string: `"foo"` becomes `foo`.
 fn parse_string(s: &str) -> Result<String, String> {
   let s = s.trim();
   let inner = s
@@ -234,7 +245,7 @@ fn parse_string(s: &str) -> Result<String, String> {
   Ok(unescape_string(inner))
 }
 
-/// Unescape a string (handle \n, \t, \\, \", etc.)
+/// Unescapes a string, handling `\n`, `\t`, `\\`, `\"`, and similar escapes.
 fn unescape_string(s: &str) -> String {
   let mut result = String::new();
   let mut chars = s.chars();
@@ -245,13 +256,12 @@ fn unescape_string(s: &str) -> String {
         Some('n') => result.push('\n'),
         Some('t') => result.push('\t'),
         Some('r') => result.push('\r'),
-        Some('\\') => result.push('\\'),
+        Some('\\') | None => result.push('\\'),
         Some('"') => result.push('"'),
         Some(c) => {
           result.push('\\');
           result.push(c);
         },
-        None => result.push('\\'),
       }
     } else {
       result.push(ch);
@@ -261,7 +271,12 @@ fn unescape_string(s: &str) -> String {
   result
 }
 
-/// Extract all input derivation paths from a .drv file
+/// Extracts all input derivation paths from a `.drv` file.
+///
+/// # Errors
+///
+/// Returns a description of the failure if the file cannot be read or is not a
+/// valid derivation.
 pub fn get_input_derivations<P: AsRef<Path>>(
   path: P,
 ) -> Result<Vec<String>, String> {
@@ -275,13 +290,13 @@ pub fn get_input_derivations<P: AsRef<Path>>(
   )
 }
 
-/// Extract pname from environment variables
+/// Extracts `pname` from environment variables.
 #[must_use]
 pub fn extract_pname(env: &[(String, String)]) -> Option<String> {
   extract_env(env, "pname")
 }
 
-/// Extract version from environment variables
+/// Extracts `version` from environment variables.
 #[must_use]
 pub fn extract_version(env: &[(String, String)]) -> Option<String> {
   extract_env(env, "version")
@@ -296,14 +311,14 @@ mod tests {
   use super::*;
 
   #[test]
-  fn test_parse_string() {
+  fn parses_string() {
     assert_eq!(parse_string(r#""hello""#).unwrap(), "hello");
     assert_eq!(parse_string(r#""hello world""#).unwrap(), "hello world");
     assert_eq!(parse_string(r#""hello\nworld""#).unwrap(), "hello\nworld");
   }
 
   #[test]
-  fn test_parse_string_list() {
+  fn parses_string_list() {
     let list = r#"["foo","bar","baz"]"#;
     let result = parse_string_list(list).unwrap();
     assert_eq!(result, vec!["foo", "bar", "baz"]);
@@ -314,7 +329,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_outputs() {
+  fn parses_outputs() {
     let outputs = r#"[("out","/nix/store/abc-foo","","")]"#;
     let result = parse_outputs(outputs).unwrap();
     assert_eq!(result.len(), 1);
@@ -323,7 +338,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_input_drvs() {
+  fn parses_input_drvs() {
     let input = r#"[("/nix/store/abc-foo.drv",["out"]),("/nix/store/def-bar.drv",["out","dev"])]"#;
     let result = parse_input_drvs(input).unwrap();
     assert_eq!(result.len(), 2);
@@ -334,7 +349,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_minimal_drv() {
+  fn parse_minimal_drv() {
     let drv = r#"Derive([("out","/nix/store/output","","")],[],[],"x86_64-linux","/bin/sh",[],[("name","value")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.outputs.len(), 1);
@@ -344,7 +359,7 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_with_dependencies() {
+  fn parse_with_dependencies() {
     let drv = r#"Derive([("out","/nix/store/abc-foo","","")],[("/nix/store/dep1.drv",["out"]),("/nix/store/dep2.drv",["out","dev"])],[],"x86_64-linux","/bin/sh",[],[("name","foo")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.input_drvs.len(), 2);
@@ -355,9 +370,9 @@ mod tests {
   }
 
   #[test]
-  fn test_parse_real_world_hello_drv() {
+  fn parse_real_world_hello_drv() {
     // Stripped down version of a real hello.drv
-    let drv = r#"Derive([("out","/nix/store/b1ayn0ln6n8bm2spz441csqc2ss66az3-hello-2.12.2","","")],[("/nix/store/1s1ir3vhwq86x0c7ikhhp3c9cin4095k-hello-2.12.2.tar.gz.drv",["out"]),("/nix/store/bjsb6wdjykafnkixq156qdvmxhsm2bai-bash-5.3p3.drv",["out"]),("/nix/store/lzvy25g887aypn07ah8igv72z7b9jb88-version-check-hook.drv",["out"]),("/nix/store/p76r0cwlf6k97ibprrpfd8xw0r8wc3nx-stdenv-linux.drv",["out"])],["/nix/store/l622p70vy8k5sh7y5wizi5f2mic6ynpg-source-stdenv.sh","/nix/store/shkw4qm9qcw5sc5n1k5jznc83ny02r39-default-builder.sh"],"x86_64-linux","/nix/store/q7sqwn7i6w2b67adw0bmix29pxg85x3w-bash-5.3p3/bin/bash",["-e","/nix/store/l622p70vy8k5sh7y5wizi5f2mic6ynpg-source-stdenv.sh"],[("name","hello-2.12.2"),("pname","hello"),("version","2.12.2"),("system","x86_64-linux")])"#;
+    let drv = r#"Derive([("out","/nix/store/00000000000000000000000000000001-hello-2.12.2","","")],[("/nix/store/00000000000000000000000000000002-hello-2.12.2.tar.gz.drv",["out"]),("/nix/store/00000000000000000000000000000003-bash-5.3p3.drv",["out"]),("/nix/store/00000000000000000000000000000004-version-check-hook.drv",["out"]),("/nix/store/00000000000000000000000000000005-stdenv-linux.drv",["out"])],["/nix/store/00000000000000000000000000000006-source-stdenv.sh","/nix/store/00000000000000000000000000000007-default-builder.sh"],"x86_64-linux","/nix/store/00000000000000000000000000000008-bash-5.3p3/bin/bash",["-e","/nix/store/00000000000000000000000000000006-source-stdenv.sh"],[("name","hello-2.12.2"),("pname","hello"),("version","2.12.2"),("system","x86_64-linux")])"#;
 
     let result = parse_drv_content(drv).unwrap();
 
@@ -385,12 +400,12 @@ mod tests {
     assert!(result.builder.contains("bash"));
 
     // Verify environment
-    assert_eq!(extract_pname(&result.env), Some("hello".to_string()));
-    assert_eq!(extract_version(&result.env), Some("2.12.2".to_string()));
+    assert_eq!(extract_pname(&result.env), Some("hello".to_owned()));
+    assert_eq!(extract_version(&result.env), Some("2.12.2".to_owned()));
   }
 
   #[test]
-  fn test_get_input_derivations() {
+  fn gets_input_derivations() {
     let drv = r#"Derive([("out","/nix/store/out","","")],[("/nix/store/dep.drv",["out"])],[],"x86_64-linux","/bin/sh",[],[("pname","hello"),("version","1.0")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.input_drvs.len(), 1);

@@ -1,28 +1,50 @@
-//! ROM - Rust Output Monitor
-pub use rom_core::{
-  Config,
-  InputMode,
+//! ROM - a Nix and Lix build output monitor.
+#![allow(clippy::module_name_repetitions)]
+
+pub mod cache;
+#[cfg(feature = "cli")] pub mod cli;
+pub mod display;
+pub mod error;
+mod event;
+pub mod icons;
+pub mod monitor;
+pub mod state;
+pub mod terminal;
+pub mod types;
+mod update;
+
+pub use error::{Result, RomError};
+pub use monitor::{
+  DerivationResolver,
+  Engine,
+  FilesystemResolver,
   Monitor,
-  Result,
-  RomError,
-  cache,
-  create_monitor,
-  display,
-  error,
-  monitor,
-  monitor_stream,
-  state,
-  types,
-  update,
+  Output,
+  Processed,
+  StreamEngine,
+};
+pub use types::{
+  Config,
+  DisplayFormat,
+  EngineConfig,
+  IconMode,
+  InputMode,
+  LegendStyle,
+  LogLine,
+  LogPrefixStyle,
+  RenderConfig,
+  SummaryStyle,
+  Theme,
 };
 
-pub mod cli {
-  pub use rom_cli::{Cli, Commands, parse_args_with_separator};
-}
-
-/// Run the CLI application with the provided arguments.
+/// Runs the CLI with the process's command-line arguments and returns the
+/// exit code of the wrapped Nix command.
 ///
-/// This is the main entry point for the CLI application.
-pub fn run() -> eyre::Result<()> {
-  rom_cli::run()
+/// # Errors
+///
+/// Returns an error if an argument is not valid UTF-8, the Nix process cannot
+/// be run, or the build fails or ends with unfinished work.
+#[cfg(feature = "cli")]
+pub fn run() -> misstep::Result<std::process::ExitCode> {
+  cli::run()
 }

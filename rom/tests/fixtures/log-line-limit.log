@@ -1,0 +1,8 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/00000000000000000000000000000001-hello-2.12.3.drv'","type":105,"fields":["/nix/store/00000000000000000000000000000001-hello-2.12.3.drv","",1,1]}
+10 @nix {"action":"result","id":10,"type":101,"fields":["compiling unit 1 of 6"]}
+20 @nix {"action":"result","id":10,"type":101,"fields":["compiling unit 2 of 6"]}
+30 @nix {"action":"result","id":10,"type":101,"fields":["compiling unit 3 of 6"]}
+40 @nix {"action":"result","id":10,"type":101,"fields":["compiling unit 4 of 6"]}
+50 @nix {"action":"result","id":10,"type":101,"fields":["compiling unit 5 of 6"]}
+60 @nix {"action":"result","id":10,"type":101,"fields":["compiling unit 6 of 6"]}
+100 @nix {"action":"stop","id":10}
