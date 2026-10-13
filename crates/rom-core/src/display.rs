@@ -470,11 +470,12 @@ impl<W: Write> Display<W> {
     let ic = self.ic();
 
     // Always emit ⏵ │ ✔ │ ✗ │ ⏸, dim zeros
-    let mut parts: Vec<String> = Vec::new();
-    parts.push(self.count_colored(ic.running, running, Color::DarkYellow));
-    parts.push(self.count_colored(ic.done, completed, Color::DarkGreen));
-    parts.push(self.count_colored(ic.failed, failed, Color::DarkRed));
-    parts.push(self.count_colored(ic.planned, planned, Color::DarkBlue));
+    let mut parts: Vec<String> = vec![
+      self.count_colored(ic.running, running, Color::DarkYellow),
+      self.count_colored(ic.done, completed, Color::DarkGreen),
+      self.count_colored(ic.failed, failed, Color::DarkRed),
+      self.count_colored(ic.planned, planned, Color::DarkBlue),
+    ];
     if dl > 0 {
       parts.push(format!(
         "{} {dl}",

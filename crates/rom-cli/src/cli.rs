@@ -118,11 +118,11 @@ pub fn run() -> eyre::Result<()> {
     .init();
 
   // Pre-parse typed display values before any moves of cli
-  let format = rom_core::types::DisplayFormat::from_str(&cli.format);
-  let legend_style = rom_core::types::LegendStyle::from_str(&cli.legend);
-  let summary_style = rom_core::types::SummaryStyle::from_str(&cli.summary);
+  let format = rom_core::types::DisplayFormat::from(cli.format.as_str());
+  let legend_style = rom_core::types::LegendStyle::from(cli.legend.as_str());
+  let summary_style = rom_core::types::SummaryStyle::from(cli.summary.as_str());
   let log_prefix_style =
-    rom_core::types::LogPrefixStyle::from_str(&cli.log_prefix);
+    rom_core::types::LogPrefixStyle::from(cli.log_prefix.as_str());
   let log_lines = cli.log_lines;
   let silent = cli.silent;
   let verbose = cli.verbose;

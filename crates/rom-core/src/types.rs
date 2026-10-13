@@ -11,9 +11,8 @@ pub enum LegendStyle {
   Verbose,
 }
 
-impl LegendStyle {
-  #[must_use]
-  pub fn from_str(s: &str) -> Self {
+impl From<&str> for LegendStyle {
+  fn from(s: &str) -> Self {
     match s.to_lowercase().as_str() {
       "compact" => Self::Compact,
       "verbose" => Self::Verbose,
@@ -55,9 +54,8 @@ pub enum SummaryStyle {
   Full,
 }
 
-impl SummaryStyle {
-  #[must_use]
-  pub fn from_str(s: &str) -> Self {
+impl From<&str> for SummaryStyle {
+  fn from(s: &str) -> Self {
     match s.to_lowercase().as_str() {
       "concise" => Self::Concise,
       "table" => Self::Table,
@@ -67,9 +65,8 @@ impl SummaryStyle {
   }
 }
 
-impl LogPrefixStyle {
-  #[must_use]
-  pub fn from_str(s: &str) -> Self {
+impl From<&str> for LogPrefixStyle {
+  fn from(s: &str) -> Self {
     match s.to_lowercase().as_str() {
       "short" => Self::Short,
       "full" => Self::Full,
@@ -79,9 +76,8 @@ impl LogPrefixStyle {
   }
 }
 
-impl DisplayFormat {
-  #[must_use]
-  pub fn from_str(s: &str) -> Self {
+impl From<&str> for DisplayFormat {
+  fn from(s: &str) -> Self {
     match s.to_lowercase().as_str() {
       "tree" => Self::Tree,
       "plain" => Self::Plain,
