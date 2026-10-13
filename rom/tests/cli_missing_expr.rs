@@ -21,25 +21,6 @@ fn run_rom(args: &[&str]) -> (String, String, i32) {
 }
 
 #[test]
-fn parse_args_with_separator_passthrough() {
-  // This test verifies the splitting logic for passthrough args
-  let args = ["--", "--rebuild", "--refresh"];
-  let args: Vec<String> =
-    args.iter().map(std::string::ToString::to_string).collect();
-  let (package_and_rom_args, nix_flags) =
-    rom::cli::parse_args_with_separator(&args);
-  assert!(
-    package_and_rom_args.is_empty(),
-    "package_and_rom_args should be empty"
-  );
-  assert_eq!(
-    nix_flags,
-    vec!["--rebuild", "--refresh"],
-    "nix_flags should contain passthrough args"
-  );
-}
-
-#[test]
 fn missing_expression_errors() {
   // No expression, no passthrough args
   let (_out, err, _status) = run_rom(&["build"]);

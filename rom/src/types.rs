@@ -16,6 +16,7 @@ pub enum InputMode {
 
 /// Primary presentation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
 pub enum DisplayFormat {
   /// A connected dependency forest.
   #[default]
@@ -26,21 +27,9 @@ pub enum DisplayFormat {
   Dashboard,
 }
 
-impl DisplayFormat {
-  /// Parses a format name: `tree`, `plain`, or `dashboard`.
-  #[must_use]
-  pub fn parse(value: &str) -> Option<Self> {
-    match value {
-      "tree" => Some(Self::Tree),
-      "plain" => Some(Self::Plain),
-      "dashboard" => Some(Self::Dashboard),
-      _ => None,
-    }
-  }
-}
-
 /// Legend detail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
 pub enum LegendStyle {
   /// Status counts on a single line.
   Compact,
@@ -51,21 +40,9 @@ pub enum LegendStyle {
   Verbose,
 }
 
-impl LegendStyle {
-  /// Parses a legend style name: `compact`, `table`, or `verbose`.
-  #[must_use]
-  pub fn parse(value: &str) -> Option<Self> {
-    match value {
-      "compact" => Some(Self::Compact),
-      "table" => Some(Self::Table),
-      "verbose" => Some(Self::Verbose),
-      _ => None,
-    }
-  }
-}
-
 /// Final-summary detail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
 pub enum SummaryStyle {
   /// A single line of totals.
   #[default]
@@ -76,21 +53,9 @@ pub enum SummaryStyle {
   Full,
 }
 
-impl SummaryStyle {
-  /// Parses a summary style name: `concise`, `table`, or `full`.
-  #[must_use]
-  pub fn parse(value: &str) -> Option<Self> {
-    match value {
-      "concise" => Some(Self::Concise),
-      "table" => Some(Self::Table),
-      "full" => Some(Self::Full),
-      _ => None,
-    }
-  }
-}
-
 /// Prefix used for decoded builder log lines.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
 pub enum LogPrefixStyle {
   /// The derivation's short name.
   #[default]
@@ -99,19 +64,6 @@ pub enum LogPrefixStyle {
   Full,
   /// No prefix.
   None,
-}
-
-impl LogPrefixStyle {
-  /// Parses a log prefix style name: `short`, `full`, or `none`.
-  #[must_use]
-  pub fn parse(value: &str) -> Option<Self> {
-    match value {
-      "short" => Some(Self::Short),
-      "full" => Some(Self::Full),
-      "none" => Some(Self::None),
-      _ => None,
-    }
-  }
 }
 
 /// Semantic colors used by every presentation.
