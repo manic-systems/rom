@@ -54,29 +54,33 @@ pub struct Cli {
   #[pound(long, global)]
   pub silent: bool,
 
-  /// Output format: tree, plain, dashboard.
-  #[pound(long, global, default = "tree")]
-  pub format: String,
+  /// Output format.
+  #[pound(long, global, default = DisplayFormat::Tree)]
+  pub format: DisplayFormat,
 
-  /// Legend style: compact, table, verbose.
-  #[pound(long, global, default = "table")]
-  pub legend: String,
+  /// Legend style.
+  #[pound(long, global, default = LegendStyle::Table)]
+  pub legend: LegendStyle,
 
-  /// Final summary style: concise, table, full.
-  #[pound(long, global, default = "concise")]
-  pub summary: String,
+  /// Final summary style.
+  #[pound(long, global, default = SummaryStyle::Concise)]
+  pub summary: SummaryStyle,
 
-  /// Builder-log prefix: short, full, none.
-  #[pound(long, global, default = "short")]
-  pub log_prefix: String,
+  /// Builder-log prefix.
+  #[pound(long, global, default = LogPrefixStyle::Short)]
+  pub log_prefix: LogPrefixStyle,
 
   /// Maximum decoded builder log lines per activity.
   #[pound(long, global)]
   pub log_lines: Option<usize>,
 
-  /// Nix-family evaluator to use. Auto-detected by default.
-  #[pound(long, global)]
-  pub platform: Option<String>,
+  /// Nix-family evaluator to use, nix or lix. Auto-detected by default.
+  #[pound(
+    long,
+    global,
+    parse = |value: &str| value.parse().map_err(|()| "expected nix or lix")
+  )]
+  pub platform: Option<cognos::Platform>,
 
   /// Increase Nix and ROM diagnostic verbosity.
   #[pound(short = 'v', count, global)]
@@ -86,20 +90,29 @@ pub struct Cli {
 /// Nix commands that `rom` can wrap.
 #[derive(Debug, Parse)]
 pub enum Commands {
-  /// Run nix/lix build with monitoring. Pass Nix flags after --.
+  /// Run nix/lix build with monitoring.
   Build {
     /// Installables to build.
-    packages: Vec<String>,
+    packages:  Vec<String>,
+    /// Flags passed through to Nix.
+    #[pound(last)]
+    nix_flags: Vec<String>,
   },
-  /// Realize inputs, then enter nix/lix shell. Pass Nix flags after --.
+  /// Realize inputs, then enter nix/lix shell.
   Shell {
     /// Installables to put in the shell.
-    packages: Vec<String>,
+    packages:  Vec<String>,
+    /// Flags passed through to Nix.
+    #[pound(last)]
+    nix_flags: Vec<String>,
   },
-  /// Realize inputs, then enter nix/lix develop. Pass Nix flags after --.
+  /// Realize inputs, then enter nix/lix develop.
   Develop {
     /// Installable whose development environment to enter.
-    packages: Vec<String>,
+    packages:  Vec<String>,
+    /// Flags passed through to Nix.
+    #[pound(last)]
+    nix_flags: Vec<String>,
   },
 }
 
@@ -137,11 +150,7 @@ pub fn run() -> misstep::Result<ExitCode> {
     "rom-develop" => arguments.insert(0, "develop".to_owned()),
     _ => {},
   }
-  let (rom_args, nix_flags) = parse_args_with_separator(&arguments);
-  let cli = Cli::parse_from(rom_args.iter().map(String::as_str));
-  if cli.command.is_none() && !nix_flags.is_empty() {
-    misstep::bail!("Nix flags require a build, shell, or develop subcommand");
-  }
+  let cli = Cli::parse_from(arguments.iter().map(String::as_str));
   let default_filter = match cli.verbose {
     0 => "rom=warn",
     1 => "rom=info",
@@ -172,76 +181,48 @@ pub fn run() -> misstep::Result<ExitCode> {
       } else {
         InputMode::Auto
       },
-      log_prefix_style: LogPrefixStyle::parse(&cli.log_prefix)
-        .with_context(|| format!("unknown log prefix: {}", cli.log_prefix))?,
+      log_prefix_style: cli.log_prefix,
       log_line_limit: cli.log_lines,
       ..EngineConfig::default()
     },
     render: RenderConfig {
       ansi: io::stderr().is_terminal(),
-      format: DisplayFormat::parse(&cli.format)
-        .with_context(|| format!("unknown format: {}", cli.format))?,
-      legend_style: LegendStyle::parse(&cli.legend)
-        .with_context(|| format!("unknown legend style: {}", cli.legend))?,
-      summary_style: SummaryStyle::parse(&cli.summary)
-        .with_context(|| format!("unknown summary style: {}", cli.summary))?,
+      format: cli.format,
+      legend_style: cli.legend,
+      summary_style: cli.summary,
       ..RenderConfig::default()
     },
   };
   let config = WrapperConfig {
-    platform: cli
-      .platform
-      .as_deref()
-      .and_then(|value| value.parse().ok())
-      .unwrap_or_else(cognos::Platform::detect),
+    platform: cli.platform.unwrap_or_else(cognos::Platform::detect),
     verbose: cli.verbose,
     monitor,
   };
 
   match cli.command {
-    Some(Commands::Build { packages }) => {
-      if packages.is_empty()
-        && config.monitor.engine.input_mode == InputMode::Json
-      {
-        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
-      } else {
-        build(packages, nix_flags, &config)
-      }
+    Some(
+      Commands::Build { packages, .. }
+      | Commands::Shell { packages, .. }
+      | Commands::Develop { packages, .. },
+    ) if packages.is_empty()
+      && config.monitor.engine.input_mode == InputMode::Json =>
+    {
+      run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
     },
-    Some(Commands::Shell { packages }) => {
-      if packages.is_empty()
-        && config.monitor.engine.input_mode == InputMode::Json
-      {
-        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
-      } else {
-        shell(packages, nix_flags, &config)
-      }
-    },
-    Some(Commands::Develop { packages }) => {
-      if packages.is_empty()
-        && config.monitor.engine.input_mode == InputMode::Json
-      {
-        run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS)
-      } else {
-        develop(packages, nix_flags, &config)
-      }
-    },
+    Some(Commands::Build {
+      packages,
+      nix_flags,
+    }) => build(packages, nix_flags, &config),
+    Some(Commands::Shell {
+      packages,
+      nix_flags,
+    }) => shell(packages, nix_flags, &config),
+    Some(Commands::Develop {
+      packages,
+      nix_flags,
+    }) => develop(packages, nix_flags, &config),
     None => run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS),
   }
-}
-
-/// Splits arguments at the first `--` into ROM's arguments and Nix flags.
-#[must_use]
-pub fn parse_args_with_separator(
-  args: &[String],
-) -> (Vec<String>, Vec<String>) {
-  args
-    .iter()
-    .position(|argument| argument == "--")
-    .map_or_else(
-      || (args.to_vec(), Vec::new()),
-      |separator| (args[..separator].to_vec(), args[separator + 1..].to_vec()),
-    )
 }
 
 fn nix_verbosity_flag(verbose: u8) -> String {
