@@ -48,14 +48,13 @@ pub fn process_message(state: &mut State, action: Actions) -> bool {
   match action {
     Actions::Start {
       id,
-      level,
+      level: _,
       parent,
       text,
       activity,
       fields,
     } => {
-      changed |=
-        handle_start(state, id, level, parent, text, activity, fields, now);
+      changed |= handle_start(state, id, parent, text, activity, fields, now);
     },
     Actions::Stop { id } => {
       changed |= handle_stop(state, id, now);
@@ -86,7 +85,6 @@ pub fn process_message(state: &mut State, action: Actions) -> bool {
 fn handle_start(
   state: &mut State,
   id: Id,
-  _level: Verbosity,
   parent: Id,
   text: String,
   activity: Activities,
@@ -134,9 +132,10 @@ fn handle_start(
   };
 
   // Track parent-child relationships for dependency tree
-  if changed && activity_u8 == 105 && parent_id.is_some() {
-    let parent_act_id = parent_id.unwrap();
-
+  if changed
+    && activity_u8 == 105
+    && let Some(parent_act_id) = parent_id
+  {
     // Find parent and child derivation IDs
     let parent_drv_id = find_derivation_by_activity(state, parent_act_id);
     let child_drv_id = find_derivation_by_activity(state, id);

@@ -448,7 +448,7 @@ impl State {
     // "already parsed" marker so leaf nodes (zero inputs) are not re-parsed.
     let already_parsed = self
       .get_derivation_info(drv_id)
-      .map_or(false, |info| info.platform.is_some());
+      .is_some_and(|info| info.platform.is_some());
 
     if already_parsed {
       debug!("Skipping already-parsed derivation {}", drv_id);
