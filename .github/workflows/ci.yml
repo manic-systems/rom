@@ -22,6 +22,8 @@ jobs:
       os: ubuntu-latest
       flake-check: false
       fmt: true
+      clippy: true
+      clippy-command: cargo clippy --locked --workspace --all-targets -- -D warnings
       test: true
       test-command: cargo test --locked --workspace
 
