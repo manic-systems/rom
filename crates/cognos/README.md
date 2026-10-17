@@ -10,10 +10,12 @@ Nix (and Lix) emit with `--log-format internal-json`.
 
 ## Features
 
-- Parse `.drv` files in ATerm format into a structured `ParsedDerivation`.
+- Parse `.drv` files in ATerm format into a structured `ParsedDerivation`,
+  keeping environment values as raw bytes.
 - Parse `@nix`-prefixed `internal-json` log lines into typed `Actions`.
 - Detect the active Nix-family evaluator (Nix vs. Lix).
-- Lightweight: only depends on `serde`, `serde_json`, and `serde_repr`.
+- Lightweight: only depends on `serde`, `serde_json`, `serde_repr`, and
+  `flub`.
 
 ## Usage
 
@@ -30,15 +32,23 @@ println!("version: {:?}", extract_version(&drv.env));
 for (path, _) in &drv.input_drvs {
     println!("depends on: {path}");
 }
+
+if let Some(src) = drv.env.get("src") {
+    println!("src: {}", String::from_utf8_lossy(src));
+}
 ```
 
-`parse_drv_content` does the same for an in-memory string, which is useful when
-you already have the ATerm text (e.g. from `nix derivation show`):
+`ParsedDerivation::env` maps each variable to its raw bytes, since Nix strings
+need not be UTF-8. Failures are `cognos::aterm::Error`, which carries the path
+and either the I/O error or a `ParseError` with the byte offset.
+
+`parse_drv_content` does the same for in-memory bytes, which is useful when you
+already have the ATerm text:
 
 ```rust
 use cognos::parse_drv_content;
 
-let drv = parse_drv_content(content)?;
+let drv = parse_drv_content(&content)?;
 ```
 
 ### Parsing build logs

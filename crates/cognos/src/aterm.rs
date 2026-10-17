@@ -1,7 +1,14 @@
 //! `ATerm` and Nix `.drv` file parser.
 //!
 //! Parses Nix .drv files in `ATerm` format to extract dependency information.
-use std::{fs, path::Path};
+use std::{
+  collections::{BTreeMap, btree_map::Entry},
+  fs,
+  io,
+  path::{Path, PathBuf},
+};
+
+use flub::Error;
 
 /// Parsed derivation information from a `.drv` file.
 #[derive(Debug, Clone)]
@@ -21,85 +28,173 @@ pub struct ParsedDerivation {
   pub builder:      String,
   /// Arguments passed to the builder.
   pub args:         Vec<String>,
-  /// Environment variables set for the builder.
-  pub env:          Vec<(String, String)>,
+  /// Environment variables set for the builder. Values are byte strings and
+  /// need not be UTF-8.
+  pub env:          BTreeMap<String, Vec<u8>>,
+}
+
+/// Failure to read or parse a `.drv` file.
+#[derive(Debug, Error)]
+pub enum Error {
+  /// The file could not be read.
+  #[error("failed to read {path}")]
+  Read {
+    /// Path of the derivation.
+    path:   PathBuf,
+    /// Underlying I/O failure.
+    #[source]
+    source: io::Error,
+  },
+  /// The file is not a valid derivation.
+  #[error("failed to parse {path}")]
+  Parse {
+    /// Path of the derivation.
+    path:   PathBuf,
+    /// Underlying parse failure.
+    #[source]
+    source: ParseError,
+  },
+}
+
+/// Malformed derivation content.
+#[derive(Debug, Clone, PartialEq, Eq, Error)]
+#[error("{kind} at byte {offset}")]
+pub struct ParseError {
+  /// Byte offset into the content where parsing failed.
+  pub offset: usize,
+  /// What went wrong at `offset`.
+  pub kind:   ParseErrorKind,
+}
+
+/// The kind of [`ParseError`].
+#[derive(Debug, Clone, PartialEq, Eq, Error)]
+pub enum ParseErrorKind {
+  /// A specific token was required.
+  #[error("expected `{0}`")]
+  Expected(&'static str),
+  /// Content continues after the closing parenthesis.
+  #[error("unexpected data after the derivation")]
+  TrailingData,
+  /// A string that must be text is not valid UTF-8.
+  #[error("invalid UTF-8 in string")]
+  InvalidUtf8,
+  /// An environment variable is defined twice.
+  #[error("duplicate environment variable `{0}`")]
+  DuplicateEnvKey(String),
 }
 
 /// Parses a `.drv` file and extracts its dependency information.
 ///
 /// # Errors
 ///
-/// Returns a description of the failure if the file cannot be read or is not a
-/// valid derivation.
+/// Returns [`Error`] if the file cannot be read or is not a valid derivation.
 pub fn parse_drv_file<P: AsRef<Path>>(
   path: P,
-) -> Result<ParsedDerivation, String> {
-  let content = fs::read_to_string(path)
-    .map_err(|e| format!("Failed to read file: {e}"))?;
-  parse_drv_content(&content)
+) -> Result<ParsedDerivation, Error> {
+  let path = path.as_ref();
+  let content = fs::read(path).map_err(|source| {
+    Error::Read {
+      path: path.to_owned(),
+      source,
+    }
+  })?;
+  parse_drv_content(&content).map_err(|source| {
+    Error::Parse {
+      path: path.to_owned(),
+      source,
+    }
+  })
 }
 
 /// Parses the content of a `.drv` file.
 ///
 /// # Errors
 ///
-/// Returns a description of the failure if `content` is not a valid derivation.
-pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
-  let content = content.trim();
-
+/// Returns [`ParseError`] if `content` is not a valid derivation.
+pub fn parse_drv_content(
+  content: &[u8],
+) -> Result<ParsedDerivation, ParseError> {
+  let mut cursor = Cursor::new(content);
   // Nix writes `DrvWithVersion("xp-dyn-drv", ...)` once an input is dynamic.
-  let (inner, versioned) = if let Some(rest) = content.strip_prefix("Derive(") {
-    (rest, false)
-  } else if let Some(rest) = content.strip_prefix("DrvWithVersion(") {
-    (rest, true)
+  if cursor.eat("DrvWithVersion(") {
+    cursor.bytes()?;
+    cursor.expect(",")?;
   } else {
-    return Err(
-      "Invalid derivation format: must start with 'Derive(' or \
-       'DrvWithVersion('"
-        .to_owned(),
-    );
-  };
-  let inner = inner
-    .strip_suffix(")")
-    .ok_or("Invalid derivation format: missing closing parenthesis")?;
-
-  // XXX: The derivation has this structure:
-  // Derive(outputs, inputDrvs, inputSrcs, platform, builder, args, env)
-  let mut parts = parse_top_level_list(inner);
-  if versioned {
-    if parts.is_empty() {
-      return Err("Invalid derivation format: missing version".to_owned());
-    }
-    parse_string(&parts.remove(0))?;
+    cursor.expect("Derive(")?;
   }
 
-  let [
-    outputs,
-    input_drvs,
-    input_srcs,
-    platform,
-    builder,
-    args,
-    env,
-    ..,
-  ] = parts.as_slice()
-  else {
-    return Err(format!(
-      "Invalid derivation format: expected 7 parts, got {}",
-      parts.len()
-    ));
-  };
+  let outputs = cursor.list(|cursor| {
+    cursor.expect("(")?;
+    let name = cursor.string()?;
+    cursor.expect(",")?;
+    let path = cursor.string()?;
+    cursor.expect(",")?;
+    cursor.bytes()?;
+    cursor.expect(",")?;
+    cursor.bytes()?;
+    cursor.expect(")")?;
+    Ok((name, path))
+  })?;
+  cursor.expect(",")?;
 
-  let outputs = parse_outputs(outputs)?;
-  let InputDrvs {
-    all: input_drvs,
-    dynamic: dynamic_drvs,
-  } = parse_input_drvs(input_drvs)?;
-  let input_srcs = parse_string_list(input_srcs)?;
-  let platform = parse_string(platform)?;
-  let builder = parse_string(builder)?;
-  let args = parse_string_list(args)?;
-  let env = parse_env(env)?;
+  let mut dynamic_drvs = Vec::new();
+  let input_drvs = cursor.list(|cursor| {
+    cursor.expect("(")?;
+    let path = cursor.string()?;
+    cursor.expect(",")?;
+    // A dynamic input's outputs are `([own],[("out",node),...])`.
+    let outputs = if cursor.eat("(") {
+      let own = cursor.list(Cursor::string)?;
+      cursor.expect(",")?;
+      if !cursor.list(Cursor::output_node)?.is_empty() {
+        dynamic_drvs.push(path.clone());
+      }
+      cursor.expect(")")?;
+      own
+    } else {
+      cursor.list(Cursor::string)?
+    };
+    cursor.expect(")")?;
+    Ok((path, outputs))
+  })?;
+  cursor.expect(",")?;
+
+  let input_srcs = cursor.list(Cursor::string)?;
+  cursor.expect(",")?;
+  let platform = cursor.string()?;
+  cursor.expect(",")?;
+  let builder = cursor.string()?;
+  cursor.expect(",")?;
+  let args = cursor.list(Cursor::string)?;
+  cursor.expect(",")?;
+
+  let mut env = BTreeMap::new();
+  cursor.list(|cursor| {
+    cursor.expect("(")?;
+    let offset = cursor.offset;
+    let key = cursor.string()?;
+    cursor.expect(",")?;
+    let value = cursor.bytes()?;
+    cursor.expect(")")?;
+
+    match env.entry(key) {
+      Entry::Vacant(entry) => {
+        entry.insert(value);
+        Ok(())
+      },
+      Entry::Occupied(entry) => {
+        Err(ParseError {
+          offset,
+          kind: ParseErrorKind::DuplicateEnvKey(entry.key().clone()),
+        })
+      },
+    }
+  })?;
+
+  cursor.expect(")")?;
+  if cursor.offset != content.len() {
+    return Err(cursor.error(ParseErrorKind::TrailingData));
+  }
 
   Ok(ParsedDerivation {
     outputs,
@@ -113,211 +208,130 @@ pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
   })
 }
 
-/// Parses the top-level comma-separated list, respecting nested brackets.
-fn parse_top_level_list(s: &str) -> Vec<String> {
-  let mut parts = Vec::new();
-  let mut current = String::new();
-  let mut depth = 0;
-  let mut in_string = false;
-  let mut escape = false;
+struct Cursor<'input> {
+  input:  &'input [u8],
+  offset: usize,
+}
 
-  for ch in s.chars() {
-    if escape {
-      current.push(ch);
-      escape = false;
-      continue;
-    }
+impl<'input> Cursor<'input> {
+  const fn new(input: &'input [u8]) -> Self {
+    Self { input, offset: 0 }
+  }
 
-    match ch {
-      '\\' if in_string => {
-        escape = true;
-        current.push(ch);
-      },
-      '"' => {
-        in_string = !in_string;
-        current.push(ch);
-      },
-      '[' | '(' if !in_string => {
-        depth += 1;
-        current.push(ch);
-      },
-      ']' | ')' if !in_string => {
-        depth -= 1;
-        current.push(ch);
-      },
-      ',' if depth == 0 && !in_string => {
-        parts.push(current.trim().to_owned());
-        current.clear();
-      },
-      _ => {
-        current.push(ch);
-      },
+  const fn error(&self, kind: ParseErrorKind) -> ParseError {
+    ParseError {
+      offset: self.offset,
+      kind,
     }
   }
 
-  if !current.trim().is_empty() {
-    parts.push(current.trim().to_owned());
+  fn rest(&self) -> &'input [u8] {
+    self.input.get(self.offset..).unwrap_or_default()
   }
 
-  parts
-}
-
-fn parse_list(s: &str, error: &'static str) -> Result<Vec<String>, String> {
-  let inner = s
-    .trim()
-    .strip_prefix('[')
-    .and_then(|s| s.strip_suffix(']'))
-    .ok_or(error)?;
-
-  Ok(parse_top_level_list(inner))
-}
-
-fn parse_tuple(s: &str, error: &'static str) -> Result<Vec<String>, String> {
-  let inner = s
-    .trim()
-    .strip_prefix('(')
-    .and_then(|s| s.strip_suffix(')'))
-    .ok_or(error)?;
-
-  Ok(parse_top_level_list(inner))
-}
-
-fn parse_tuple_list<T>(
-  s: &str,
-  list_error: &'static str,
-  tuple_error: &'static str,
-  mut parse_item: impl FnMut(&[String]) -> Result<Option<T>, String>,
-) -> Result<Vec<T>, String> {
-  let mut items = Vec::new();
-
-  for tuple in parse_list(s, list_error)? {
-    if let Some(item) = parse_item(&parse_tuple(&tuple, tuple_error)?)? {
-      items.push(item);
+  fn eat(&mut self, token: &str) -> bool {
+    let matched = self.rest().starts_with(token.as_bytes());
+    if matched {
+      self.offset += token.len();
     }
+    matched
   }
 
-  Ok(items)
-}
-
-/// Parses outputs: `[("out","/nix/store/...","",""),...]`.
-fn parse_outputs(s: &str) -> Result<Vec<(String, String)>, String> {
-  parse_tuple_list(
-    s,
-    "Invalid outputs format",
-    "Invalid output tuple format",
-    parse_string_pair,
-  )
-}
-
-/// Input derivations with the outputs used from each, and the dynamic ones.
-struct InputDrvs {
-  all:     Vec<(String, Vec<String>)>,
-  dynamic: Vec<String>,
-}
-
-/// Parses input derivations: `[("/nix/store/foo.drv",["out"]),...]`, where a
-/// dynamic input's are `([own],[("out",...)])`.
-fn parse_input_drvs(s: &str) -> Result<InputDrvs, String> {
-  let mut dynamic = Vec::new();
-  let all = parse_tuple_list(
-    s,
-    "Invalid input drvs format",
-    "Invalid input drv tuple format",
-    |parts| {
-      let [path, outputs, ..] = parts else {
-        return Ok(None);
-      };
-      let path = parse_string(path)?;
-      if !outputs.starts_with('(') {
-        return Ok(Some((path, parse_string_list(outputs)?)));
-      }
-      let node = parse_tuple(outputs, "Invalid dynamic input format")?;
-      let [own, children, ..] = node.as_slice() else {
-        return Err(format!("Invalid dynamic input format: {outputs}"));
-      };
-      if !parse_list(children, "Invalid dynamic input format")?.is_empty() {
-        dynamic.push(path.clone());
-      }
-      Ok(Some((path, parse_string_list(own)?)))
-    },
-  )?;
-  Ok(InputDrvs { all, dynamic })
-}
-
-/// Parses environment variables: `[("name","value"),...]`.
-fn parse_env(s: &str) -> Result<Vec<(String, String)>, String> {
-  parse_tuple_list(
-    s,
-    "Invalid env format",
-    "Invalid env tuple format",
-    parse_string_pair,
-  )
-}
-
-fn parse_string_pair(
-  parts: &[String],
-) -> Result<Option<(String, String)>, String> {
-  let [name, value, ..] = parts else {
-    return Ok(None);
-  };
-  Ok(Some((parse_string(name)?, parse_string(value)?)))
-}
-
-/// Parses a list of strings: `["foo","bar",...]`.
-fn parse_string_list(s: &str) -> Result<Vec<String>, String> {
-  parse_list(s, "Invalid string list format")?
-    .into_iter()
-    .map(|item| parse_string(&item))
-    .collect()
-}
-
-/// Parses a quoted string: `"foo"` becomes `foo`.
-fn parse_string(s: &str) -> Result<String, String> {
-  let s = s.trim();
-  let inner = s
-    .strip_prefix('"')
-    .and_then(|s| s.strip_suffix('"'))
-    .ok_or_else(|| format!("Invalid string format: {s}"))?;
-
-  // Unescape the string
-  Ok(unescape_string(inner))
-}
-
-/// Unescapes a string, handling `\n`, `\t`, `\\`, `\"`, and similar escapes.
-fn unescape_string(s: &str) -> String {
-  let mut result = String::new();
-  let mut chars = s.chars();
-
-  while let Some(ch) = chars.next() {
-    if ch == '\\' {
-      match chars.next() {
-        Some('n') => result.push('\n'),
-        Some('t') => result.push('\t'),
-        Some('r') => result.push('\r'),
-        Some('\\') | None => result.push('\\'),
-        Some('"') => result.push('"'),
-        Some(c) => {
-          result.push('\\');
-          result.push(c);
-        },
-      }
+  fn expect(&mut self, token: &'static str) -> Result<(), ParseError> {
+    if self.eat(token) {
+      Ok(())
     } else {
-      result.push(ch);
+      Err(self.error(ParseErrorKind::Expected(token)))
     }
   }
 
-  result
+  fn list<T>(
+    &mut self,
+    mut item: impl FnMut(&mut Self) -> Result<T, ParseError>,
+  ) -> Result<Vec<T>, ParseError> {
+    self.expect("[")?;
+    let mut items = Vec::new();
+    if self.eat("]") {
+      return Ok(items);
+    }
+
+    loop {
+      items.push(item(self)?);
+      if !self.eat(",") {
+        self.expect("]")?;
+        return Ok(items);
+      }
+    }
+  }
+
+  /// Reads a quoted string, unescaping exactly as Nix's `parseString` does.
+  fn bytes(&mut self) -> Result<Vec<u8>, ParseError> {
+    self.expect("\"")?;
+    let mut bytes = Vec::new();
+    loop {
+      let rest = self.rest();
+      let run = rest
+        .iter()
+        .position(|&byte| byte == b'"' || byte == b'\\')
+        .unwrap_or(rest.len());
+      bytes.extend_from_slice(&rest[..run]);
+      self.offset += run;
+
+      match rest.get(run..) {
+        Some(&[b'"', ..]) => {
+          self.offset += 1;
+          return Ok(bytes);
+        },
+        Some(&[b'\\', escaped, ..]) => {
+          bytes.push(match escaped {
+            b'n' => b'\n',
+            b'r' => b'\r',
+            b't' => b'\t',
+            other => other,
+          });
+          self.offset += 2;
+        },
+        _ => return Err(self.error(ParseErrorKind::Expected("\""))),
+      }
+    }
+  }
+
+  /// Skips one `("name",[outputs])` or `("name",([own],[children]))` entry
+  /// of a dynamic input.
+  fn output_node(&mut self) -> Result<(), ParseError> {
+    self.expect("(")?;
+    self.bytes()?;
+    self.expect(",")?;
+    if self.eat("(") {
+      self.list(Self::string)?;
+      self.expect(",")?;
+      self.list(Self::output_node)?;
+      self.expect(")")?;
+    } else {
+      self.list(Self::string)?;
+    }
+    self.expect(")")
+  }
+
+  fn string(&mut self) -> Result<String, ParseError> {
+    let offset = self.offset;
+    String::from_utf8(self.bytes()?).map_err(|_| {
+      ParseError {
+        offset,
+        kind: ParseErrorKind::InvalidUtf8,
+      }
+    })
+  }
 }
 
 /// Extracts all input derivation paths from a `.drv` file.
 ///
 /// # Errors
 ///
-/// Returns a description of the failure if the file cannot be read or is not a
-/// valid derivation.
+/// Returns [`Error`] if the file cannot be read or is not a valid derivation.
 pub fn get_input_derivations<P: AsRef<Path>>(
   path: P,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, Error> {
   let parsed = parse_drv_file(path)?;
   Ok(
     parsed
@@ -328,20 +342,22 @@ pub fn get_input_derivations<P: AsRef<Path>>(
   )
 }
 
-/// Extracts `pname` from environment variables.
+/// Extracts `pname` from environment variables, replacing invalid UTF-8.
 #[must_use]
-pub fn extract_pname(env: &[(String, String)]) -> Option<String> {
+pub fn extract_pname(env: &BTreeMap<String, Vec<u8>>) -> Option<String> {
   extract_env(env, "pname")
 }
 
-/// Extracts `version` from environment variables.
+/// Extracts `version` from environment variables, replacing invalid UTF-8.
 #[must_use]
-pub fn extract_version(env: &[(String, String)]) -> Option<String> {
+pub fn extract_version(env: &BTreeMap<String, Vec<u8>>) -> Option<String> {
   extract_env(env, "version")
 }
 
-fn extract_env(env: &[(String, String)], key: &str) -> Option<String> {
-  env.iter().find(|(k, _)| k == key).map(|(_, v)| v.clone())
+fn extract_env(env: &BTreeMap<String, Vec<u8>>, key: &str) -> Option<String> {
+  env
+    .get(key)
+    .map(|value| String::from_utf8_lossy(value).into_owned())
 }
 
 #[cfg(test)]
@@ -350,49 +366,25 @@ mod tests {
 
   #[test]
   fn parses_string() {
-    assert_eq!(parse_string(r#""hello""#).unwrap(), "hello");
-    assert_eq!(parse_string(r#""hello world""#).unwrap(), "hello world");
-    assert_eq!(parse_string(r#""hello\nworld""#).unwrap(), "hello\nworld");
+    let parse = |input: &[u8]| Cursor::new(input).string().unwrap();
+    assert_eq!(parse(br#""hello""#), "hello");
+    assert_eq!(parse(br#""hello world""#), "hello world");
+    assert_eq!(parse(br#""hello\nworld""#), "hello\nworld");
   }
 
   #[test]
   fn parses_string_list() {
-    let list = r#"["foo","bar","baz"]"#;
-    let result = parse_string_list(list).unwrap();
+    let parse = |input: &[u8]| Cursor::new(input).list(Cursor::string);
+    let result = parse(br#"["foo","bar","baz"]"#).unwrap();
     assert_eq!(result, vec!["foo", "bar", "baz"]);
 
-    let empty = "[]";
-    let result = parse_string_list(empty).unwrap();
+    let result = parse(b"[]").unwrap();
     assert_eq!(result, Vec::<String>::new());
   }
 
   #[test]
-  fn parses_outputs() {
-    let outputs = r#"[("out","/nix/store/abc-foo","","")]"#;
-    let result = parse_outputs(outputs).unwrap();
-    assert_eq!(result.len(), 1);
-    assert_eq!(result[0].0, "out");
-    assert_eq!(result[0].1, "/nix/store/abc-foo");
-  }
-
-  #[test]
-  fn parses_input_drvs() {
-    let input = r#"[("/nix/store/abc-foo.drv",["out"]),("/nix/store/def-bar.drv",["out","dev"])]"#;
-    let InputDrvs {
-      all: result,
-      dynamic,
-    } = parse_input_drvs(input).unwrap();
-    assert!(dynamic.is_empty());
-    assert_eq!(result.len(), 2);
-    assert_eq!(result[0].0, "/nix/store/abc-foo.drv");
-    assert_eq!(result[0].1, vec!["out"]);
-    assert_eq!(result[1].0, "/nix/store/def-bar.drv");
-    assert_eq!(result[1].1, vec!["out", "dev"]);
-  }
-
-  #[test]
   fn parse_minimal_drv() {
-    let drv = r#"Derive([("out","/nix/store/output","","")],[],[],"x86_64-linux","/bin/sh",[],[("name","value")])"#;
+    let drv = br#"Derive([("out","/nix/store/output","","")],[],[],"x86_64-linux","/bin/sh",[],[("name","value")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.outputs.len(), 1);
     assert_eq!(result.outputs[0].0, "out");
@@ -402,7 +394,7 @@ mod tests {
 
   #[test]
   fn parse_with_dependencies() {
-    let drv = r#"Derive([("out","/nix/store/abc-foo","","")],[("/nix/store/dep1.drv",["out"]),("/nix/store/dep2.drv",["out","dev"])],[],"x86_64-linux","/bin/sh",[],[("name","foo")])"#;
+    let drv = br#"Derive([("out","/nix/store/abc-foo","","")],[("/nix/store/dep1.drv",["out"]),("/nix/store/dep2.drv",["out","dev"])],[],"x86_64-linux","/bin/sh",[],[("name","foo")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.input_drvs.len(), 2);
     assert_eq!(result.input_drvs[0].0, "/nix/store/dep1.drv");
@@ -414,7 +406,7 @@ mod tests {
   #[test]
   fn parse_real_world_hello_drv() {
     // Stripped down version of a real hello.drv
-    let drv = r#"Derive([("out","/nix/store/00000000000000000000000000000001-hello-2.12.2","","")],[("/nix/store/00000000000000000000000000000002-hello-2.12.2.tar.gz.drv",["out"]),("/nix/store/00000000000000000000000000000003-bash-5.3p3.drv",["out"]),("/nix/store/00000000000000000000000000000004-version-check-hook.drv",["out"]),("/nix/store/00000000000000000000000000000005-stdenv-linux.drv",["out"])],["/nix/store/00000000000000000000000000000006-source-stdenv.sh","/nix/store/00000000000000000000000000000007-default-builder.sh"],"x86_64-linux","/nix/store/00000000000000000000000000000008-bash-5.3p3/bin/bash",["-e","/nix/store/00000000000000000000000000000006-source-stdenv.sh"],[("name","hello-2.12.2"),("pname","hello"),("version","2.12.2"),("system","x86_64-linux")])"#;
+    let drv = br#"Derive([("out","/nix/store/00000000000000000000000000000001-hello-2.12.2","","")],[("/nix/store/00000000000000000000000000000002-hello-2.12.2.tar.gz.drv",["out"]),("/nix/store/00000000000000000000000000000003-bash-5.3p3.drv",["out"]),("/nix/store/00000000000000000000000000000004-version-check-hook.drv",["out"]),("/nix/store/00000000000000000000000000000005-stdenv-linux.drv",["out"])],["/nix/store/00000000000000000000000000000006-source-stdenv.sh","/nix/store/00000000000000000000000000000007-default-builder.sh"],"x86_64-linux","/nix/store/00000000000000000000000000000008-bash-5.3p3/bin/bash",["-e","/nix/store/00000000000000000000000000000006-source-stdenv.sh"],[("name","hello-2.12.2"),("pname","hello"),("version","2.12.2"),("system","x86_64-linux")])"#;
 
     let result = parse_drv_content(drv).unwrap();
 
@@ -448,11 +440,34 @@ mod tests {
 
   #[test]
   fn gets_input_derivations() {
-    let drv = r#"Derive([("out","/nix/store/out","","")],[("/nix/store/dep.drv",["out"])],[],"x86_64-linux","/bin/sh",[],[("pname","hello"),("version","1.0")])"#;
+    let drv = br#"Derive([("out","/nix/store/out","","")],[("/nix/store/dep.drv",["out"])],[],"x86_64-linux","/bin/sh",[],[("pname","hello"),("version","1.0")])"#;
     let result = parse_drv_content(drv).unwrap();
     assert_eq!(result.input_drvs.len(), 1);
     assert_eq!(result.input_drvs[0].0, "/nix/store/dep.drv");
     assert_eq!(extract_pname(&result.env).unwrap(), "hello");
     assert_eq!(extract_version(&result.env).unwrap(), "1.0");
+  }
+
+  #[test]
+  fn keeps_env_bytes() {
+    let drv =
+      b"Derive([],[],[],\"x\",\"/bin/sh\",[],[(\"pname\",\"\xFF\\n\")])";
+    let result = parse_drv_content(drv).unwrap();
+    assert_eq!(result.env["pname"], b"\xFF\n");
+  }
+
+  #[test]
+  fn rejects_duplicate_env_key() {
+    let drv = br#"Derive([],[],[],"x","/bin/sh",[],[("a","1"),("a","2")])"#;
+    let error = parse_drv_content(drv).unwrap_err();
+    assert_eq!(error.kind, ParseErrorKind::DuplicateEnvKey("a".to_owned()));
+  }
+
+  #[test]
+  fn unescapes_like_nix() {
+    let mut cursor = Cursor::new(br#""\q\\\"\t""#);
+    assert_eq!(cursor.bytes().unwrap(), b"q\\\"\t");
+    let error = Cursor::new(br#""\"#).bytes().unwrap_err();
+    assert_eq!(error.kind, ParseErrorKind::Expected("\""));
   }
 }

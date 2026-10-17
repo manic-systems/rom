@@ -9,7 +9,7 @@
   reason = "expected frames contain the glyphs they check"
 )]
 
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
 use rom::{
   EngineConfig,
@@ -47,7 +47,10 @@ impl Default for Sources {
 }
 
 impl DerivationResolver for Sources {
-  fn resolve(&self, path: &Path) -> Result<cognos::ParsedDerivation, String> {
+  fn resolve(
+    &self,
+    path: &Path,
+  ) -> Result<cognos::ParsedDerivation, cognos::aterm::Error> {
     let path = path.to_str().unwrap();
     let inputs = match path {
       ROOT if self.shared => vec![CONSUMER, OTHER],
@@ -74,7 +77,7 @@ impl DerivationResolver for Sources {
       platform:     "x86_64-linux".into(),
       builder:      "/bin/sh".into(),
       args:         vec![],
-      env:          vec![],
+      env:          BTreeMap::new(),
     })
   }
 }

@@ -9,10 +9,12 @@ pub use aterm::{
   ParsedDerivation,
   extract_pname,
   extract_version,
+  parse_drv_content,
   parse_drv_file,
 };
 pub use internal::{
   Platform,
+  UnknownPlatform,
   json::{
     Actions,
     Activities,

@@ -10,6 +10,8 @@
   reason = "expected frames contain the glyphs they check"
 )]
 
+use std::collections::BTreeMap;
+
 use rom::{
   display::{format_log, render_frame},
   monitor::{DerivationResolver, Engine, Output, StreamEngine},
@@ -30,7 +32,7 @@ impl DerivationResolver for Resolver {
   fn resolve(
     &self,
     _path: &std::path::Path,
-  ) -> Result<cognos::ParsedDerivation, String> {
+  ) -> Result<cognos::ParsedDerivation, cognos::aterm::Error> {
     Ok(cognos::ParsedDerivation {
       outputs:      Vec::new(),
       input_drvs:   vec![(
@@ -42,7 +44,7 @@ impl DerivationResolver for Resolver {
       platform:     "x86_64-linux".to_owned(),
       builder:      "/bin/sh".to_owned(),
       args:         Vec::new(),
-      env:          vec![("pname".to_owned(), "demo".to_owned())],
+      env:          [("pname".to_owned(), b"demo".to_vec())].into(),
     })
   }
 }
@@ -53,7 +55,7 @@ impl DerivationResolver for NestedResolver {
   fn resolve(
     &self,
     path: &std::path::Path,
-  ) -> Result<cognos::ParsedDerivation, String> {
+  ) -> Result<cognos::ParsedDerivation, cognos::aterm::Error> {
     let dependency = match path.to_string_lossy().as_ref() {
       "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-root.drv" => {
         Some("/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv")
@@ -62,7 +64,12 @@ impl DerivationResolver for NestedResolver {
         Some("/nix/store/cccccccccccccccccccccccccccccccc-leaf.drv")
       },
       "/nix/store/cccccccccccccccccccccccccccccccc-leaf.drv" => None,
-      other => return Err(format!("unexpected derivation: {other}")),
+      _ => {
+        return Err(cognos::aterm::Error::Read {
+          path:   path.to_owned(),
+          source: std::io::ErrorKind::NotFound.into(),
+        });
+      },
     };
     Ok(cognos::ParsedDerivation {
       outputs:      Vec::new(),
@@ -74,7 +81,7 @@ impl DerivationResolver for NestedResolver {
       platform:     "x86_64-linux".to_owned(),
       builder:      "/bin/sh".to_owned(),
       args:         Vec::new(),
-      env:          Vec::new(),
+      env:          BTreeMap::new(),
     })
   }
 }
