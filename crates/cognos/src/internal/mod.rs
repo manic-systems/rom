@@ -7,6 +7,8 @@ pub mod json;
 
 use std::{process::Command, str::FromStr};
 
+use flub::Error;
+
 /// A Nix-family evaluator that rom can monitor.
 ///
 /// Both platforms emit `--log-format internal-json` on stderr with `@nix `
@@ -60,14 +62,19 @@ impl Platform {
   }
 }
 
-impl FromStr for Platform {
-  type Err = ();
+/// A platform name other than `nix` or `lix`.
+#[derive(Debug, Error)]
+#[error("expected nix or lix")]
+pub struct UnknownPlatform;
 
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    match s {
-      _ if s.eq_ignore_ascii_case("nix") => Ok(Self::Nix),
-      _ if s.eq_ignore_ascii_case("lix") => Ok(Self::Lix),
-      _ => Err(()),
+impl FromStr for Platform {
+  type Err = UnknownPlatform;
+
+  fn from_str(name: &str) -> Result<Self, Self::Err> {
+    match name {
+      "nix" => Ok(Self::Nix),
+      "lix" => Ok(Self::Lix),
+      _ => Err(UnknownPlatform),
     }
   }
 }

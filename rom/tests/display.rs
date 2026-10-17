@@ -9,6 +9,9 @@
   reason = "expected frames contain the glyphs they check"
 )]
 
+use std::{collections::BTreeMap, ffi::OsStr, io::ErrorKind, path::Path};
+
+use cognos::{ParsedDerivation, aterm::Error};
 use rom::{
   EngineConfig,
   display::render_frame,
@@ -28,26 +31,25 @@ struct ChainResolver {
 }
 
 impl DerivationResolver for ChainResolver {
-  fn resolve(
-    &self,
-    path: &std::path::Path,
-  ) -> Result<cognos::ParsedDerivation, String> {
-    let name = path
+  fn resolve(&self, path: &Path) -> Result<ParsedDerivation, Error> {
+    let index = path
       .file_name()
-      .and_then(std::ffi::OsStr::to_str)
-      .ok_or_else(|| format!("invalid derivation path: {}", path.display()))?;
-    let index = name
-      .strip_suffix(".drv")
-      .and_then(|name| name.rsplit_once("-chain-").map(|(_, index)| index))
-      .ok_or_else(|| format!("invalid chain derivation: {name}"))?
-      .parse::<usize>()
-      .map_err(|error| format!("invalid chain index: {error}"))?;
+      .and_then(OsStr::to_str)
+      .and_then(|name| name.strip_suffix(".drv"))
+      .and_then(|name| name.rsplit_once("-chain-"))
+      .and_then(|(_, index)| index.parse::<usize>().ok())
+      .ok_or_else(|| {
+        Error::Read {
+          path:   path.to_owned(),
+          source: ErrorKind::NotFound.into(),
+        }
+      })?;
     let input_drvs = if index + 1 < self.nodes {
       vec![(chain_path(index + 1), vec!["out".to_owned()])]
     } else {
       Vec::new()
     };
-    Ok(cognos::ParsedDerivation {
+    Ok(ParsedDerivation {
       outputs: Vec::new(),
       input_drvs,
       dynamic_drvs: Vec::new(),
@@ -55,7 +57,7 @@ impl DerivationResolver for ChainResolver {
       platform: "x86_64-linux".to_owned(),
       builder: "/bin/sh".to_owned(),
       args: Vec::new(),
-      env: Vec::new(),
+      env: BTreeMap::new(),
     })
   }
 }
