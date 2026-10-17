@@ -38,12 +38,11 @@ pub trait DerivationResolver: Send + Sync {
   ///
   /// # Errors
   ///
-  /// Returns a description of the failure if the derivation cannot be read or
-  /// parsed.
+  /// Returns an error if the derivation cannot be read or parsed.
   fn resolve(
     &self,
     path: &Path,
-  ) -> std::result::Result<cognos::ParsedDerivation, String>;
+  ) -> std::result::Result<cognos::ParsedDerivation, cognos::aterm::Error>;
 
   /// Asks for the `.drv` each dynamic-derivation producer wrote to its `out`.
   ///
@@ -185,7 +184,7 @@ impl DerivationResolver for FilesystemResolver {
   fn resolve(
     &self,
     path: &Path,
-  ) -> std::result::Result<cognos::ParsedDerivation, String> {
+  ) -> std::result::Result<cognos::ParsedDerivation, cognos::aterm::Error> {
     cognos::parse_drv_file(path)
   }
 
@@ -805,7 +804,10 @@ impl DerivationTree<'_> {
       let parsed = match self.resolver.resolve(&path) {
         Ok(parsed) => parsed,
         Err(error) => {
-          tracing::debug!("could not resolve {}: {error}", path.display());
+          tracing::debug!(
+            error = &error as &dyn std::error::Error,
+            "could not resolve derivation"
+          );
           continue;
         },
       };
