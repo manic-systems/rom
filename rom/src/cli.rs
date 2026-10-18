@@ -5,7 +5,7 @@ use std::{
   env::{self, VarError},
   io::{self, IsTerminal, Read, Write},
   path::PathBuf,
-  process::{Command, ExitCode, Stdio},
+  process::{Child, Command, ExitCode, Stdio},
   sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
@@ -347,6 +347,8 @@ fn run_monitored_command(
 ) -> misstep::Result<i32> {
   #[cfg(unix)] use std::os::unix::process::CommandExt;
 
+  // A dry run exits 0 with the same "will be built" announcements.
+  let builds = !arguments.iter().any(|argument| argument == "--dry-run");
   let mut command = Command::new(program);
   command
     .args(arguments)
@@ -375,7 +377,13 @@ fn run_monitored_command(
   let (receiver, reader_thread) = byte_reader(stderr);
   let mut monitor_config = config.monitor.clone();
   monitor_config.engine.input_mode = InputMode::Auto;
-  let result = drive(&receiver, monitor_config, false, &interrupted);
+  let result = drive(
+    &receiver,
+    monitor_config,
+    false,
+    &interrupted,
+    builds.then_some(&mut child),
+  );
   if result.is_err() {
     terminate_process(&mut child);
   }
@@ -403,7 +411,7 @@ fn run_monitored_command(
     reason = "other platforms kill through the handle"
   )
 )]
-fn terminate_process(child: &mut std::process::Child) {
+fn terminate_process(child: &mut Child) {
   #[cfg(unix)]
   {
     let process_group = -(child.id() as i32);
@@ -474,7 +482,7 @@ fn run_input<R: Read + Send + 'static>(
   config: Config,
 ) -> misstep::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
-  drive(&receiver, config, true, &AtomicBool::new(false))?;
+  drive(&receiver, config, true, &AtomicBool::new(false), None)?;
   reader_thread
     .join()
     .map_err(|_| misstep::report!("input reader panicked"))?
@@ -648,6 +656,7 @@ fn drive(
   config: Config,
   semantic_failure_is_error: bool,
   interrupted: &AtomicBool,
+  child: Option<&mut Child>,
 ) -> misstep::Result<()> {
   let Config { engine, render } = config;
   let silent = engine.silent;
@@ -697,9 +706,18 @@ fn drive(
 
   let final_output = stream.finish_at(current_time())?;
   presenter.output(final_output.output, &render)?;
+  let succeeded = match child {
+    Some(child) => child.wait().context("waiting for nix")?.success(),
+    None => false,
+  };
+  if succeeded {
+    stream.engine_mut().mark_planned_available();
+  }
   if !silent {
-    for id in available_derivations(stream.engine().state(), interrupted)? {
-      stream.engine_mut().mark_available(id);
+    if !succeeded {
+      for id in available_derivations(stream.engine().state(), interrupted)? {
+        stream.engine_mut().mark_available(id);
+      }
     }
     let _ = presenter.render(&stream, &render, current_time(), true)?;
     presenter.final_append(&stream, &render, silent, current_time())?;

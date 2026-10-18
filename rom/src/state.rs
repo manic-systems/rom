@@ -724,6 +724,27 @@ impl State {
     true
   }
 
+  pub(crate) fn mark_planned_available(&mut self) {
+    let mut pending = self
+      .derivation_infos
+      .iter()
+      .filter_map(|(&id, info)| {
+        matches!(info.build_status, BuildStatus::Planned).then_some(id)
+      })
+      .collect::<Vec<usize>>();
+
+    while let Some(id) = pending.pop() {
+      let info = &mut self.derivation_infos[&id];
+      if matches!(
+        info.build_status,
+        BuildStatus::Unknown | BuildStatus::Planned
+      ) {
+        info.build_status = BuildStatus::Available;
+        pending.extend(info.derivation_parents.iter().copied());
+      }
+    }
+  }
+
   pub(crate) fn start_build(
     &mut self,
     derivation: Derivation,
