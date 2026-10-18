@@ -138,6 +138,11 @@ impl Engine {
     self.state.mark_available(id)
   }
 
+  /// Marks planned derivations available once Nix has exited successfully.
+  pub fn mark_planned_available(&mut self) {
+    self.state.mark_planned_available();
+  }
+
   /// Sets the source of `.drv` metadata.
   pub fn set_resolver<R: DerivationResolver + 'static>(&mut self, resolver: R) {
     self.resolver = Some(Box::new(resolver));
