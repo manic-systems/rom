@@ -7,19 +7,22 @@ use std::{fs, path::Path};
 #[derive(Debug, Clone)]
 pub struct ParsedDerivation {
   /// Output names paired with their store paths.
-  pub outputs:    Vec<(String, String)>,
+  pub outputs:      Vec<(String, String)>,
   /// Input derivation paths paired with the outputs used from each.
-  pub input_drvs: Vec<(String, Vec<String>)>,
+  pub input_drvs:   Vec<(String, Vec<String>)>,
+  /// Input derivations whose outputs are themselves derivations whose outputs
+  /// this one uses, as `builtins.outputOf` records them.
+  pub dynamic_drvs: Vec<String>,
   /// Source store paths used as inputs.
-  pub input_srcs: Vec<String>,
+  pub input_srcs:   Vec<String>,
   /// System the derivation builds for, such as `x86_64-linux`.
-  pub platform:   String,
+  pub platform:     String,
   /// Path of the builder executable.
-  pub builder:    String,
+  pub builder:      String,
   /// Arguments passed to the builder.
-  pub args:       Vec<String>,
+  pub args:         Vec<String>,
   /// Environment variables set for the builder.
-  pub env:        Vec<(String, String)>,
+  pub env:          Vec<(String, String)>,
 }
 
 /// Parses a `.drv` file and extracts its dependency information.
@@ -44,20 +47,31 @@ pub fn parse_drv_file<P: AsRef<Path>>(
 pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
   let content = content.trim();
 
-  if !content.starts_with("Derive(") {
+  // Nix writes `DrvWithVersion("xp-dyn-drv", ...)` once an input is dynamic.
+  let (inner, versioned) = if let Some(rest) = content.strip_prefix("Derive(") {
+    (rest, false)
+  } else if let Some(rest) = content.strip_prefix("DrvWithVersion(") {
+    (rest, true)
+  } else {
     return Err(
-      "Invalid derivation format: must start with 'Derive('".to_owned(),
+      "Invalid derivation format: must start with 'Derive(' or \
+       'DrvWithVersion('"
+        .to_owned(),
     );
-  }
-
-  let inner = content
-    .strip_prefix("Derive(")
-    .and_then(|s| s.strip_suffix(")"))
+  };
+  let inner = inner
+    .strip_suffix(")")
     .ok_or("Invalid derivation format: missing closing parenthesis")?;
 
   // XXX: The derivation has this structure:
   // Derive(outputs, inputDrvs, inputSrcs, platform, builder, args, env)
-  let parts = parse_top_level_list(inner);
+  let mut parts = parse_top_level_list(inner);
+  if versioned {
+    if parts.is_empty() {
+      return Err("Invalid derivation format: missing version".to_owned());
+    }
+    parse_string(&parts.remove(0))?;
+  }
 
   let [
     outputs,
@@ -77,7 +91,10 @@ pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
   };
 
   let outputs = parse_outputs(outputs)?;
-  let input_drvs = parse_input_drvs(input_drvs)?;
+  let InputDrvs {
+    all: input_drvs,
+    dynamic: dynamic_drvs,
+  } = parse_input_drvs(input_drvs)?;
   let input_srcs = parse_string_list(input_srcs)?;
   let platform = parse_string(platform)?;
   let builder = parse_string(builder)?;
@@ -87,6 +104,7 @@ pub fn parse_drv_content(content: &str) -> Result<ParsedDerivation, String> {
   Ok(ParsedDerivation {
     outputs,
     input_drvs,
+    dynamic_drvs,
     input_srcs,
     platform,
     builder,
@@ -191,9 +209,17 @@ fn parse_outputs(s: &str) -> Result<Vec<(String, String)>, String> {
   )
 }
 
-/// Parses input derivations: `[("/nix/store/foo.drv",["out"]),...]`.
-fn parse_input_drvs(s: &str) -> Result<Vec<(String, Vec<String>)>, String> {
-  parse_tuple_list(
+/// Input derivations with the outputs used from each, and the dynamic ones.
+struct InputDrvs {
+  all:     Vec<(String, Vec<String>)>,
+  dynamic: Vec<String>,
+}
+
+/// Parses input derivations: `[("/nix/store/foo.drv",["out"]),...]`, where a
+/// dynamic input's are `([own],[("out",...)])`.
+fn parse_input_drvs(s: &str) -> Result<InputDrvs, String> {
+  let mut dynamic = Vec::new();
+  let all = parse_tuple_list(
     s,
     "Invalid input drvs format",
     "Invalid input drv tuple format",
@@ -201,9 +227,21 @@ fn parse_input_drvs(s: &str) -> Result<Vec<(String, Vec<String>)>, String> {
       let [path, outputs, ..] = parts else {
         return Ok(None);
       };
-      Ok(Some((parse_string(path)?, parse_string_list(outputs)?)))
+      let path = parse_string(path)?;
+      if !outputs.starts_with('(') {
+        return Ok(Some((path, parse_string_list(outputs)?)));
+      }
+      let node = parse_tuple(outputs, "Invalid dynamic input format")?;
+      let [own, children, ..] = node.as_slice() else {
+        return Err(format!("Invalid dynamic input format: {outputs}"));
+      };
+      if !parse_list(children, "Invalid dynamic input format")?.is_empty() {
+        dynamic.push(path.clone());
+      }
+      Ok(Some((path, parse_string_list(own)?)))
     },
-  )
+  )?;
+  Ok(InputDrvs { all, dynamic })
 }
 
 /// Parses environment variables: `[("name","value"),...]`.
@@ -340,7 +378,11 @@ mod tests {
   #[test]
   fn parses_input_drvs() {
     let input = r#"[("/nix/store/abc-foo.drv",["out"]),("/nix/store/def-bar.drv",["out","dev"])]"#;
-    let result = parse_input_drvs(input).unwrap();
+    let InputDrvs {
+      all: result,
+      dynamic,
+    } = parse_input_drvs(input).unwrap();
+    assert!(dynamic.is_empty());
     assert_eq!(result.len(), 2);
     assert_eq!(result[0].0, "/nix/store/abc-foo.drv");
     assert_eq!(result[0].1, vec!["out"]);
