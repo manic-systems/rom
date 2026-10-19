@@ -15,6 +15,7 @@ mod update;
 
 pub use error::{Result, RomError};
 pub use monitor::{
+  Answer,
   DerivationResolver,
   Engine,
   FilesystemResolver,
@@ -22,6 +23,7 @@ pub use monitor::{
   Output,
   Processed,
   ProducedDrv,
+  RealisedDrv,
   StreamEngine,
 };
 pub use types::{
