@@ -28,11 +28,15 @@ use crate::{
 
 #[derive(Debug, Default)]
 pub struct Effects {
-  pub changed: bool,
-  pub log:     Option<LogEffect>,
-  pub resolve: Vec<PathBuf>,
-  pub started: Option<DerivationId>,
-  pub stopped: Option<Id>,
+  pub changed:             bool,
+  pub log:                 Option<LogEffect>,
+  pub resolve:             Vec<PathBuf>,
+  pub started:             Option<DerivationId>,
+  pub stopped:             Option<Id>,
+  pub planned:             Option<DerivationId>,
+  /// A content-addressed derivation Nix resolved, which it may then find
+  /// realised without building.
+  pub resolved_derivation: Option<DerivationId>,
 }
 
 #[derive(Debug)]
@@ -117,7 +121,9 @@ fn apply_start(
     ActivitySubject::ResolvedDerivation { original, resolved } => {
       effects.resolve.push(original.path.clone());
       effects.resolve.push(resolved.path.clone());
-      derivation = Some(state.resolve_derivation(original, resolved));
+      let id = state.resolve_derivation(original, resolved);
+      derivation = Some(id);
+      effects.resolved_derivation = Some(id);
       effects.changed = true;
     },
     ActivitySubject::Build {
@@ -252,7 +258,9 @@ fn apply_message(
   if let Some(announcement) = &message.announcement {
     changed |= match announcement {
       Announcement::Derivation(derivation) => {
-        state.plan_derivation(derivation.clone()).1
+        let (id, newly_planned) = state.plan_derivation(derivation.clone());
+        effects.planned = Some(id);
+        newly_planned
       },
       Announcement::StorePath(path) => state.plan_store_path(path.clone()),
     };

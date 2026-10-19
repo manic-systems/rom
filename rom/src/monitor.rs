@@ -1,7 +1,7 @@
 //! Shared synchronous ingestion engine and append-only stream adapter.
 
 use std::{
-  collections::{HashMap, HashSet},
+  collections::{BTreeSet, HashMap, HashSet},
   io::{BufRead, Write},
   iter,
   path::{Path, PathBuf},
@@ -48,20 +48,35 @@ pub trait DerivationResolver: Send + Sync {
   /// Asks for the `.drv` each dynamic-derivation producer wrote to its `out`.
   ///
   /// It must return without waiting, since the engine calls it while
-  /// ingesting. Answers come back through [`Self::produced`].
+  /// ingesting. Answers come back through [`Self::answers`].
   fn request_produced(&self, _producers: Vec<PathBuf>) {}
 
   /// Asks which of `producers` wrote `drv`, answering only a match. It must
   /// return without waiting.
   fn request_writer(&self, _drv: PathBuf, _producers: Vec<PathBuf>) {}
 
+  /// Asks whether each content-addressed derivation's outputs are already
+  /// realised, without building anything.
+  ///
+  /// Like [`Self::request_produced`], it must return without waiting.
+  fn request_realised(&self, _drvs: Vec<PathBuf>) {}
+
   /// Returns the answers that arrived since the last call.
-  fn produced(&self) -> Vec<ProducedDrv> {
+  fn answers(&self) -> Vec<Answer> {
     Vec::new()
   }
 }
 
-/// The answer to a [`DerivationResolver::request_produced`] lookup.
+/// The answer to a lookup the engine asked a [`DerivationResolver`] for.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Answer {
+  /// The answer to a [`DerivationResolver::request_produced`] lookup.
+  Produced(ProducedDrv),
+  /// The answer to a [`DerivationResolver::request_realised`] lookup.
+  Realised(RealisedDrv),
+}
+
+/// What a dynamic-derivation producer wrote.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProducedDrv {
   /// The dynamic-derivation producer.
@@ -70,11 +85,21 @@ pub struct ProducedDrv {
   pub drv:      Option<PathBuf>,
 }
 
+/// Whether a content-addressed derivation's outputs are already realised.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RealisedDrv {
+  /// The derivation, as it was asked about.
+  pub drv:      PathBuf,
+  /// Whether Nix has a realisation for its outputs.
+  pub realised: bool,
+}
+
 /// Resolver used by the CLI for local store derivations.
 ///
-/// Produced derivations have no deriver, so Nix's build trace is the only
-/// record of which producer wrote them. A worker thread reads it, batching
-/// producers that finish together into one `nix` call.
+/// Produced derivations have no deriver, and a content-addressed derivation
+/// Nix finds realised gets no build activity, so Nix's build trace is the
+/// only record of either. A worker thread reads it, batching lookups that
+/// arrive together into as few `nix` calls as it can.
 #[derive(Default)]
 pub struct FilesystemResolver {
   worker: OnceLock<TraceWorker>,
@@ -86,11 +111,12 @@ enum TraceRequest {
     drv:       PathBuf,
     producers: Vec<PathBuf>,
   },
+  Realised(Vec<PathBuf>),
 }
 
 struct TraceWorker {
   requests: Sender<TraceRequest>,
-  answers:  Mutex<Receiver<ProducedDrv>>,
+  answers:  Mutex<Receiver<Answer>>,
 }
 
 impl TraceWorker {
@@ -102,6 +128,7 @@ impl TraceWorker {
       .spawn(move || {
         while let Ok(first) = pending.recv() {
           let mut producers = Vec::new();
+          let mut drvs = Vec::new();
           let mut batch = Vec::new();
           for request in iter::once(first).chain(pending.try_iter()) {
             match request {
@@ -111,15 +138,21 @@ impl TraceWorker {
                 producers: candidates,
               } => {
                 batch.extend(find_writer(&drv, candidates).map(|producer| {
-                  ProducedDrv {
+                  Answer::Produced(ProducedDrv {
                     producer,
                     drv: Some(drv),
-                  }
+                  })
                 }));
               },
+              TraceRequest::Realised(paths) => drvs.extend(paths),
             }
           }
-          batch.extend(look_up_produced(producers));
+          batch.extend(
+            look_up_produced(producers)
+              .into_iter()
+              .map(Answer::Produced),
+          );
+          check_realised(drvs, &mut batch);
           for answer in batch {
             if answered.send(answer).is_err() {
               return;
@@ -128,7 +161,7 @@ impl TraceWorker {
         }
       });
     if let Err(error) = spawned {
-      tracing::warn!("cannot link dynamic derivations to consumers: {error}");
+      tracing::warn!("cannot read the build trace: {error}");
     }
     Self {
       requests,
@@ -164,7 +197,11 @@ impl DerivationResolver for FilesystemResolver {
     self.request(TraceRequest::Writer { drv, producers });
   }
 
-  fn produced(&self) -> Vec<ProducedDrv> {
+  fn request_realised(&self, drvs: Vec<PathBuf>) {
+    self.request(TraceRequest::Realised(drvs));
+  }
+
+  fn answers(&self) -> Vec<Answer> {
     let Some(worker) = self.worker.get() else {
       return Vec::new();
     };
@@ -210,6 +247,27 @@ fn report_unavailable(reason: &str) {
   if !TRACE_UNAVAILABLE.swap(true, Ordering::Relaxed) {
     tracing::warn!("cannot link dynamic derivations to consumers: {reason}");
   }
+}
+
+/// Answers whether each derivation is realised, halving any batch Nix
+/// rejects, since one unbuilt derivation fails the whole call.
+fn check_realised(drvs: Vec<PathBuf>, answers: &mut Vec<Answer>) {
+  if drvs.is_empty() {
+    return;
+  }
+  let realised = build_trace(&drvs).is_ok();
+  if realised || drvs.len() == 1 {
+    answers.extend(
+      drvs
+        .into_iter()
+        .map(|drv| Answer::Realised(RealisedDrv { drv, realised })),
+    );
+    return;
+  }
+  let mut first = drvs;
+  let second = first.split_off(first.len() / 2);
+  check_realised(first, answers);
+  check_realised(second, answers);
 }
 
 /// Looks producers up in one `nix` call, then one each for those it missed.
@@ -387,6 +445,12 @@ pub struct Engine {
   reported_unsupported: HashSet<UnsupportedRecord>,
   resolved_drvs:        HashSet<PathBuf>,
   producers:            HashMap<DerivationId, Producer>,
+  /// Planned content-addressed derivations not yet asked about, which wait
+  /// until their planned inputs are realised, since Nix cannot resolve them
+  /// before then.
+  unchecked:            BTreeSet<DerivationId>,
+  /// Derivations asked about.
+  checking:             HashSet<DerivationId>,
   resolver:             Option<Box<dyn DerivationResolver>>,
 }
 
@@ -402,6 +466,8 @@ impl Engine {
       reported_unsupported: HashSet::new(),
       resolved_drvs: HashSet::new(),
       producers: HashMap::new(),
+      unchecked: BTreeSet::new(),
+      checking: HashSet::new(),
       resolver: None,
     }
   }
@@ -424,11 +490,17 @@ impl Engine {
     self.state.mark_planned_available();
   }
 
-  /// Links the derivations producers wrote, as the resolver answers for them.
+  /// Applies the resolver's answers and asks about planned
+  /// content-addressed derivations whose inputs are now realised.
+  ///
+  /// Nix announces no units, so each package is asked about once its producer
+  /// links, and a realised one settles every unit under it. Units of an
+  /// unrealised package settle as their dependents start, so a cached unit
+  /// reads waiting until then.
   ///
   /// Returns whether the state changed. Adapters call this while idle, since
   /// answers also arrive between records.
-  pub fn poll_produced(&mut self) -> bool {
+  pub fn poll_lookups(&mut self) -> bool {
     let Some(resolver) = self.resolver.as_ref() else {
       return false;
     };
@@ -439,10 +511,74 @@ impl Engine {
       producers: &mut self.producers,
     };
     let mut changed = false;
-    for answer in tree.resolver.produced() {
-      changed |= tree.link_produced(answer);
+    let mut packages = Vec::new();
+    for answer in tree.resolver.answers() {
+      changed |= match answer {
+        Answer::Produced(produced) => {
+          let Some(written) = tree.link_produced(produced) else {
+            continue;
+          };
+          packages.extend(
+            tree
+              .state
+              .get_derivation_info(written)
+              .and_then(|info| info.package(written)),
+          );
+          true
+        },
+        Answer::Realised(RealisedDrv { drv, realised }) => {
+          let Some(id) = tree.state.derivation_id(&drv) else {
+            continue;
+          };
+          self.checking.remove(&id);
+          realised && tree.state.mark_realised(id)
+        },
+      };
     }
+    self.ask_realised(packages);
+
+    let state = &self.state;
+    let mut due = Vec::new();
+    self.unchecked.retain(|&id| {
+      let Some(info) = state.get_derivation_info(id) else {
+        return false;
+      };
+      if !info.floating || !matches!(info.build_status, BuildStatus::Planned) {
+        return false;
+      }
+      let ready = info.input_derivations.iter().all(|input| {
+        state.get_derivation_info(*input).is_none_or(|input| {
+          matches!(
+            input.build_status,
+            BuildStatus::Unknown
+              | BuildStatus::Available
+              | BuildStatus::Built { .. }
+          )
+        })
+      });
+      if ready {
+        due.push(id);
+      }
+      !ready
+    });
+    self.ask_realised(due);
     changed
+  }
+
+  fn ask_realised(&mut self, ids: Vec<DerivationId>) {
+    let Some(resolver) = self.resolver.as_ref() else {
+      return;
+    };
+    let drvs: Vec<_> = ids
+      .into_iter()
+      .filter(|&id| self.checking.insert(id))
+      .filter_map(|id| {
+        Some(self.state.get_derivation_info(id)?.name.path.clone())
+      })
+      .collect();
+    if !drvs.is_empty() {
+      resolver.request_realised(drvs);
+    }
   }
 
   /// Sets the source of `.drv` metadata.
@@ -520,7 +656,7 @@ impl Engine {
       Err(error) => return Err(RomError::Json(error)),
     };
     let event = Event::decode(action);
-    let linked = self.poll_produced();
+    let linked = self.poll_lookups();
 
     let show_log = match &event {
       Event::Message(message) => message.level <= self.config.verbosity,
@@ -561,6 +697,18 @@ impl Engine {
       {
         tree.request_produced(Lookup::Orphan(id));
       }
+    }
+    if let Some(id) = effects.planned {
+      self.unchecked.insert(id);
+    }
+    if let Some(id) = effects.resolved_derivation
+      && self
+        .state
+        .get_derivation_info(id)
+        .is_some_and(|info| matches!(info.build_status, BuildStatus::Planned))
+    {
+      self.unchecked.remove(&id);
+      self.ask_realised(vec![id]);
     }
     if let Some(id) = effects.stopped {
       self.log_counts.remove(&id);
@@ -781,27 +929,21 @@ impl DerivationTree<'_> {
     }
   }
 
-  fn link_produced(&mut self, answer: ProducedDrv) -> bool {
-    let Some(id) = answer
+  /// Returns the derivation the producer wrote, once linked.
+  fn link_produced(&mut self, answer: ProducedDrv) -> Option<DerivationId> {
+    let id = answer
       .producer
       .to_str()
       .and_then(Derivation::parse)
-      .map(|derivation| self.state.get_or_create_derivation_id(derivation))
-    else {
-      return false;
-    };
+      .map(|derivation| self.state.get_or_create_derivation_id(derivation))?;
     let Some(drv) = answer.drv else {
       if let Some(producer) = self.producers.get_mut(&id) {
         producer.requested = false;
       }
-      return false;
+      return None;
     };
-    let Some(derivation) = drv.to_str().and_then(Derivation::parse) else {
-      return false;
-    };
-    let Some(producer) = self.producers.remove(&id) else {
-      return false;
-    };
+    let derivation = drv.to_str().and_then(Derivation::parse)?;
+    let producer = self.producers.remove(&id)?;
     self.state.mark_available(id);
     let produced_id = self.state.get_or_create_derivation_id(derivation);
     for &consumer in &producer.consumers {
@@ -816,7 +958,7 @@ impl DerivationTree<'_> {
     }
     self.resolve(drv);
     self.state.join_package(id, produced_id);
-    true
+    Some(produced_id)
   }
 }
 
