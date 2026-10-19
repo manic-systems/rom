@@ -56,24 +56,25 @@ impl DerivationResolver for Sources {
       _ => vec![],
     };
     Ok(cognos::ParsedDerivation {
-      outputs:    if path == PRODUCER {
+      outputs:      if path == PRODUCER {
         vec![("out".into(), SOURCE.into())]
       } else {
         vec![]
       },
-      input_drvs: inputs
+      input_drvs:   inputs
         .into_iter()
         .map(|input| (input.into(), vec!["out".into()]))
         .collect(),
-      input_srcs: if matches!(path, CONSUMER | OTHER) {
+      dynamic_drvs: Vec::new(),
+      input_srcs:   if matches!(path, CONSUMER | OTHER) {
         self.paths.clone()
       } else {
         vec![]
       },
-      platform:   "x86_64-linux".into(),
-      builder:    "/bin/sh".into(),
-      args:       vec![],
-      env:        vec![],
+      platform:     "x86_64-linux".into(),
+      builder:      "/bin/sh".into(),
+      args:         vec![],
+      env:          vec![],
     })
   }
 }

@@ -50,6 +50,7 @@ impl DerivationResolver for ChainResolver {
     Ok(cognos::ParsedDerivation {
       outputs: Vec::new(),
       input_drvs,
+      dynamic_drvs: Vec::new(),
       input_srcs: Vec::new(),
       platform: "x86_64-linux".to_owned(),
       builder: "/bin/sh".to_owned(),

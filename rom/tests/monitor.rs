@@ -32,16 +32,17 @@ impl DerivationResolver for Resolver {
     _path: &std::path::Path,
   ) -> Result<cognos::ParsedDerivation, String> {
     Ok(cognos::ParsedDerivation {
-      outputs:    Vec::new(),
-      input_drvs: vec![(
+      outputs:      Vec::new(),
+      input_drvs:   vec![(
         "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-child.drv".to_owned(),
         vec!["out".to_owned()],
       )],
-      input_srcs: Vec::new(),
-      platform:   "x86_64-linux".to_owned(),
-      builder:    "/bin/sh".to_owned(),
-      args:       Vec::new(),
-      env:        vec![("pname".to_owned(), "demo".to_owned())],
+      dynamic_drvs: Vec::new(),
+      input_srcs:   Vec::new(),
+      platform:     "x86_64-linux".to_owned(),
+      builder:      "/bin/sh".to_owned(),
+      args:         Vec::new(),
+      env:          vec![("pname".to_owned(), "demo".to_owned())],
     })
   }
 }
@@ -64,15 +65,16 @@ impl DerivationResolver for NestedResolver {
       other => return Err(format!("unexpected derivation: {other}")),
     };
     Ok(cognos::ParsedDerivation {
-      outputs:    Vec::new(),
-      input_drvs: dependency
+      outputs:      Vec::new(),
+      input_drvs:   dependency
         .map(|path| vec![(path.to_owned(), vec!["out".to_owned()])])
         .unwrap_or_default(),
-      input_srcs: Vec::new(),
-      platform:   "x86_64-linux".to_owned(),
-      builder:    "/bin/sh".to_owned(),
-      args:       Vec::new(),
-      env:        Vec::new(),
+      dynamic_drvs: Vec::new(),
+      input_srcs:   Vec::new(),
+      platform:     "x86_64-linux".to_owned(),
+      builder:      "/bin/sh".to_owned(),
+      args:         Vec::new(),
+      env:          Vec::new(),
     })
   }
 }
