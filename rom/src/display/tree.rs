@@ -196,6 +196,23 @@ impl Renderer<'_> {
       }
     }
 
+    let mut pruned = true;
+    while pruned {
+      pruned = false;
+      for (&id, info) in self.snapshot.derivations {
+        let orphan = relevance[id] == 1
+          && matches!(info.build_status, BuildStatus::Available)
+          && self
+            .row_parents(id, &unit_parents)
+            .into_iter()
+            .all(|parent| relevance[parent] == 0);
+        if orphan {
+          relevance[id] = 0;
+          pruned = true;
+        }
+      }
+    }
+
     let mut plan = TreePlan::default();
     for (id, &priority) in relevance.iter().enumerate() {
       if priority == 0 {

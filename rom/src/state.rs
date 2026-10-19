@@ -1,7 +1,7 @@
 //! State management for ROM.
 use std::{
   collections::{BTreeMap, BTreeSet, HashMap, HashSet},
-  path::PathBuf,
+  path::{Path, PathBuf},
   time::{Duration, SystemTime},
 };
 
@@ -223,6 +223,8 @@ pub struct DerivationInfo {
   pub membership:         Membership,
   /// The derivation this dynamic-derivation producer wrote, once known.
   pub writes:             Option<DerivationId>,
+  /// Whether its outputs are content-addressed and unknown until built.
+  pub floating:           bool,
 }
 
 impl DerivationInfo {
@@ -455,6 +457,7 @@ impl State {
       platform:           None,
       membership:         Membership::Outside,
       writes:             None,
+      floating:           false,
     });
     self.derivation_ids.insert(drv, id);
 
@@ -523,6 +526,7 @@ impl State {
       original_info.membership = resolved_info.membership;
     }
     original_info.writes = original_info.writes.or(resolved_info.writes);
+    original_info.floating |= resolved_info.floating;
 
     for id in self.derivation_ids.values_mut() {
       if *id == resolved {
@@ -604,6 +608,8 @@ impl State {
 
     if let Some(info) = self.get_derivation_info_mut(drv_id) {
       info.platform = Some(parsed.platform);
+      info.floating = !parsed.outputs.is_empty()
+        && parsed.outputs.iter().all(|(_, path)| path.is_empty());
     }
 
     // Register the derivation's output store paths.
@@ -808,6 +814,13 @@ impl State {
     inserted
   }
 
+  /// Returns the ID of the derivation at `path`, if it is known.
+  #[must_use]
+  pub fn derivation_id(&self, path: &Path) -> Option<DerivationId> {
+    let derivation = Derivation::parse(path.to_str()?)?;
+    self.derivation_ids.get(&derivation).copied()
+  }
+
   /// Returns the derivation with the given ID.
   #[must_use]
   pub fn get_derivation_info(
@@ -855,6 +868,28 @@ impl State {
     } else {
       self.full_summary.planned_downloads.insert(id)
     }
+  }
+
+  /// Marks a realised derivation available, and every unannounced unit under
+  /// it when it is a package.
+  pub(crate) fn mark_realised(&mut self, id: DerivationId) -> bool {
+    let mut changed = self.mark_available(id);
+    let package = self
+      .derivation_infos
+      .get(&id)
+      .is_some_and(|info| info.membership == Membership::Package);
+    if !package {
+      return changed;
+    }
+    for info in self.derivation_infos.values_mut() {
+      if info.membership == Membership::Unit(id)
+        && matches!(info.build_status, BuildStatus::Unknown)
+      {
+        info.build_status = BuildStatus::Available;
+        changed = true;
+      }
+    }
+    changed
   }
 
   pub(crate) fn mark_available(&mut self, id: DerivationId) -> bool {
