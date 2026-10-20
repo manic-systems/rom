@@ -25,9 +25,10 @@ jobs:
       contents: write
       id-token: write
     needs: ci
-    uses: manic-systems/workflows/.github/workflows/rust-release.yml@4d2d4a73ac933d23f00fb7a17dd39569f8e1c1dc # v2.3.2
+    uses: manic-systems/workflows/.github/workflows/rust-release.yml@ec457510b197b2eeb8b2ea2d182f31e3ed7157bd # v2.3.3
     with:
       stage: prepare
+      assets: false
       tag-prefix: cognos-v
       version-command: nix run nixpkgs#fq -- -r .package.version crates/cognos/Cargo.toml
 
@@ -38,7 +39,7 @@ jobs:
       id-token: write
     needs: prepare-cognos
     if: ${{ needs.prepare-cognos.result == 'success' && needs.prepare-cognos.outputs.skip != 'true' }}
-    uses: manic-systems/workflows/.github/workflows/rust-release.yml@4d2d4a73ac933d23f00fb7a17dd39569f8e1c1dc # v2.3.2
+    uses: manic-systems/workflows/.github/workflows/rust-release.yml@ec457510b197b2eeb8b2ea2d182f31e3ed7157bd # v2.3.3
     with:
       stage: publish
       version: ${{ needs.prepare-cognos.outputs.version }}
@@ -51,9 +52,10 @@ jobs:
       contents: write
       id-token: write
     needs: ci
-    uses: manic-systems/workflows/.github/workflows/rust-release.yml@4d2d4a73ac933d23f00fb7a17dd39569f8e1c1dc # v2.3.2
+    uses: manic-systems/workflows/.github/workflows/rust-release.yml@ec457510b197b2eeb8b2ea2d182f31e3ed7157bd # v2.3.3
     with:
       stage: prepare
+      assets: false
 
   publish-rom:
     name: Publish rom
@@ -67,7 +69,7 @@ jobs:
       && needs.prepare-rom.result == 'success'
       && needs.prepare-rom.outputs.skip != 'true'
       && needs.publish-cognos.result != 'failure' }}
-    uses: manic-systems/workflows/.github/workflows/rust-release.yml@4d2d4a73ac933d23f00fb7a17dd39569f8e1c1dc # v2.3.2
+    uses: manic-systems/workflows/.github/workflows/rust-release.yml@ec457510b197b2eeb8b2ea2d182f31e3ed7157bd # v2.3.3
     with:
       stage: publish
       version: ${{ needs.prepare-rom.outputs.version }}
