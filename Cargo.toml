@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/cognos", "rom"]
 
 [workspace.package]
-version = "0.2.1"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.95.0"
 description = "Pretty build graphs for your pretty Nix builds"
