@@ -37,8 +37,6 @@ enum RowId {
 struct PlannedRow {
   priority:     u8,
   active:       bool,
-  /// Whether this waiting unit holds running units, which hang from it.
-  holds_active: bool,
   active_below: usize,
   children:     Vec<RowId>,
   inline:       Vec<usize>,
@@ -50,7 +48,6 @@ impl PlannedRow {
     Self {
       priority,
       active: priority >= 3,
-      holds_active: false,
       active_below: 0,
       children: Vec::new(),
       inline: Vec::new(),
@@ -220,12 +217,6 @@ impl Renderer<'_> {
       }
       let mut row = PlannedRow::new(priority);
       row.active = active[id];
-      row.holds_active = !active[id]
-        && priority >= 3
-        && self
-          .snapshot
-          .derivation(id)
-          .is_some_and(|info| matches!(info.membership, Membership::Unit(_)));
       plan.rows.insert(RowId::Build(id), row);
     }
     for id in (0..slots).filter(|&id| active[id]) {
@@ -566,8 +557,7 @@ impl Renderer<'_> {
     while let Some((_, _, _, id)) = frontier.pop() {
       order.push(id);
       let row = plan.row(id);
-      candidates +=
-        usize::from(!focus_active || row.active || row.holds_active);
+      candidates += usize::from(!focus_active || row.active);
       for &child in &row.children {
         if selection.parents.contains_key(&child) {
           continue;
@@ -600,7 +590,7 @@ impl Renderer<'_> {
         .copied()
         .filter(|id| {
           let row = plan.row(*id);
-          !focus_active || row.active || row.holds_active
+          !focus_active || row.active
         })
         .take(remaining),
     );
