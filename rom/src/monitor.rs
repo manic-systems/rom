@@ -790,6 +790,7 @@ impl Engine {
 
 /// A dynamic-derivation producer whose output is not yet linked.
 struct Producer {
+  /// Its resolved copy once known, since Nix re-resolves an original's inputs.
   path:      PathBuf,
   consumers: Vec<DerivationId>,
   /// How many times it was asked about after its build.
@@ -884,20 +885,23 @@ impl DerivationTree<'_> {
       return;
     };
     let id = self.state.get_or_create_derivation_id(derivation);
-    self
-      .producers
-      .entry(id)
-      .or_insert_with(|| {
-        Producer {
-          path:      path.to_path_buf(),
-          consumers: Vec::new(),
-          lookups:   0,
-          requested: false,
-          retry_at:  None,
-        }
-      })
-      .consumers
-      .extend(consumers);
+    let resolved = self
+      .state
+      .get_derivation_info(id)
+      .is_some_and(|info| info.name.path != path);
+    let producer = self.producers.entry(id).or_insert_with(|| {
+      Producer {
+        path:      path.to_path_buf(),
+        consumers: Vec::new(),
+        lookups:   0,
+        requested: false,
+        retry_at:  None,
+      }
+    });
+    if resolved {
+      producer.path = path.to_path_buf();
+    }
+    producer.consumers.extend(consumers);
   }
 
   fn request_produced(&mut self, lookup: Lookup) {
