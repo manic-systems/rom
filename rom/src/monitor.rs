@@ -6,8 +6,8 @@ use std::{
   iter,
   path::{Path, PathBuf},
   process::{Command, Stdio},
-  slice,
   sync::{
+    Arc,
     Mutex,
     OnceLock,
     atomic::{AtomicBool, Ordering},
@@ -105,7 +105,6 @@ pub struct FilesystemResolver {
 }
 
 enum TraceRequest {
-  Produced(Vec<PathBuf>),
   Writer {
     drv:       PathBuf,
     producers: Vec<PathBuf>,
@@ -113,8 +112,11 @@ enum TraceRequest {
   Realised(Vec<PathBuf>),
 }
 
+/// Producer lookups run on their own thread, since a writer search or a
+/// realisation check over originals can take seconds per call.
 struct TraceWorker {
   requests: Sender<TraceRequest>,
+  lookups:  Sender<PathBuf>,
   answers:  Mutex<Receiver<Answer>>,
 }
 
@@ -122,16 +124,44 @@ impl TraceWorker {
   fn spawn() -> Self {
     let (requests, pending) = mpsc::channel::<TraceRequest>();
     let (answered, answers) = mpsc::channel();
+    let (lookups, queued) = mpsc::channel::<PathBuf>();
+    let queued = Arc::new(Mutex::new(queued));
+    for _ in 0..PARALLEL_LOOKUPS {
+      let queued = Arc::clone(&queued);
+      let answered = answered.clone();
+      let lookup_thread = thread::Builder::new()
+        .name("rom-producers".to_owned())
+        .spawn(move || {
+          loop {
+            let next = queued.lock().ok().and_then(|queued| queued.recv().ok());
+            let Some(producer) = next else {
+              return;
+            };
+            let drv = if TRACE_UNAVAILABLE.load(Ordering::Relaxed) {
+              None
+            } else {
+              look_up_one(&producer)
+            };
+            if answered
+              .send(Answer::Produced(ProducedDrv { producer, drv }))
+              .is_err()
+            {
+              return;
+            }
+          }
+        });
+      if let Err(error) = lookup_thread {
+        tracing::warn!("cannot read the build trace: {error}");
+      }
+    }
     let spawned = thread::Builder::new()
       .name("rom-build-trace".to_owned())
       .spawn(move || {
         while let Ok(first) = pending.recv() {
-          let mut producers = Vec::new();
           let mut drvs = Vec::new();
           let mut batch = Vec::new();
           for request in iter::once(first).chain(pending.try_iter()) {
             match request {
-              TraceRequest::Produced(paths) => producers.extend(paths),
               TraceRequest::Writer {
                 drv,
                 producers: candidates,
@@ -146,11 +176,6 @@ impl TraceWorker {
               TraceRequest::Realised(paths) => drvs.extend(paths),
             }
           }
-          batch.extend(
-            look_up_produced(producers)
-              .into_iter()
-              .map(Answer::Produced),
-          );
           check_realised(drvs, &mut batch);
           for answer in batch {
             if answered.send(answer).is_err() {
@@ -164,6 +189,7 @@ impl TraceWorker {
     }
     Self {
       requests,
+      lookups,
       answers: Mutex::new(answers),
     }
   }
@@ -189,7 +215,11 @@ impl DerivationResolver for FilesystemResolver {
   }
 
   fn request_produced(&self, producers: Vec<PathBuf>) {
-    self.request(TraceRequest::Produced(producers));
+    // A send only fails once the worker is gone, which it already reported.
+    let worker = self.worker.get_or_init(TraceWorker::spawn);
+    for producer in producers {
+      let _sent = worker.lookups.send(producer);
+    }
   }
 
   fn request_writer(&self, drv: PathBuf, producers: Vec<PathBuf>) {
@@ -269,63 +299,31 @@ fn check_realised(drvs: Vec<PathBuf>, answers: &mut Vec<Answer>) {
   check_realised(second, answers);
 }
 
-/// Looks producers up in one `nix` call, then one each for those it missed.
-fn look_up_produced(producers: Vec<PathBuf>) -> Vec<ProducedDrv> {
-  if TRACE_UNAVAILABLE.load(Ordering::Relaxed) {
-    return producers
-      .into_iter()
-      .map(|producer| {
-        ProducedDrv {
-          producer,
-          drv: None,
-        }
-      })
-      .collect();
-  }
+const PARALLEL_LOOKUPS: usize = 8;
 
-  // Nix fails the whole call if any producer is unbuilt, and keys an entry by
-  // the producer itself only when it has no content-addressed inputs.
-  let mut written = HashMap::new();
-  if producers.len() > 1
-    && let Ok(entries) = build_trace(&producers)
+fn look_up_one(producer: &Path) -> Option<PathBuf> {
+  let output = match Command::new("nix")
+    .args(["path-info", "--max-jobs", "0"])
+    .arg(format!("{}^out", producer.display()))
+    .stdin(Stdio::null())
+    .output()
   {
-    for entry in entries {
-      if let Some(TraceKey {
-        drv_path,
-        output_name,
-      }) = entry.key
-        && let Some(TraceValue { out_path }) = entry.value
-        && output_name == "out"
-      {
-        written.insert(drv_path, Path::new("/nix/store").join(out_path));
-      }
-    }
+    Ok(output) => output,
+    Err(error) => {
+      report_unavailable(&error.to_string());
+      return None;
+    },
+  };
+  if output.status.success() {
+    return String::from_utf8(output.stdout)
+      .ok()
+      .map(|path| PathBuf::from(path.trim()));
   }
-
-  producers
-    .into_iter()
-    .map(|producer| {
-      let keyed = producer
-        .file_name()
-        .and_then(|name| name.to_str())
-        .and_then(|name| written.remove(name));
-      if keyed.is_some() {
-        return ProducedDrv {
-          producer,
-          drv: keyed,
-        };
-      }
-      let drv = match build_trace(slice::from_ref(&producer)) {
-        Ok(entries) => entries.into_iter().find_map(|entry| entry.opaque_path),
-        Err(TraceError::Unbuilt) => None,
-        Err(TraceError::Unavailable(reason)) => {
-          report_unavailable(&reason);
-          None
-        },
-      };
-      ProducedDrv { producer, drv }
-    })
-    .collect()
+  let stderr = String::from_utf8_lossy(&output.stderr);
+  if !stderr.contains("unbuilt derivation") {
+    report_unavailable(stderr.trim());
+  }
+  None
 }
 
 enum TraceError {
@@ -333,28 +331,12 @@ enum TraceError {
   Unavailable(String),
 }
 
-/// An entry of `nix store build-trace info --json`, which lists one keyed
-/// realisation per resolved derivation, then each installable's realised path.
+/// An entry of `nix store build-trace info --json`, whose trailing entry is
+/// each installable's realised path.
 #[derive(Deserialize)]
 struct TraceEntry {
-  key:         Option<TraceKey>,
-  value:       Option<TraceValue>,
   #[serde(rename = "opaquePath")]
   opaque_path: Option<PathBuf>,
-}
-
-#[derive(Deserialize)]
-struct TraceKey {
-  #[serde(rename = "drvPath")]
-  drv_path:    String,
-  #[serde(rename = "outputName")]
-  output_name: String,
-}
-
-#[derive(Deserialize)]
-struct TraceValue {
-  #[serde(rename = "outPath")]
-  out_path: String,
 }
 
 /// Reads Nix's build trace for each producer's `out`.
@@ -381,6 +363,18 @@ fn build_trace(
   }
   serde_json::from_slice(&output.stdout)
     .map_err(|error| TraceError::Unavailable(error.to_string()))
+}
+
+/// Returns the producer in Nix's warning that it skipped one while planning.
+fn ignored_producer(json: &[u8]) -> Option<PathBuf> {
+  const MARKER: &[u8] = b"Ignoring dynamic derivation ";
+  let start = json
+    .windows(MARKER.len())
+    .position(|window| window == MARKER)?
+    + MARKER.len();
+  let rest = &json[start..];
+  let end = rest.iter().position(|&byte| byte == b'^')?;
+  std::str::from_utf8(&rest[..end]).ok().map(PathBuf::from)
 }
 
 /// Bytes or decoded logs which must be emitted exactly once by an adapter.
@@ -568,6 +562,30 @@ impl Engine {
     changed
   }
 
+  /// Looks up a producer Nix skipped while planning, which an earlier run
+  /// built, so the chain under it links before its units start.
+  fn ask_ignored(&mut self, path: &Path) {
+    let Some(resolver) = self.resolver.as_ref() else {
+      return;
+    };
+    let mut tree = DerivationTree {
+      state:      &mut self.state,
+      resolver:   resolver.as_ref(),
+      resolved:   &mut self.resolved_drvs,
+      producers:  &mut self.producers,
+      next_retry: &mut self.next_retry,
+    };
+    tree.register(path, Vec::new());
+    let Some(id) = tree.state.derivation_id(path) else {
+      return;
+    };
+    if let Some(producer) = tree.producers.get_mut(&id)
+      && !std::mem::replace(&mut producer.requested, true)
+    {
+      tree.resolver.request_produced(vec![producer.path.clone()]);
+    }
+  }
+
   fn retry_produced(&mut self, now: f64) {
     if self.next_retry.is_none_or(|at| at > now) {
       return;
@@ -688,6 +706,9 @@ impl Engine {
       Err(error) => return Err(RomError::Json(error)),
     };
     let event = Event::decode(action);
+    if let Some(producer) = ignored_producer(json) {
+      self.ask_ignored(&producer);
+    }
     let linked = self.poll_lookups(now);
 
     let show_log = match &event {
@@ -811,6 +832,10 @@ const RETRY_DELAYS: [f64; 9] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 8.0, 8.0, 8.0];
 
 /// How many times a built producer is asked about.
 const BUILT_LOOKUPS: u8 = RETRY_DELAYS.len() as u8 + 1;
+
+/// Most producers of a derivation looked up as soon as its own producer links,
+/// which follows a chain an earlier run built.
+const LINKED_LOOKUPS: usize = 64;
 
 #[derive(Clone, Copy)]
 enum Lookup {
@@ -1020,6 +1045,24 @@ impl DerivationTree<'_> {
     }
     self.resolve(drv);
     self.state.join_package(id, produced_id);
+    let due = self
+      .producers
+      .values_mut()
+      .filter(|producer| producer.consumers.contains(&produced_id))
+      .take(LINKED_LOOKUPS + 1)
+      .collect::<Vec<&mut Producer>>();
+    if due.len() <= LINKED_LOOKUPS {
+      let due = due
+        .into_iter()
+        .filter_map(|producer| {
+          (!std::mem::replace(&mut producer.requested, true))
+            .then(|| producer.path.clone())
+        })
+        .collect::<Vec<PathBuf>>();
+      if !due.is_empty() {
+        self.resolver.request_produced(due);
+      }
+    }
     Some(produced_id)
   }
 }
