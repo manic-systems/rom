@@ -1017,7 +1017,9 @@ impl Renderer<'_> {
         BuildStatus::Built { .. } | BuildStatus::Available
       ));
     }
-    if total < 2 {
+    if total < 2
+      || done == total && matches!(info.build_status, BuildStatus::Building(_))
+    {
       return None;
     }
     let state = match info.build_status {
