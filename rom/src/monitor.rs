@@ -444,6 +444,7 @@ pub struct Engine {
   reported_unsupported: HashSet<UnsupportedRecord>,
   resolved_drvs:        HashSet<PathBuf>,
   producers:            HashMap<DerivationId, Producer>,
+  next_retry:           Option<f64>,
   /// Planned content-addressed derivations not yet asked about, which wait
   /// until their planned inputs are realised, since Nix cannot resolve them
   /// before then.
@@ -465,6 +466,7 @@ impl Engine {
       reported_unsupported: HashSet::new(),
       resolved_drvs: HashSet::new(),
       producers: HashMap::new(),
+      next_retry: None,
       unchecked: BTreeSet::new(),
       checking: HashSet::new(),
       resolver: None,
@@ -499,22 +501,23 @@ impl Engine {
   ///
   /// Returns whether the state changed. Adapters call this while idle, since
   /// answers also arrive between records.
-  pub fn poll_lookups(&mut self) -> bool {
+  pub fn poll_lookups(&mut self, now: f64) -> bool {
     let Some(resolver) = self.resolver.as_ref() else {
       return false;
     };
     let mut tree = DerivationTree {
-      state:     &mut self.state,
-      resolver:  resolver.as_ref(),
-      resolved:  &mut self.resolved_drvs,
-      producers: &mut self.producers,
+      state:      &mut self.state,
+      resolver:   resolver.as_ref(),
+      resolved:   &mut self.resolved_drvs,
+      producers:  &mut self.producers,
+      next_retry: &mut self.next_retry,
     };
     let mut changed = false;
     let mut packages = Vec::new();
     for answer in tree.resolver.answers() {
       changed |= match answer {
         Answer::Produced(produced) => {
-          let Some(written) = tree.link_produced(produced) else {
+          let Some(written) = tree.link_produced(produced, now) else {
             continue;
           };
           packages.extend(
@@ -535,6 +538,7 @@ impl Engine {
       };
     }
     self.ask_realised(packages);
+    self.retry_produced(now);
 
     let state = &self.state;
     let mut due = Vec::new();
@@ -562,6 +566,35 @@ impl Engine {
     });
     self.ask_realised(due);
     changed
+  }
+
+  fn retry_produced(&mut self, now: f64) {
+    if self.next_retry.is_none_or(|at| at > now) {
+      return;
+    }
+    let Some(resolver) = self.resolver.as_ref() else {
+      return;
+    };
+    let mut next = None::<f64>;
+    let due = self
+      .producers
+      .values_mut()
+      .filter_map(|producer| {
+        let at = producer.retry_at?;
+        if at > now || producer.requested {
+          next = Some(next.map_or(at, |next| next.min(at)));
+          return None;
+        }
+        producer.retry_at = None;
+        producer.lookups += 1;
+        producer.requested = true;
+        Some(producer.path.clone())
+      })
+      .collect::<Vec<PathBuf>>();
+    self.next_retry = next;
+    if !due.is_empty() {
+      resolver.request_produced(due);
+    }
   }
 
   fn ask_realised(&mut self, ids: Vec<DerivationId>) {
@@ -655,7 +688,7 @@ impl Engine {
       Err(error) => return Err(RomError::Json(error)),
     };
     let event = Event::decode(action);
-    let linked = self.poll_lookups();
+    let linked = self.poll_lookups(now);
 
     let show_log = match &event {
       Event::Message(message) => message.level <= self.config.verbosity,
@@ -676,10 +709,11 @@ impl Engine {
     let mut changed = effects.changed || linked;
     if let Some(resolver) = self.resolver.as_ref() {
       let mut tree = DerivationTree {
-        state:     &mut self.state,
-        resolver:  resolver.as_ref(),
-        resolved:  &mut self.resolved_drvs,
-        producers: &mut self.producers,
+        state:      &mut self.state,
+        resolver:   resolver.as_ref(),
+        resolved:   &mut self.resolved_drvs,
+        producers:  &mut self.producers,
+        next_retry: &mut self.next_retry,
       };
       for path in effects.resolve {
         changed |= tree.resolve(path);
@@ -758,18 +792,24 @@ impl Engine {
 struct Producer {
   path:      PathBuf,
   consumers: Vec<DerivationId>,
-  /// How many [`Lookup::Built`] runs asked about it.
-  ///
-  /// Nix records a content-addressed producer's output only after its build
-  /// activity stops, so an early answer is unbuilt and a later stop retries.
+  /// How many times it was asked about after its build.
   lookups:   u8,
   /// Whether a lookup is waiting on the resolver.
   requested: bool,
+  /// When to ask again after an unbuilt answer.
+  ///
+  /// Nix records a content-addressed producer's output off-thread after its
+  /// build activity stops, so a lookup right at the stop can be too early.
+  retry_at:  Option<f64>,
 }
 
-/// How many stops may retry a [`Lookup::Built`] that answered unbuilt, since a
-/// producer with dynamic inputs answers so until its whole chain is built.
-const BUILT_LOOKUPS: u8 = 10;
+/// Seconds before each retry of a built producer that answered unbuilt,
+/// bounded since one with dynamic inputs answers so until its whole chain is
+/// built.
+const RETRY_DELAYS: [f64; 9] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 8.0, 8.0, 8.0];
+
+/// How many times a built producer is asked about.
+const BUILT_LOOKUPS: u8 = RETRY_DELAYS.len() as u8 + 1;
 
 #[derive(Clone, Copy)]
 enum Lookup {
@@ -783,10 +823,12 @@ enum Lookup {
 }
 
 struct DerivationTree<'engine> {
-  state:     &'engine mut State,
-  resolver:  &'engine dyn DerivationResolver,
-  resolved:  &'engine mut HashSet<PathBuf>,
-  producers: &'engine mut HashMap<DerivationId, Producer>,
+  state:      &'engine mut State,
+  resolver:   &'engine dyn DerivationResolver,
+  resolved:   &'engine mut HashSet<PathBuf>,
+  producers:  &'engine mut HashMap<DerivationId, Producer>,
+  /// The earliest [`Producer::retry_at`].
+  next_retry: &'engine mut Option<f64>,
 }
 
 impl DerivationTree<'_> {
@@ -851,6 +893,7 @@ impl DerivationTree<'_> {
           consumers: Vec::new(),
           lookups:   0,
           requested: false,
+          retry_at:  None,
         }
       })
       .consumers
@@ -872,12 +915,11 @@ impl DerivationTree<'_> {
               self.state.get_derivation_info(id).is_some_and(|info| {
                 matches!(info.build_status, BuildStatus::Built { .. })
               });
-            (built && !producer.requested && producer.lookups < BUILT_LOOKUPS)
-              .then(|| {
-                producer.lookups += 1;
-                producer.requested = true;
-                producer.path.clone()
-              })
+            (built && !producer.requested && producer.lookups == 0).then(|| {
+              producer.lookups += 1;
+              producer.requested = true;
+              producer.path.clone()
+            })
           })
           .collect::<Vec<PathBuf>>();
         if !due.is_empty() {
@@ -892,6 +934,7 @@ impl DerivationTree<'_> {
           .filter_map(|producer| {
             let ask = !producer.requested && producer.lookups < BUILT_LOOKUPS;
             producer.lookups = BUILT_LOOKUPS;
+            producer.retry_at = None;
             ask.then(|| {
               producer.requested = true;
               producer.path.clone()
@@ -932,7 +975,12 @@ impl DerivationTree<'_> {
   }
 
   /// Returns the derivation the producer wrote, once linked.
-  fn link_produced(&mut self, answer: ProducedDrv) -> Option<DerivationId> {
+  #[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
+  fn link_produced(
+    &mut self,
+    answer: ProducedDrv,
+    now: f64,
+  ) -> Option<DerivationId> {
     let id = answer
       .producer
       .to_str()
@@ -941,6 +989,14 @@ impl DerivationTree<'_> {
     let Some(drv) = answer.drv else {
       if let Some(producer) = self.producers.get_mut(&id) {
         producer.requested = false;
+        if let Some(delay) =
+          RETRY_DELAYS.get(usize::from(producer.lookups).wrapping_sub(1))
+        {
+          let at = now + delay;
+          producer.retry_at = Some(at);
+          *self.next_retry =
+            Some(self.next_retry.map_or(at, |next| next.min(at)));
+        }
       }
       return None;
     };

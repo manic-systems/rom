@@ -688,7 +688,7 @@ fn drive(
       Err(RecvTimeoutError::Disconnected) => break,
       Err(RecvTimeoutError::Timeout) => {},
     }
-    dirty |= stream.engine_mut().poll_lookups();
+    dirty |= stream.engine_mut().poll_lookups(current_time());
     let timer_due = last_timer.elapsed() >= Duration::from_secs(1);
     if !silent
       && (dirty || timer_due)
