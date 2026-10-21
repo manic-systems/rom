@@ -3,13 +3,14 @@
 #[cfg(target_os = "linux")]
 use std::os::unix::process::CommandExt;
 use std::{
-  collections::{BTreeSet, HashMap, HashSet},
+  collections::{BTreeSet, HashMap, HashSet, VecDeque},
   io::{self, BufRead, Write},
   iter,
   path::{Path, PathBuf},
   process::{self, Command, Stdio},
   sync::{
     Arc,
+    Condvar,
     Mutex,
     OnceLock,
     atomic::{AtomicBool, Ordering},
@@ -51,7 +52,12 @@ pub trait DerivationResolver: Send + Sync {
   ///
   /// It must return without waiting, since the engine calls it while
   /// ingesting. Answers come back through [`Self::answers`].
-  fn request_produced(&self, _producers: Vec<PathBuf>) {}
+  fn request_produced(
+    &self,
+    _producers: Vec<PathBuf>,
+    _priority: LookupPriority,
+  ) {
+  }
 
   /// Asks which of `producers` wrote `drv`, answering only a match. It must
   /// return without waiting.
@@ -67,6 +73,15 @@ pub trait DerivationResolver: Send + Sync {
   fn answers(&self) -> Vec<Answer> {
     Vec::new()
   }
+}
+
+/// How soon a producer lookup is needed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LookupPriority {
+  /// Its answer attaches a subtree that is cached or already building.
+  Attach,
+  /// It follows the producer's own build.
+  Built,
 }
 
 /// The answer to a lookup the engine asked a [`DerivationResolver`] for.
@@ -119,37 +134,50 @@ enum TraceRequest {
 /// realisation check over originals can take seconds per call.
 struct TraceWorker {
   requests: Sender<TraceRequest>,
-  lookups:  Sender<PathBuf>,
+  lookups:  Arc<(Mutex<LookupQueue>, Condvar)>,
   answers:  Mutex<Receiver<Answer>>,
+}
+
+#[derive(Default)]
+struct LookupQueue {
+  attach: VecDeque<PathBuf>,
+  built:  VecDeque<PathBuf>,
+  closed: bool,
+}
+
+impl Drop for TraceWorker {
+  fn drop(&mut self) {
+    let (queue, ready) = &*self.lookups;
+    if let Ok(mut queue) = queue.lock() {
+      queue.closed = true;
+    }
+    ready.notify_all();
+  }
 }
 
 impl TraceWorker {
   fn spawn() -> Self {
     let (requests, pending) = mpsc::channel::<TraceRequest>();
     let (answered, answers) = mpsc::channel();
-    let (lookups, queued) = mpsc::channel::<PathBuf>();
-    let queued = Arc::new(Mutex::new(queued));
+    let lookups =
+      Arc::new((Mutex::new(LookupQueue::default()), Condvar::new()));
     for _ in 0..PARALLEL_LOOKUPS {
-      let queued = Arc::clone(&queued);
+      let queued = Arc::clone(&lookups);
       let answered = answered.clone();
       let lookup_thread = thread::Builder::new()
         .name("rom-producers".to_owned())
         .spawn(move || {
           loop {
-            let next = queued.lock().ok().and_then(|queued| queued.recv().ok());
-            let Some(producer) = next else {
+            let Some(batch) = next_batch(&queued) else {
               return;
             };
-            let drv = if TRACE_UNAVAILABLE.load(Ordering::Relaxed) {
-              None
-            } else {
-              look_up_one(&producer)
-            };
-            if answered
-              .send(Answer::Produced(ProducedDrv { producer, drv }))
-              .is_err()
-            {
-              return;
+
+            let mut answers = Vec::new();
+            look_up_batch(batch, &mut answers);
+            for answer in answers {
+              if answered.send(answer).is_err() {
+                return;
+              }
             }
           }
         });
@@ -217,12 +245,22 @@ impl DerivationResolver for FilesystemResolver {
     cognos::parse_drv_file(path)
   }
 
-  fn request_produced(&self, producers: Vec<PathBuf>) {
-    // A send only fails once the worker is gone, which it already reported.
+  fn request_produced(
+    &self,
+    producers: Vec<PathBuf>,
+    priority: LookupPriority,
+  ) {
     let worker = self.worker.get_or_init(TraceWorker::spawn);
-    for producer in producers {
-      let _sent = worker.lookups.send(producer);
+    let (queue, ready) = &*worker.lookups;
+    let Ok(mut queue) = queue.lock() else {
+      return;
+    };
+
+    match priority {
+      LookupPriority::Attach => queue.attach.extend(producers),
+      LookupPriority::Built => queue.built.extend(producers),
     }
+    ready.notify_all();
   }
 
   fn request_writer(&self, drv: PathBuf, producers: Vec<PathBuf>) {
@@ -302,7 +340,32 @@ fn check_realised(drvs: Vec<PathBuf>, answers: &mut Vec<Answer>) {
   check_realised(second, answers);
 }
 
-const PARALLEL_LOOKUPS: usize = 8;
+/// Waits for queued producer lookups and takes a batch, attaching ones first,
+/// or returns `None` once the worker is dropped.
+fn next_batch(lookups: &(Mutex<LookupQueue>, Condvar)) -> Option<Vec<PathBuf>> {
+  let (queue, ready) = lookups;
+  let mut queue = queue.lock().ok()?;
+  loop {
+    if queue.closed {
+      return None;
+    }
+
+    let source = if queue.attach.is_empty() {
+      &mut queue.built
+    } else {
+      &mut queue.attach
+    };
+    if !source.is_empty() {
+      let count = source.len().min(BATCH_LOOKUPS);
+      return Some(source.drain(..count).collect());
+    }
+
+    queue = ready.wait(queue).ok()?;
+  }
+}
+
+const PARALLEL_LOOKUPS: usize = 2;
+const BATCH_LOOKUPS: usize = 64;
 const LOOKUP_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[cfg(target_os = "linux")]
@@ -347,29 +410,102 @@ fn run_lookup(command: &mut Command) -> io::Result<process::Output> {
   Err(io::Error::from(io::ErrorKind::TimedOut))
 }
 
-fn look_up_one(producer: &Path) -> Option<PathBuf> {
+/// Answers a batch of producers in one `nix path-info`, halving any batch Nix
+/// rejects, since one unbuilt producer fails the whole call.
+fn look_up_batch(producers: Vec<PathBuf>, answers: &mut Vec<Answer>) {
+  if producers.is_empty() {
+    return;
+  }
+
+  // Nix prints realised paths out of request order, so a batch holds one
+  // producer per output name to map each line back.
+  let mut names = HashSet::new();
+  let (batch, rest) =
+    producers
+      .into_iter()
+      .partition::<Vec<PathBuf>, _>(|producer| {
+        names.insert(output_name(producer))
+      });
+  look_up_batch(rest, answers);
+
+  let unanswered = |batch: Vec<PathBuf>, answers: &mut Vec<Answer>| {
+    answers.extend(batch.into_iter().map(|producer| {
+      Answer::Produced(ProducedDrv {
+        producer,
+        drv: None,
+      })
+    }));
+  };
+  let halve = |mut first: Vec<PathBuf>, answers: &mut Vec<Answer>| {
+    if first.len() == 1 {
+      unanswered(first, answers);
+      return;
+    }
+    let second = first.split_off(first.len() / 2);
+    look_up_batch(first, answers);
+    look_up_batch(second, answers);
+  };
+  if TRACE_UNAVAILABLE.load(Ordering::Relaxed) {
+    unanswered(batch, answers);
+    return;
+  }
+
   let output = match run_lookup(
     Command::new("nix")
       .args(["path-info", "--max-jobs", "0"])
-      .arg(format!("{}^out", producer.display())),
+      .args(
+        batch
+          .iter()
+          .map(|producer| format!("{}^out", producer.display())),
+      ),
   ) {
     Ok(output) => output,
-    Err(error) if error.kind() == io::ErrorKind::TimedOut => return None,
+    Err(error) if error.kind() == io::ErrorKind::TimedOut => {
+      halve(batch, answers);
+      return;
+    },
     Err(error) => {
       report_unavailable(&error.to_string());
-      return None;
+      unanswered(batch, answers);
+      return;
     },
   };
+
   if output.status.success() {
-    return String::from_utf8(output.stdout)
-      .ok()
-      .map(|path| PathBuf::from(path.trim()));
+    let mut realised = String::from_utf8_lossy(&output.stdout)
+      .lines()
+      .map(|line| PathBuf::from(line.trim()))
+      .map(|drv| (store_name(&drv).to_owned(), drv))
+      .collect::<HashMap<String, PathBuf>>();
+    answers.extend(batch.into_iter().map(|producer| {
+      let drv = realised.remove(&output_name(&producer));
+      Answer::Produced(ProducedDrv { producer, drv })
+    }));
+    return;
   }
+
   let stderr = String::from_utf8_lossy(&output.stderr);
   if !stderr.contains("unbuilt derivation") {
     report_unavailable(stderr.trim());
+    unanswered(batch, answers);
+    return;
   }
-  None
+  halve(batch, answers);
+}
+
+fn store_name(path: &Path) -> &str {
+  path
+    .file_name()
+    .and_then(|name| name.to_str())
+    .and_then(|name| name.split_once('-'))
+    .map_or("", |(_, name)| name)
+}
+
+/// Returns the name of the derivation a producer writes, which is its own
+/// without the last `.drv`.
+fn output_name(producer: &Path) -> String {
+  let name = store_name(producer);
+  name.strip_suffix(".drv").unwrap_or(name).to_owned()
 }
 
 enum TraceError {
@@ -636,7 +772,9 @@ impl Engine {
     if let Some(producer) = tree.producers.get_mut(&id)
       && !std::mem::replace(&mut producer.requested, true)
     {
-      tree.resolver.request_produced(vec![producer.path.clone()]);
+      tree
+        .resolver
+        .request_produced(vec![producer.path.clone()], LookupPriority::Attach);
     }
   }
 
@@ -665,7 +803,7 @@ impl Engine {
       .collect::<Vec<PathBuf>>();
     self.next_retry = next;
     if !due.is_empty() {
-      resolver.request_produced(due);
+      resolver.request_produced(due, LookupPriority::Built);
     }
   }
 
@@ -1006,7 +1144,7 @@ impl DerivationTree<'_> {
           })
           .collect::<Vec<PathBuf>>();
         if !due.is_empty() {
-          self.resolver.request_produced(due);
+          self.resolver.request_produced(due, LookupPriority::Built);
         }
       },
       Lookup::Consumer(consumer) => {
@@ -1025,7 +1163,7 @@ impl DerivationTree<'_> {
           })
           .collect::<Vec<PathBuf>>();
         if !due.is_empty() {
-          self.resolver.request_produced(due);
+          self.resolver.request_produced(due, LookupPriority::Attach);
         }
       },
       Lookup::Orphan(orphan) => {
@@ -1114,7 +1252,7 @@ impl DerivationTree<'_> {
         })
         .collect::<Vec<PathBuf>>();
       if !due.is_empty() {
-        self.resolver.request_produced(due);
+        self.resolver.request_produced(due, LookupPriority::Attach);
       }
     }
     Some(produced_id)
