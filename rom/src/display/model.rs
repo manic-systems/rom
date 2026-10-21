@@ -1,6 +1,9 @@
 //! Render snapshot derived from state, shared by every display format.
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::{
+  collections::{BTreeMap, HashMap, HashSet},
+  path::Path,
+};
 
 use cognos::Host;
 use indexmap::IndexMap;
@@ -154,10 +157,13 @@ impl<'a> RenderSnapshot<'a> {
       {
         let counts = packages.entry(package).or_default();
         counts.total += 1;
+        let producer = Path::new(&info.name.name)
+          .extension()
+          .is_some_and(|extension| extension == "drv");
         let started = match &info.build_status {
           BuildStatus::Unknown | BuildStatus::Planned => None,
           BuildStatus::Available => {
-            counts.done += 1;
+            counts.done += usize::from(!producer);
             None
           },
           BuildStatus::Building(build) => {
@@ -168,7 +174,7 @@ impl<'a> RenderSnapshot<'a> {
             Some(build.start)
           },
           BuildStatus::Built { info: build, .. } => {
-            counts.done += 1;
+            counts.done += usize::from(!producer);
             Some(build.start)
           },
           BuildStatus::Failed { info: build, .. } => {
