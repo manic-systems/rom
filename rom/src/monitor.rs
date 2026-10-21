@@ -350,14 +350,12 @@ fn next_batch(lookups: &(Mutex<LookupQueue>, Condvar)) -> Option<Vec<PathBuf>> {
       return None;
     }
 
-    let source = if queue.attach.is_empty() {
-      &mut queue.built
-    } else {
-      &mut queue.attach
-    };
-    if !source.is_empty() {
-      let count = source.len().min(BATCH_LOOKUPS);
-      return Some(source.drain(..count).collect());
+    if let Some(producer) = queue.attach.pop_front() {
+      return Some(vec![producer]);
+    }
+    if !queue.built.is_empty() {
+      let count = queue.built.len().min(BATCH_LOOKUPS);
+      return Some(queue.built.drain(..count).collect());
     }
 
     queue = ready.wait(queue).ok()?;
