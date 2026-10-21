@@ -1,11 +1,13 @@
 //! Shared synchronous ingestion engine and append-only stream adapter.
 
+#[cfg(target_os = "linux")]
+use std::os::unix::process::CommandExt;
 use std::{
   collections::{BTreeSet, HashMap, HashSet},
-  io::{BufRead, Write},
+  io::{self, BufRead, Write},
   iter,
   path::{Path, PathBuf},
-  process::{Command, Stdio},
+  process::{self, Command, Stdio},
   sync::{
     Arc,
     Mutex,
@@ -14,6 +16,7 @@ use std::{
     mpsc::{self, Receiver, Sender},
   },
   thread,
+  time::Duration,
 };
 
 use cognos::{DecodedAction, Id, UnsupportedRecord};
@@ -300,15 +303,58 @@ fn check_realised(drvs: Vec<PathBuf>, answers: &mut Vec<Answer>) {
 }
 
 const PARALLEL_LOOKUPS: usize = 8;
+const LOOKUP_TIMEOUT: Duration = Duration::from_secs(60);
+
+#[cfg(target_os = "linux")]
+fn die_with_parent() -> io::Result<()> {
+  // SAFETY: prctl only changes the calling process's own death signal.
+  if unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) } == -1 {
+    return Err(io::Error::last_os_error());
+  }
+  Ok(())
+}
+
+/// Runs a Nix lookup that dies with rom and is killed past the timeout.
+fn run_lookup(command: &mut Command) -> io::Result<process::Output> {
+  command
+    .stdin(Stdio::null())
+    .stdout(Stdio::piped())
+    .stderr(Stdio::piped());
+
+  // SAFETY: the hook calls only prctl, which is safe between fork and exec.
+  #[cfg(target_os = "linux")]
+  unsafe {
+    command.pre_exec(die_with_parent)
+  };
+
+  let child = command.spawn()?;
+  let pid = child.id();
+  let (sender, receiver) = mpsc::channel();
+  thread::spawn(move || sender.send(child.wait_with_output()));
+
+  if let Ok(output) = receiver.recv_timeout(LOOKUP_TIMEOUT) {
+    return output;
+  }
+
+  if let Ok(pid) = libc::pid_t::try_from(pid) {
+    // SAFETY: the child is not reaped until the waiting thread sees it die.
+    unsafe {
+      libc::kill(pid, libc::SIGKILL);
+    }
+  }
+
+  drop(receiver.recv());
+  Err(io::Error::from(io::ErrorKind::TimedOut))
+}
 
 fn look_up_one(producer: &Path) -> Option<PathBuf> {
-  let output = match Command::new("nix")
-    .args(["path-info", "--max-jobs", "0"])
-    .arg(format!("{}^out", producer.display()))
-    .stdin(Stdio::null())
-    .output()
-  {
+  let output = match run_lookup(
+    Command::new("nix")
+      .args(["path-info", "--max-jobs", "0"])
+      .arg(format!("{}^out", producer.display())),
+  ) {
     Ok(output) => output,
+    Err(error) if error.kind() == io::ErrorKind::TimedOut => return None,
     Err(error) => {
       report_unavailable(&error.to_string());
       return None;
@@ -343,16 +389,23 @@ struct TraceEntry {
 fn build_trace(
   producers: &[PathBuf],
 ) -> std::result::Result<Vec<TraceEntry>, TraceError> {
-  let output = Command::new("nix")
-    .args(["store", "build-trace", "info", "--json", "--max-jobs", "0"])
-    .args(
-      producers
-        .iter()
-        .map(|producer| format!("{}^out", producer.display())),
-    )
-    .stdin(Stdio::null())
-    .output()
-    .map_err(|error| TraceError::Unavailable(error.to_string()))?;
+  let output = run_lookup(
+    Command::new("nix")
+      .args(["store", "build-trace", "info", "--json", "--max-jobs", "0"])
+      .args(
+        producers
+          .iter()
+          .map(|producer| format!("{}^out", producer.display())),
+      ),
+  )
+  .map_err(|error| {
+    if error.kind() == io::ErrorKind::TimedOut {
+      TraceError::Unbuilt
+    } else {
+      TraceError::Unavailable(error.to_string())
+    }
+  })?;
+
   if !output.status.success() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     return Err(if stderr.contains("unbuilt derivation") {
@@ -361,6 +414,7 @@ fn build_trace(
       TraceError::Unavailable(stderr.trim().to_owned())
     });
   }
+
   serde_json::from_slice(&output.stdout)
     .map_err(|error| TraceError::Unavailable(error.to_string()))
 }
