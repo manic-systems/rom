@@ -38,6 +38,8 @@ struct PlannedRow {
   priority:     u8,
   active:       bool,
   active_below: usize,
+  /// The producer folded into this row.
+  producer:     Option<DerivationId>,
   children:     Vec<RowId>,
   inline:       Vec<usize>,
   consumers:    usize,
@@ -49,6 +51,7 @@ impl PlannedRow {
       priority,
       active: priority >= 3,
       active_below: 0,
+      producer: None,
       children: Vec::new(),
       inline: Vec::new(),
       consumers: 0,
@@ -335,13 +338,48 @@ impl Renderer<'_> {
       group.children.push(id);
     }
 
+    // A producer stands for the package it wrote.
+    let mut folded = HashSet::new();
+    for (&id, info) in self.snapshot.derivations {
+      let Some(written) = info.writes else {
+        continue;
+      };
+      let (producer, package) = (RowId::Build(id), RowId::Build(written));
+      if !plan
+        .rows
+        .get(&package)
+        .is_some_and(|row| row.children.contains(&producer))
+      {
+        continue;
+      }
+      let Some(row) = plan.rows.remove(&producer) else {
+        continue;
+      };
+
+      let parent = plan.row_mut(package);
+      parent.children.retain(|child| *child != producer);
+      for child in row.children {
+        if !parent.children.contains(&child) {
+          parent.children.push(child);
+        }
+      }
+      parent.inline.extend(row.inline);
+      parent.priority = parent.priority.max(row.priority);
+      parent.active |= row.active;
+      parent.producer = Some(id);
+      folded.insert(id);
+    }
+
     plan.roots = (0..slots)
       .filter(|&id| plan.rows.contains_key(&RowId::Build(id)))
       .filter(|&id| {
         !self
           .row_parents(id, &unit_parents)
           .into_iter()
-          .any(|parent| plan.rows.contains_key(&RowId::Build(parent)))
+          .any(|parent| {
+            folded.contains(&parent)
+              || plan.rows.contains_key(&RowId::Build(parent))
+          })
       })
       .map(RowId::Build)
       .collect();
@@ -783,7 +821,18 @@ impl Renderer<'_> {
     let unit_start = units
       .filter(|counts| counts.running > 0)
       .and_then(|counts| counts.start);
-    let (icon, color, mut suffix) = match &info.build_status {
+    let status = row
+      .producer
+      .and_then(|producer| self.snapshot.derivation(producer))
+      .map(|producer| &producer.build_status)
+      .filter(|status| {
+        matches!(
+          status,
+          BuildStatus::Building(_) | BuildStatus::Failed { .. }
+        )
+      })
+      .unwrap_or(&info.build_status);
+    let (icon, color, mut suffix) = match status {
       BuildStatus::Unknown | BuildStatus::Planned if unit_start.is_some() => {
         let mut suffix = Vec::new();
         if self.config.show_timers
@@ -803,6 +852,7 @@ impl Renderer<'_> {
       },
       BuildStatus::Unknown
         if units.is_some()
+          || row.active_below > 0
           || matches!(info.membership, Membership::Unit(_)) =>
       {
         (self.icons.planned, self.config.theme.planned, Vec::new())
@@ -905,6 +955,10 @@ impl Renderer<'_> {
     if let Some(progress) = self.unit_progress(id) {
       suffix.insert(0, progress);
     }
+    let stripped = info.name.name.strip_suffix(".drv");
+    if stripped.is_some() && matches!(info.membership, Membership::Unit(_)) {
+      suffix.insert(0, span("  (scan)", self.config.theme.muted));
+    }
     spans.push(span(format!("{icon}{}", self.icons.gap), color));
     let transfer = (!row.inline.is_empty()).then(|| {
       aggregate_transfers(
@@ -921,21 +975,17 @@ impl Renderer<'_> {
     );
     let name_width =
       usize::from(self.width).saturating_sub(spans_width(&spans) + reserve);
+    let stem = stripped.unwrap_or(&info.name.name);
     let name = match info.membership {
       Membership::Unit(package) => {
-        self.snapshot.derivation(package).map_or(
-          info.name.name.as_str(),
-          |package| {
-            info
-              .name
-              .name
-              .strip_prefix(package.name.name.as_str())
-              .and_then(|name| name.strip_prefix('-'))
-              .unwrap_or(&info.name.name)
-          },
-        )
+        self.snapshot.derivation(package).map_or(stem, |package| {
+          stem
+            .strip_prefix(package.name.name.as_str())
+            .and_then(|name| name.strip_prefix('-'))
+            .unwrap_or(stem)
+        })
       },
-      Membership::Outside | Membership::Package => &info.name.name,
+      Membership::Outside | Membership::Package => stem,
     };
     spans.push(span(truncate_text(name, name_width), color));
     if let Some(aggregate) = transfer {
