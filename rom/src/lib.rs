@@ -19,6 +19,7 @@ pub use monitor::{
   DerivationResolver,
   Engine,
   FilesystemResolver,
+  LookupPriority,
   Monitor,
   Output,
   Processed,
