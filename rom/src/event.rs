@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use cognos::{Actions, Activities, Host, Id, ResultType, Verbosity};
 use serde_json::Value;
 
-use crate::state::{Derivation, StorePath};
+use crate::state::{Blocker, Derivation, StorePath};
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -32,6 +32,12 @@ pub enum ActivitySubject {
   Build {
     derivation: Option<Derivation>,
     host:       Host,
+  },
+  /// A build Nix will start once a lock or machine frees up.
+  Blocked {
+    derivations: Vec<Derivation>,
+    outputs:     Vec<StorePath>,
+    blocker:     Blocker,
   },
   Substitute {
     path: Option<StorePath>,
@@ -154,7 +160,7 @@ fn decode_subject(
   match activity {
     Activities::BuildWaiting => {
       let [Value::String(original), Value::String(resolved)] = fields else {
-        return ActivitySubject::None;
+        return decode_blocked(text);
       };
       match Derivation::parse(original).zip(Derivation::parse(resolved)) {
         Some((original, resolved)) => {
@@ -280,6 +286,32 @@ fn announcement(level: Verbosity, message: &str) -> Option<Announcement> {
   Derivation::parse(path)
     .map(Announcement::Derivation)
     .or_else(|| StorePath::parse(path).map(Announcement::StorePath))
+}
+
+fn decode_blocked(text: &str) -> ActivitySubject {
+  let blocker = if text.starts_with("waiting for lock on ") {
+    Blocker::Lock
+  } else if text.starts_with("waiting for a machine to build ") {
+    Blocker::Machine
+  } else {
+    return ActivitySubject::None;
+  };
+  let (mut derivations, mut outputs) = (Vec::new(), Vec::new());
+
+  // Locks on floating outputs name the derivation plus an output suffix.
+  for quoted in text.split('\'').skip(1).step_by(2) {
+    if let Some(end) = quoted.find(".drv") {
+      derivations.extend(Derivation::parse(&quoted[..end + 4]));
+    } else {
+      outputs.extend(StorePath::parse(quoted));
+    }
+  }
+
+  ActivitySubject::Blocked {
+    derivations,
+    outputs,
+    blocker,
+  }
 }
 
 fn extract_derivation(text: &str) -> Option<Derivation> {

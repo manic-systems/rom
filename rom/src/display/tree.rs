@@ -24,7 +24,7 @@ use super::{
   spans_width,
   truncate_text,
 };
-use crate::state::{BuildStatus, DerivationId, Membership, elapsed};
+use crate::state::{Blocker, BuildStatus, DerivationId, Membership, elapsed};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum RowId {
@@ -811,7 +811,18 @@ impl Renderer<'_> {
         (self.icons.planned, self.config.theme.muted, Vec::new())
       },
       BuildStatus::Planned => {
-        (self.icons.planned, self.config.theme.planned, Vec::new())
+        let suffix = info.blocked.map(|blocker| {
+          let label = match blocker {
+            Blocker::Lock => "  (locked by another build)",
+            Blocker::Machine => "  (waiting for a machine)",
+          };
+          span(label, self.config.theme.planned)
+        });
+        (
+          self.icons.planned,
+          self.config.theme.planned,
+          suffix.into_iter().collect(),
+        )
       },
       BuildStatus::Building(build) => {
         let mut suffix = Vec::new();

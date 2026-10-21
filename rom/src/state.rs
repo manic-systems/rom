@@ -225,6 +225,17 @@ pub struct DerivationInfo {
   pub writes:             Option<DerivationId>,
   /// Whether its outputs are content-addressed and unknown until built.
   pub floating:           bool,
+  /// What holds it back while Nix waits to start it.
+  pub blocked:            Option<Blocker>,
+}
+
+/// Why Nix is waiting to start a derivation it will build.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Blocker {
+  /// Another client holds the lock on its outputs.
+  Lock,
+  /// Every build machine slot is taken.
+  Machine,
 }
 
 impl DerivationInfo {
@@ -458,6 +469,7 @@ impl State {
       membership:         Membership::Outside,
       writes:             None,
       floating:           false,
+      blocked:            None,
     });
     self.derivation_ids.insert(drv, id);
 
@@ -934,6 +946,7 @@ impl State {
     parent: Option<DerivationId>,
   ) -> DerivationId {
     let id = self.get_or_create_derivation_id(derivation);
+    self.set_blocked(id, None);
     self.update_build_status(id, BuildStatus::Building(build));
     self.settle_inputs(id);
     if let Some(parent) = parent {
@@ -1163,6 +1176,28 @@ impl State {
       transfer.total_bytes = (expected > 0).then_some(expected);
     }
     true
+  }
+
+  /// Marks a derivation Nix is waiting to start, or clears the mark.
+  pub(crate) fn set_blocked(
+    &mut self,
+    id: DerivationId,
+    blocker: Option<Blocker>,
+  ) -> bool {
+    let Some(info) = self.derivation_infos.get_mut(&id) else {
+      return false;
+    };
+    if blocker.is_some() && matches!(info.build_status, BuildStatus::Unknown) {
+      info.build_status = BuildStatus::Planned;
+    }
+
+    std::mem::replace(&mut info.blocked, blocker) != blocker
+  }
+
+  /// Returns the derivation that produces `path`, if known.
+  pub(crate) fn producer(&self, path: &StorePath) -> Option<DerivationId> {
+    let id = self.store_path_ids.get(path)?;
+    self.store_path_infos.get(id)?.producer
   }
 
   pub(crate) fn update_build_status(
