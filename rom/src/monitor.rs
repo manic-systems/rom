@@ -4,7 +4,8 @@
 use std::os::unix::process::CommandExt;
 use std::{
   collections::{BTreeSet, HashMap, HashSet, VecDeque},
-  io::{self, BufRead, Write},
+  fs::{self, File, OpenOptions},
+  io::{self, BufRead, BufWriter, Write},
   iter,
   path::{Path, PathBuf},
   process::{self, Command, Stdio},
@@ -21,6 +22,7 @@ use std::{
 };
 
 use cognos::{DecodedAction, Id, UnsupportedRecord};
+use etcetera::{BaseStrategy, choose_base_strategy};
 use serde::Deserialize;
 
 use crate::{
@@ -58,6 +60,10 @@ pub trait DerivationResolver: Send + Sync {
     _priority: LookupPriority,
   ) {
   }
+
+  /// Records that `producer`, by its original path, wrote `drv`, so a later
+  /// run that finds it already realised need not look it up.
+  fn remember_produced(&self, _producer: &Path, _drv: &Path) {}
 
   /// Asks which of `producers` wrote `drv`, answering only a match. It must
   /// return without waiting.
@@ -135,7 +141,90 @@ enum TraceRequest {
 struct TraceWorker {
   requests: Sender<TraceRequest>,
   lookups:  Arc<(Mutex<LookupQueue>, Condvar)>,
+  known:    Mutex<KnownProducers>,
+  answered: Sender<Answer>,
   answers:  Mutex<Receiver<Answer>>,
+}
+
+/// Producers an earlier run linked, kept since looking one up by its original
+/// resolves its whole closure again.
+struct KnownProducers {
+  path:  Option<PathBuf>,
+  file:  Option<File>,
+  links: HashMap<PathBuf, PathBuf>,
+}
+
+impl KnownProducers {
+  fn load() -> Self {
+    let path = choose_base_strategy().ok().map(|strategy| {
+      strategy
+        .state_dir()
+        .unwrap_or_else(|| strategy.data_dir())
+        .join("rom")
+        .join("producers-v1")
+    });
+    let text = path
+      .as_ref()
+      .and_then(|path| fs::read_to_string(path).ok())
+      .unwrap_or_default();
+    let links = text
+      .lines()
+      .filter_map(|line| line.split_once(' '))
+      .map(|(producer, drv)| (PathBuf::from(producer), PathBuf::from(drv)))
+      .filter(|(_, drv)| drv.exists())
+      .collect::<HashMap<PathBuf, PathBuf>>();
+
+    let known = Self {
+      path,
+      file: None,
+      links,
+    };
+    if known.links.len() < text.lines().count()
+      && let Err(error) = known.rewrite()
+    {
+      tracing::debug!("cannot prune known producers: {error}");
+    }
+    known
+  }
+
+  /// Rewrites the file with only the links whose derivation still exists.
+  fn rewrite(&self) -> io::Result<()> {
+    let Some(path) = &self.path else {
+      return Ok(());
+    };
+
+    let mut file = BufWriter::new(File::create(path)?);
+    self.links.iter().try_for_each(|(producer, drv)| {
+      writeln!(file, "{} {}", producer.display(), drv.display())
+    })?;
+    file.flush()
+  }
+
+  fn remember(&mut self, producer: &Path, drv: &Path) {
+    if self.links.contains_key(producer) {
+      return;
+    }
+    self.links.insert(producer.to_path_buf(), drv.to_path_buf());
+
+    if self.file.is_none()
+      && let Some(path) = &self.path
+    {
+      self.file = path
+        .parent()
+        .map_or(Ok(()), fs::create_dir_all)
+        .and_then(|()| OpenOptions::new().create(true).append(true).open(path))
+        .inspect_err(|error| {
+          tracing::debug!("cannot remember producers: {error}");
+        })
+        .ok();
+    }
+    if let Some(file) = &mut self.file
+      && let Err(error) =
+        writeln!(file, "{} {}", producer.display(), drv.display())
+    {
+      tracing::debug!("cannot remember a producer: {error}");
+    }
+  }
 }
 
 #[derive(Default)]
@@ -161,6 +250,7 @@ impl TraceWorker {
     let (answered, answers) = mpsc::channel();
     let lookups =
       Arc::new((Mutex::new(LookupQueue::default()), Condvar::new()));
+    let known = Mutex::new(KnownProducers::load());
     for _ in 0..PARALLEL_LOOKUPS {
       let queued = Arc::clone(&lookups);
       let answered = answered.clone();
@@ -185,6 +275,7 @@ impl TraceWorker {
         tracing::warn!("cannot read the build trace: {error}");
       }
     }
+    let traced = answered.clone();
     let spawned = thread::Builder::new()
       .name("rom-build-trace".to_owned())
       .spawn(move || {
@@ -209,7 +300,7 @@ impl TraceWorker {
           }
           check_realised(drvs, &mut batch);
           for answer in batch {
-            if answered.send(answer).is_err() {
+            if traced.send(answer).is_err() {
               return;
             }
           }
@@ -221,6 +312,8 @@ impl TraceWorker {
     Self {
       requests,
       lookups,
+      known,
+      answered,
       answers: Mutex::new(answers),
     }
   }
@@ -247,20 +340,39 @@ impl DerivationResolver for FilesystemResolver {
 
   fn request_produced(
     &self,
-    producers: Vec<PathBuf>,
+    mut producers: Vec<PathBuf>,
     priority: LookupPriority,
   ) {
     let worker = self.worker.get_or_init(TraceWorker::spawn);
+    if let Ok(known) = worker.known.lock() {
+      producers.retain(|producer| {
+        let Some(drv) = known.links.get(producer).cloned() else {
+          return true;
+        };
+        let answer = Answer::Produced(ProducedDrv {
+          producer: producer.clone(),
+          drv:      Some(drv),
+        });
+        worker.answered.send(answer).is_err()
+      });
+    }
+
     let (queue, ready) = &*worker.lookups;
     let Ok(mut queue) = queue.lock() else {
       return;
     };
-
     match priority {
       LookupPriority::Attach => queue.attach.extend(producers),
       LookupPriority::Built => queue.built.extend(producers),
     }
     ready.notify_all();
+  }
+
+  fn remember_produced(&self, producer: &Path, drv: &Path) {
+    let worker = self.worker.get_or_init(TraceWorker::spawn);
+    if let Ok(mut known) = worker.known.lock() {
+      known.remember(producer, drv);
+    }
   }
 
   fn request_writer(&self, drv: PathBuf, producers: Vec<PathBuf>) {
@@ -1221,6 +1333,9 @@ impl DerivationTree<'_> {
     };
     let derivation = drv.to_str().and_then(Derivation::parse)?;
     let producer = self.producers.remove(&id)?;
+    if let Some(info) = self.state.get_derivation_info(id) {
+      self.resolver.remember_produced(&info.name.path, &drv);
+    }
     self.state.mark_available(id);
     let produced_id = self.state.get_or_create_derivation_id(derivation);
     for &consumer in &producer.consumers {
