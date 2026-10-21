@@ -197,6 +197,20 @@ fn apply_start(
       store_path = Some(id);
       effects.changed = true;
     },
+    ActivitySubject::Blocked {
+      derivations,
+      outputs,
+      blocker,
+    } => {
+      let id = derivations
+        .iter()
+        .find_map(|drv| state.derivation_id(&drv.path))
+        .or_else(|| outputs.iter().find_map(|path| state.producer(path)));
+      if let Some(id) = id {
+        effects.changed |= state.set_blocked(id, Some(blocker));
+        derivation = Some(id);
+      }
+    },
     ActivitySubject::Build {
       derivation: None, ..
     }
@@ -244,6 +258,11 @@ fn apply_stop(state: &mut State, id: Id, now: f64) -> bool {
         .is_some_and(|path| state.complete_transfer(path, now))
     },
     Activities::FetchToStore => state.finish_source_fetch(id),
+    Activities::BuildWaiting => {
+      activity
+        .derivation
+        .is_some_and(|derivation| state.set_blocked(derivation, None))
+    },
     _ => false,
   }
 }
