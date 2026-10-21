@@ -816,7 +816,7 @@ impl Renderer<'_> {
             Blocker::Lock => "  (locked by another build)",
             Blocker::Machine => "  (waiting for a machine)",
           };
-          span(label, self.config.theme.planned)
+          span(label, self.config.theme.muted)
         });
         (
           self.icons.planned,
