@@ -1,6 +1,7 @@
 //! Dependency tree planning and rendering.
 
 use std::{
+  cell::RefCell,
   cmp::Reverse,
   collections::{BinaryHeap, HashMap, HashSet, VecDeque},
 };
@@ -18,7 +19,7 @@ use super::{
   format_bytes,
   format_duration,
   format_secs,
-  model::{TransferPlacement, UnitCounts},
+  model::{RenderSnapshot, TransferPlacement, UnitCounts},
   progress_bar,
   span,
   spans_width,
@@ -97,6 +98,94 @@ struct TreeSelection<'a> {
   maximum: usize,
 }
 
+/// Places each unit under its consumer furthest from the package, lazily.
+struct UnitParents<'r, 'a> {
+  snapshot: &'r RenderSnapshot<'a>,
+  staged:   HashSet<(DerivationId, DerivationId)>,
+  depths:   RefCell<HashMap<DerivationId, usize>>,
+  parents:  RefCell<HashMap<DerivationId, Option<DerivationId>>>,
+}
+
+impl UnitParents<'_, '_> {
+  fn get(&self, id: DerivationId) -> Option<DerivationId> {
+    if let Some(&parent) = self.parents.borrow().get(&id) {
+      return parent;
+    }
+    let package = match self.snapshot.derivation(id)?.membership {
+      Membership::Unit(package) => package,
+      Membership::Outside | Membership::Package => return None,
+    };
+
+    let parent = self
+      .consumers(id, package)
+      .into_iter()
+      .map(|consumer| (consumer, self.depth(consumer, package)))
+      .fold(None, |best, (consumer, depth)| {
+        match best {
+          Some((_, best_depth)) if best_depth >= depth => best,
+          _ => Some((consumer, depth)),
+        }
+      })
+      .map(|(consumer, _)| consumer);
+    self.parents.borrow_mut().insert(id, parent);
+    parent
+  }
+
+  fn consumers(
+    &self,
+    id: DerivationId,
+    package: DerivationId,
+  ) -> Vec<DerivationId> {
+    self.snapshot.derivation(id).map_or_else(Vec::new, |info| {
+      info
+        .derivation_parents
+        .iter()
+        .copied()
+        .filter(|&parent| {
+          !self.staged.contains(&(package, parent))
+            && self.snapshot.derivation(parent).is_some_and(|parent| {
+              parent.membership == Membership::Unit(package)
+            })
+        })
+        .collect()
+    })
+  }
+
+  fn depth(&self, root: DerivationId, package: DerivationId) -> usize {
+    let mut visiting = HashSet::new();
+    let mut stack = vec![(root, false)];
+    while let Some((current, expanded)) = stack.pop() {
+      if self.depths.borrow().contains_key(&current)
+        || (!expanded && !visiting.insert(current))
+      {
+        continue;
+      }
+      let consumers = self.consumers(current, package);
+      if expanded {
+        let depths = self.depths.borrow();
+        let depth = consumers
+          .iter()
+          .map(|consumer| depths.get(consumer).copied().unwrap_or(0))
+          .max()
+          .map_or(1, |deepest| deepest + 1);
+        drop(depths);
+        self.depths.borrow_mut().insert(current, depth);
+        continue;
+      }
+
+      stack.push((current, true));
+      let depths = self.depths.borrow();
+      stack.extend(
+        consumers
+          .into_iter()
+          .filter(|consumer| !depths.contains_key(consumer))
+          .map(|consumer| (consumer, false)),
+      );
+    }
+    self.depths.borrow().get(&root).copied().unwrap_or(0)
+  }
+}
+
 #[expect(
   clippy::multiple_inherent_impl,
   reason = "rendering is split across modules by section"
@@ -162,7 +251,6 @@ impl Renderer<'_> {
       .map(|&priority| priority >= 3)
       .collect::<Vec<bool>>();
 
-    // Reverse reachability computes the connected ancestor set in O(V + E).
     let unit_parents = self.unit_parents();
     while let Some(id) = pending.pop_front() {
       let priority = relevance[id];
@@ -265,7 +353,7 @@ impl Renderer<'_> {
       };
       let hosts: Vec<_> = match info.membership {
         Membership::Unit(package) => {
-          vec![unit_parents.get(&id).copied().unwrap_or(package)]
+          vec![unit_parents.get(id).unwrap_or(package)]
         },
         Membership::Outside | Membership::Package => {
           info
@@ -405,13 +493,13 @@ impl Renderer<'_> {
   fn row_parents(
     &self,
     id: DerivationId,
-    unit_parents: &HashMap<DerivationId, DerivationId>,
+    unit_parents: &UnitParents<'_, '_>,
   ) -> Vec<DerivationId> {
     let Some(info) = self.snapshot.derivation(id) else {
       return Vec::new();
     };
     if let Membership::Unit(package) = info.membership {
-      return vec![unit_parents.get(&id).copied().unwrap_or(package)];
+      return vec![unit_parents.get(id).unwrap_or(package)];
     }
     let mut parents = Vec::new();
     for &parent in &info.derivation_parents {
@@ -427,82 +515,33 @@ impl Renderer<'_> {
     parents
   }
 
-  /// Places each unit under the unit waiting on it that is furthest from the
-  /// package, so a compile lands under its link and a link under whatever
-  /// links it in turn.
-  ///
-  /// The stages the package itself waits on, such as the collection of every
-  /// unit, never hold other units, since the package row stands for them.
-  fn unit_parents(&self) -> HashMap<DerivationId, DerivationId> {
-    let stage = |unit: DerivationId, package: DerivationId| {
-      self
-        .snapshot
-        .derivation(package)
-        .is_some_and(|info| info.input_derivations.contains(&unit))
-    };
-    let consumers = |id: DerivationId, package: DerivationId| {
-      self
-        .snapshot
-        .derivation(id)
-        .into_iter()
-        .flat_map(move |info| {
-          info
-            .derivation_parents
-            .iter()
-            .copied()
-            .filter(move |&parent| {
-              !stage(parent, package)
-                && self.snapshot.derivation(parent).is_some_and(|parent| {
-                  parent.membership == Membership::Unit(package)
-                })
-            })
-        })
-    };
-
-    let mut depths = HashMap::new();
-    for (&id, info) in self.snapshot.derivations {
-      let Membership::Unit(package) = info.membership else {
-        continue;
-      };
-      let mut stack = vec![(id, false)];
-      while let Some((current, expanded)) = stack.pop() {
-        if depths.contains_key(&current) {
-          continue;
+  fn unit_parents(&self) -> UnitParents<'_, '_> {
+    let staged = self
+      .snapshot
+      .derivations
+      .values()
+      .filter_map(|info| {
+        match info.membership {
+          Membership::Unit(package) => Some(package),
+          Membership::Outside | Membership::Package => None,
         }
-        if expanded {
-          let depth = consumers(current, package)
-            .map(|consumer| depths.get(&consumer).copied().unwrap_or(0))
-            .max()
-            .map_or(1, |deepest| deepest + 1);
-          depths.insert(current, depth);
-          continue;
-        }
-        stack.push((current, true));
-        stack.extend(
-          consumers(current, package)
-            .filter(|consumer| !depths.contains_key(consumer))
-            .map(|consumer| (consumer, false)),
-        );
-      }
+      })
+      .collect::<HashSet<DerivationId>>()
+      .into_iter()
+      .filter_map(|package| Some((package, self.snapshot.derivation(package)?)))
+      .flat_map(|(package, info)| {
+        info
+          .input_derivations
+          .iter()
+          .map(move |&unit| (package, unit))
+      })
+      .collect::<HashSet<(DerivationId, DerivationId)>>();
+    UnitParents {
+      snapshot: &self.snapshot,
+      staged,
+      depths: RefCell::new(HashMap::new()),
+      parents: RefCell::new(HashMap::new()),
     }
-
-    let mut unit_parents = HashMap::new();
-    for (&id, info) in self.snapshot.derivations {
-      let Membership::Unit(package) = info.membership else {
-        continue;
-      };
-      let deepest = consumers(id, package).fold(None, |best, consumer| {
-        let depth = depths.get(&consumer).copied().unwrap_or(0);
-        match best {
-          Some((_, best_depth)) if best_depth >= depth => best,
-          _ => Some((consumer, depth)),
-        }
-      });
-      if let Some((consumer, _)) = deepest {
-        unit_parents.insert(id, consumer);
-      }
-    }
-    unit_parents
   }
 
   pub(super) fn render_tree(
