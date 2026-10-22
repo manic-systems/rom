@@ -2,6 +2,7 @@
 
 use std::{
   collections::{BTreeSet, HashMap, HashSet, VecDeque},
+  env,
   fs::{self, File, OpenOptions},
   io::{self, BufRead, BufWriter, Read, Write},
   iter,
@@ -483,6 +484,32 @@ const LOOKUP_TIMEOUT: Duration = Duration::from_secs(60);
 /// Lookups still running, killed when their worker is dropped.
 static LIVE_LOOKUPS: Mutex<Vec<u32>> = Mutex::new(Vec::new());
 
+/// Returns a `nix` command that the kernel kills along with rom's lookup
+/// thread, since Nix can spin on some lookups for good.
+fn nix_command() -> Command {
+  #[cfg(target_os = "linux")]
+  {
+    static SETPRIV: OnceLock<bool> = OnceLock::new();
+    let setpriv = *SETPRIV.get_or_init(|| {
+      let found = env::var_os("PATH").is_some_and(|paths| {
+        env::split_paths(&paths).any(|dir| dir.join("setpriv").is_file())
+      });
+      if !found {
+        tracing::warn!(
+          "setpriv not found, so nix lookups outlive a killed rom"
+        );
+      }
+      found
+    });
+    if setpriv {
+      let mut command = Command::new("setpriv");
+      command.args(["--pdeathsig", "KILL", "--", "nix"]);
+      return command;
+    }
+  }
+  Command::new("nix")
+}
+
 /// Kills a lookup, which must still be in the locked `LIVE_LOOKUPS`.
 fn kill_lookup(pid: u32) {
   if let Ok(target) = libc::pid_t::try_from(pid) {
@@ -616,13 +643,11 @@ fn look_up_batch(producers: Vec<PathBuf>, answers: &mut Vec<Answer>) {
   }
 
   let output = match run_lookup(
-    Command::new("nix")
-      .args(["path-info", "--max-jobs", "0"])
-      .args(
-        batch
-          .iter()
-          .map(|producer| format!("{}^out", producer.display())),
-      ),
+    nix_command().args(["path-info", "--max-jobs", "0"]).args(
+      batch
+        .iter()
+        .map(|producer| format!("{}^out", producer.display())),
+    ),
   ) {
     Ok(output) => output,
     Err(error) if error.kind() == io::ErrorKind::TimedOut => {
@@ -691,7 +716,7 @@ fn build_trace(
   producers: &[PathBuf],
 ) -> std::result::Result<Vec<TraceEntry>, TraceError> {
   let output = run_lookup(
-    Command::new("nix")
+    nix_command()
       .args(["store", "build-trace", "info", "--json", "--max-jobs", "0"])
       .args(
         producers
