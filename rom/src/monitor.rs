@@ -1025,11 +1025,13 @@ impl Engine {
         return true;
       }
       match state.get_derivation_info(id) {
+        // Nix spins on a realisation check of one with dynamic inputs.
         Some(info)
-          if matches!(
-            info.build_status,
-            BuildStatus::Unknown | BuildStatus::Planned
-          ) =>
+          if !info.dynamic
+            && matches!(
+              info.build_status,
+              BuildStatus::Unknown | BuildStatus::Planned
+            ) =>
         {
           drvs.push(info.name.path.clone());
         },

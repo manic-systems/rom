@@ -225,6 +225,8 @@ pub struct DerivationInfo {
   pub writes:             Option<DerivationId>,
   /// Whether its outputs are content-addressed and unknown until built.
   pub floating:           bool,
+  /// Whether it takes a derivation another one writes as an input.
+  pub dynamic:            bool,
   /// What holds it back while Nix waits to start it.
   pub blocked:            Option<Blocker>,
 }
@@ -469,6 +471,7 @@ impl State {
       membership:         Membership::Outside,
       writes:             None,
       floating:           false,
+      dynamic:            false,
       blocked:            None,
     });
     self.derivation_ids.insert(drv, id);
@@ -539,6 +542,7 @@ impl State {
     }
     original_info.writes = original_info.writes.or(resolved_info.writes);
     original_info.floating |= resolved_info.floating;
+    original_info.dynamic |= resolved_info.dynamic;
 
     for id in self.derivation_ids.values_mut() {
       if *id == resolved {
@@ -622,6 +626,7 @@ impl State {
       info.platform = Some(parsed.platform);
       info.floating = !parsed.outputs.is_empty()
         && parsed.outputs.iter().all(|(_, path)| path.is_empty());
+      info.dynamic = !parsed.dynamic_drvs.is_empty();
     }
 
     // Register the derivation's output store paths.
