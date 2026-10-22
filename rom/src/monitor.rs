@@ -1,14 +1,12 @@
 //! Shared synchronous ingestion engine and append-only stream adapter.
 
-#[cfg(target_os = "linux")]
-use std::os::unix::process::CommandExt;
 use std::{
   collections::{BTreeSet, HashMap, HashSet, VecDeque},
   fs::{self, File, OpenOptions},
-  io::{self, BufRead, BufWriter, Write},
+  io::{self, BufRead, BufWriter, Read, Write},
   iter,
   path::{Path, PathBuf},
-  process::{self, Command, Stdio},
+  process::{self, Child, Command, Stdio},
   sync::{
     Arc,
     Condvar,
@@ -241,6 +239,9 @@ impl Drop for TraceWorker {
       queue.closed = true;
     }
     ready.notify_all();
+    if let Ok(live) = LIVE_LOOKUPS.lock() {
+      live.iter().copied().for_each(kill_lookup);
+    }
   }
 }
 
@@ -475,49 +476,103 @@ fn next_batch(lookups: &(Mutex<LookupQueue>, Condvar)) -> Option<Vec<PathBuf>> {
 }
 
 const PARALLEL_LOOKUPS: usize = 2;
+const REALISED_DELAY: f64 = 2.0;
 const BATCH_LOOKUPS: usize = 64;
 const LOOKUP_TIMEOUT: Duration = Duration::from_secs(60);
 
-#[cfg(target_os = "linux")]
-fn die_with_parent() -> io::Result<()> {
-  // SAFETY: prctl only changes the calling process's own death signal.
-  if unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) } == -1 {
-    return Err(io::Error::last_os_error());
+/// Lookups still running, killed when their worker is dropped.
+static LIVE_LOOKUPS: Mutex<Vec<u32>> = Mutex::new(Vec::new());
+
+/// Kills a lookup, which must still be in the locked `LIVE_LOOKUPS`.
+fn kill_lookup(pid: u32) {
+  if let Ok(target) = libc::pid_t::try_from(pid) {
+    // SAFETY: kill only sends a signal, and a listed lookup is not reaped, so
+    // its PID cannot have been reused.
+    unsafe {
+      libc::kill(target, libc::SIGKILL);
+    }
   }
-  Ok(())
 }
 
-/// Runs a Nix lookup that dies with rom and is killed past the timeout.
+/// Runs a Nix lookup, killed past the timeout. No pre-exec hook, which would
+/// make std fork rather than `posix_spawn`.
 fn run_lookup(command: &mut Command) -> io::Result<process::Output> {
   command
     .stdin(Stdio::null())
     .stdout(Stdio::piped())
     .stderr(Stdio::piped());
 
-  // SAFETY: the hook calls only prctl, which is safe between fork and exec.
-  #[cfg(target_os = "linux")]
-  unsafe {
-    command.pre_exec(die_with_parent)
-  };
-
   let child = command.spawn()?;
   let pid = child.id();
+  if let Ok(mut live) = LIVE_LOOKUPS.lock() {
+    live.push(pid);
+  }
   let (sender, receiver) = mpsc::channel();
-  thread::spawn(move || sender.send(child.wait_with_output()));
+  thread::spawn(move || sender.send(collect_lookup(child)));
 
   if let Ok(output) = receiver.recv_timeout(LOOKUP_TIMEOUT) {
     return output;
   }
 
-  if let Ok(pid) = libc::pid_t::try_from(pid) {
-    // SAFETY: the child is not reaped until the waiting thread sees it die.
-    unsafe {
-      libc::kill(pid, libc::SIGKILL);
-    }
+  if let Ok(live) = LIVE_LOOKUPS.lock()
+    && live.contains(&pid)
+  {
+    kill_lookup(pid);
   }
-
   drop(receiver.recv());
   Err(io::Error::from(io::ErrorKind::TimedOut))
+}
+
+/// Reads a lookup's output and reaps it only after it leaves `LIVE_LOOKUPS`.
+fn collect_lookup(mut child: Child) -> io::Result<process::Output> {
+  let mut errors = child.stderr.take();
+  let stderr = thread::spawn(move || {
+    let mut bytes = Vec::new();
+    if let Some(pipe) = &mut errors {
+      pipe.read_to_end(&mut bytes)?;
+    }
+    Ok::<Vec<u8>, io::Error>(bytes)
+  });
+  let mut stdout = Vec::new();
+  if let Some(pipe) = &mut child.stdout {
+    pipe.read_to_end(&mut stdout)?;
+  }
+  let stderr = stderr
+    .join()
+    .map_err(|_| io::Error::other("lookup stderr reader panicked"))??;
+
+  let pid = child.id();
+  loop {
+    // SAFETY: `siginfo_t` is plain data that `waitid` fills in.
+    let mut info: libc::siginfo_t = unsafe { std::mem::zeroed() };
+    // SAFETY: `WNOWAIT` leaves the child unreaped, and `waitid` writes only
+    // to `info`.
+    let waited = unsafe {
+      libc::waitid(
+        libc::P_PID,
+        pid,
+        &raw mut info,
+        libc::WEXITED | libc::WNOWAIT,
+      )
+    };
+    if waited == 0 {
+      break;
+    }
+    let error = io::Error::last_os_error();
+    if error.kind() != io::ErrorKind::Interrupted {
+      return Err(error);
+    }
+  }
+  if let Ok(mut live) = LIVE_LOOKUPS.lock() {
+    live.retain(|&running| running != pid);
+  }
+
+  let status = child.wait()?;
+  Ok(process::Output {
+    status,
+    stdout,
+    stderr,
+  })
 }
 
 /// Answers a batch of producers in one `nix path-info`, halving any batch Nix
@@ -745,6 +800,8 @@ pub struct Engine {
   unchecked:            BTreeSet<DerivationId>,
   /// Derivations asked about.
   checking:             HashSet<DerivationId>,
+  /// Realisation checks waiting out [`REALISED_DELAY`].
+  realising:            Vec<(DerivationId, f64)>,
   resolver:             Option<Box<dyn DerivationResolver>>,
 }
 
@@ -763,6 +820,7 @@ impl Engine {
       next_retry: None,
       unchecked: BTreeSet::new(),
       checking: HashSet::new(),
+      realising: Vec::new(),
       resolver: None,
     }
   }
@@ -831,7 +889,7 @@ impl Engine {
         },
       };
     }
-    self.ask_realised(packages);
+    self.ask_realised(packages, now);
     self.retry_produced(now);
 
     let state = &self.state;
@@ -858,7 +916,8 @@ impl Engine {
       }
       !ready
     });
-    self.ask_realised(due);
+    self.ask_realised(due, now);
+    self.flush_realised(now);
     changed
   }
 
@@ -917,17 +976,44 @@ impl Engine {
     }
   }
 
-  fn ask_realised(&mut self, ids: Vec<DerivationId>) {
+  /// Queues a realisation check, asked only if the derivation has not
+  /// started by then.
+  #[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
+  fn ask_realised(&mut self, ids: Vec<DerivationId>, now: f64) {
+    let checking = &mut self.checking;
+    self.realising.extend(
+      ids
+        .into_iter()
+        .filter(|&id| checking.insert(id))
+        .map(|id| (id, now + REALISED_DELAY)),
+    );
+  }
+
+  fn flush_realised(&mut self, now: f64) {
     let Some(resolver) = self.resolver.as_ref() else {
       return;
     };
-    let drvs: Vec<_> = ids
-      .into_iter()
-      .filter(|&id| self.checking.insert(id))
-      .filter_map(|id| {
-        Some(self.state.get_derivation_info(id)?.name.path.clone())
-      })
-      .collect();
+    let (state, checking) = (&self.state, &mut self.checking);
+    let mut drvs = Vec::new();
+    self.realising.retain(|&(id, at)| {
+      if at > now {
+        return true;
+      }
+      match state.get_derivation_info(id) {
+        Some(info)
+          if matches!(
+            info.build_status,
+            BuildStatus::Unknown | BuildStatus::Planned
+          ) =>
+        {
+          drvs.push(info.name.path.clone());
+        },
+        Some(_) | None => {
+          checking.remove(&id);
+        },
+      }
+      false
+    });
     if !drvs.is_empty() {
       resolver.request_realised(drvs);
     }
@@ -1064,7 +1150,7 @@ impl Engine {
         .is_some_and(|info| matches!(info.build_status, BuildStatus::Planned))
     {
       self.unchecked.remove(&id);
-      self.ask_realised(vec![id]);
+      self.ask_realised(vec![id], now);
     }
     if let Some(id) = effects.stopped {
       self.log_counts.remove(&id);
