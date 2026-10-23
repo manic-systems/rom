@@ -769,6 +769,10 @@ fn available_derivations(
     .collect();
   let mut pending: Vec<_> = candidates.chunks(128).collect();
   let mut available = Vec::new();
+
+  // Older Nix clients can spin for good resolving dynamic derivations.
+  let deadline = Instant::now() + Duration::from_secs(10);
+
   while let Some(batch) = pending.pop() {
     if interrupted.load(Ordering::SeqCst) {
       break;
@@ -778,7 +782,7 @@ fn available_derivations(
     // would read as a missing output and split the batch further.
     #[cfg(unix)]
     query.process_group(0);
-    let output = query
+    let mut child = query
       .args([
         "path-info",
         "--offline",
@@ -792,7 +796,21 @@ fn available_derivations(
           .map(|(_, path)| format!("{}^*", path.display())),
       )
       .stdin(Stdio::null())
-      .output()?;
+      .stdout(Stdio::null())
+      .stderr(Stdio::piped())
+      .spawn()?;
+
+    while child.try_wait()?.is_none() && Instant::now() < deadline {
+      thread::sleep(Duration::from_millis(20));
+    }
+    if child.try_wait()?.is_none() {
+      child.kill()?;
+      child.wait()?;
+      tracing::debug!("gave up confirming outputs past the deadline");
+      break;
+    }
+
+    let output = child.wait_with_output()?;
     if output.status.success() {
       available.extend(batch.iter().map(|(id, _)| *id));
     } else if batch.len() > 1 {
