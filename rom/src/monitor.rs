@@ -2,7 +2,6 @@
 
 use std::{
   collections::{BTreeSet, HashMap, HashSet, VecDeque},
-  env,
   fs::{self, File, OpenOptions},
   io::{self, BufRead, BufWriter, Read, Write},
   iter,
@@ -491,6 +490,8 @@ static LIVE_LOOKUPS: Mutex<Vec<u32>> = Mutex::new(Vec::new());
 fn nix_command() -> Command {
   #[cfg(target_os = "linux")]
   {
+    use std::env;
+
     static SETPRIV: OnceLock<bool> = OnceLock::new();
     let setpriv = *SETPRIV.get_or_init(|| {
       let found = env::var_os("PATH").is_some_and(|paths| {
