@@ -9,6 +9,7 @@ pub type Result<T> = std::result::Result<T, RomError>;
 
 /// Main error type for ROM.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum RomError {
   /// I/O error.
   #[error("I/O failed")]

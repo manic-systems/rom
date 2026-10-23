@@ -82,6 +82,7 @@ pub trait DerivationResolver: Send + Sync {
 
 /// How soon a producer lookup is needed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum LookupPriority {
   /// Its answer attaches a subtree that is cached or already building.
   Attach,
@@ -91,6 +92,7 @@ pub enum LookupPriority {
 
 /// The answer to a lookup the engine asked a [`DerivationResolver`] for.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Answer {
   /// The answer to a [`DerivationResolver::request_produced`] lookup.
   Produced(ProducedDrv),
