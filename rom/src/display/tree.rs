@@ -209,6 +209,7 @@ impl Renderer<'_> {
       let priority = match info.build_status {
         BuildStatus::Failed { .. } => 4,
         BuildStatus::Building(_) => 3,
+        BuildStatus::Planned if self.snapshot.unconfirmed.contains(&id) => 0,
         BuildStatus::Planned => 2,
         BuildStatus::Available => 1,
         BuildStatus::Unknown
@@ -216,6 +217,8 @@ impl Renderer<'_> {
         | BuildStatus::DependencyFailed => 0,
       };
       let units = self.snapshot.packages.get(&id);
+      let moved = units
+        .is_some_and(|counts| counts.done + counts.running + counts.failed > 0);
       relevance[id] = match info.membership {
         Membership::Unit(_) if priority < 3 => 0,
         Membership::Package
@@ -225,6 +228,9 @@ impl Renderer<'_> {
         },
         Membership::Package
           if !self.snapshot.finished
+            && (moved
+              || matches!(info.build_status, BuildStatus::Planned)
+                && !self.snapshot.unconfirmed.contains(&id))
             && units.is_some_and(UnitCounts::unfinished) =>
         {
           priority.max(2)
@@ -265,12 +271,13 @@ impl Renderer<'_> {
               BuildStatus::Unknown => {
                 !matches!(derivation.membership, Membership::Unit(_))
               },
+              BuildStatus::Planned => {
+                self.snapshot.unconfirmed.contains(&parent)
+              },
               BuildStatus::Available
               | BuildStatus::Built { .. }
               | BuildStatus::DependencyFailed => true,
-              BuildStatus::Planned
-              | BuildStatus::Building(_)
-              | BuildStatus::Failed { .. } => false,
+              BuildStatus::Building(_) | BuildStatus::Failed { .. } => false,
             }
           });
         if priority < 3 && settled {

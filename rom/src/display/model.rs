@@ -141,6 +141,68 @@ pub(super) struct RenderSnapshot<'a> {
   pub source_fetches:   Vec<&'a SourceFetch>,
   pub packages:         HashMap<DerivationId, UnitCounts<'a>>,
   pub finished:         bool,
+  /// Planned CA derivations only the dry run says will build.
+  pub unconfirmed:      HashSet<DerivationId>,
+}
+
+/// A floating derivation surely builds once it is unbuilt or an input builds.
+fn unconfirmed(
+  derivations: &IndexMap<DerivationId, DerivationInfo>,
+) -> HashSet<DerivationId> {
+  let mut builds = HashMap::<DerivationId, bool>::new();
+  let mut unconfirmed = HashSet::new();
+  for (&root, info) in derivations {
+    if !matches!(info.build_status, BuildStatus::Planned) {
+      continue;
+    }
+
+    let mut stack = vec![(root, false)];
+    while let Some((id, expanded)) = stack.pop() {
+      if builds.contains_key(&id) {
+        continue;
+      }
+      let Some(info) = derivations.get(&id) else {
+        builds.insert(id, false);
+        continue;
+      };
+      let settled = match info.build_status {
+        BuildStatus::Building(_)
+        | BuildStatus::Built { .. }
+        | BuildStatus::Failed { .. } => Some(true),
+        BuildStatus::Planned if !info.floating || info.unbuilt => Some(true),
+        BuildStatus::Planned => None,
+        BuildStatus::Unknown
+        | BuildStatus::Available
+        | BuildStatus::DependencyFailed => Some(false),
+      };
+      if let Some(settled) = settled {
+        builds.insert(id, settled);
+        continue;
+      }
+
+      if expanded {
+        let builds_for_sure = info
+          .input_derivations
+          .iter()
+          .any(|input| builds.get(input).copied().unwrap_or(false));
+        builds.insert(id, builds_for_sure);
+        continue;
+      }
+      stack.push((id, true));
+      stack.extend(
+        info
+          .input_derivations
+          .iter()
+          .filter(|input| !builds.contains_key(input))
+          .map(|&input| (input, false)),
+      );
+    }
+
+    if builds.get(&root) == Some(&false) {
+      unconfirmed.insert(root);
+    }
+  }
+  unconfirmed
 }
 
 impl<'a> RenderSnapshot<'a> {
@@ -150,6 +212,7 @@ impl<'a> RenderSnapshot<'a> {
     let mut available = 0;
     let mut dependency_failed = 0;
     let mut packages = HashMap::<DerivationId, UnitCounts>::new();
+    let unconfirmed = unconfirmed(state.derivations());
     for (&id, info) in state.derivations() {
       // A producer counts through the unit it wrote, once that is known.
       if let Membership::Unit(package) = info.membership
@@ -196,6 +259,7 @@ impl<'a> RenderSnapshot<'a> {
       }
       match &info.build_status {
         BuildStatus::Unknown => {},
+        BuildStatus::Planned if unconfirmed.contains(&id) => {},
         BuildStatus::Planned => builds.planned.push(id),
         BuildStatus::Available => available += 1,
         BuildStatus::Building(build) => builds.running.push((id, build)),
@@ -249,6 +313,7 @@ impl<'a> RenderSnapshot<'a> {
         .collect(),
       packages,
       finished: state.progress_state() == ProgressState::Finished,
+      unconfirmed,
     };
     snapshot.collect_transfers(state.store_paths(), now);
     snapshot

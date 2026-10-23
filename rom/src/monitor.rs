@@ -917,7 +917,11 @@ impl Engine {
             continue;
           };
           self.checking.remove(&id);
-          realised && tree.state.mark_realised(id)
+          if realised {
+            tree.state.mark_realised(id)
+          } else {
+            tree.state.mark_unbuilt(id)
+          }
         },
       };
     }
