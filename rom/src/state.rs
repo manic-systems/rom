@@ -86,6 +86,7 @@ impl Derivation {
 
 /// Transfer information for a download or upload.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct TransferInfo {
   /// Start time, in seconds since the UNIX epoch.
   pub start:             f64,
@@ -103,6 +104,7 @@ pub struct TransferInfo {
 
 /// Completed transfer information.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct CompletedTransferInfo {
   /// Start time, in seconds since the UNIX epoch.
   pub start:       f64,
@@ -118,6 +120,7 @@ pub struct CompletedTransferInfo {
 
 /// Store path information.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct StorePathInfo {
   /// Parsed store path.
   pub name:      StorePath,
@@ -129,6 +132,7 @@ pub struct StorePathInfo {
 
 /// Build information.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct BuildInfo {
   /// Start time, in seconds since the UNIX epoch.
   pub start:    f64,
@@ -142,6 +146,7 @@ pub struct BuildInfo {
 
 /// Build failure information.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct BuildFail {
   /// Failure time, in seconds since the UNIX epoch.
   pub at:        f64,
@@ -151,6 +156,7 @@ pub struct BuildFail {
 
 /// Failure type.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum FailType {
   /// The builder exited with this status code.
   BuildFailed(i32),
@@ -164,6 +170,7 @@ pub enum FailType {
 
 /// Build status.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum BuildStatus {
   /// Nothing is known about the derivation yet.
   Unknown,
@@ -195,6 +202,7 @@ pub enum BuildStatus {
 
 /// How a derivation relates to a package built through dynamic derivations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Membership {
   /// Nix knew the derivation without building a producer.
   Outside,
@@ -206,6 +214,7 @@ pub enum Membership {
 
 /// Derivation information.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct DerivationInfo {
   /// Parsed derivation path.
   pub name:               Derivation,
@@ -235,6 +244,7 @@ pub struct DerivationInfo {
 
 /// Why Nix is waiting to start a derivation it will build.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Blocker {
   /// Another client holds the lock on its outputs.
   Lock,
@@ -259,6 +269,7 @@ impl DerivationInfo {
 /// Build lifecycle has a single source of truth in
 /// [`DerivationInfo::build_status`].
 #[derive(Debug, Clone, Default)]
+#[non_exhaustive]
 pub struct DependencySummary {
   /// Downloads that have not started yet.
   pub planned_downloads:   BTreeSet<StorePathId>,
@@ -274,6 +285,7 @@ pub struct DependencySummary {
 
 /// Activity status tracking.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct ActivityStatus {
   /// Kind of activity.
   pub activity:   Activities,
@@ -287,6 +299,7 @@ pub struct ActivityStatus {
 
 /// A local source path being copied into the store.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct SourceFetch {
   /// Source path being copied.
   pub source: String,
