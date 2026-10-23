@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.3.1
+
+### Added
+
+- Builds waiting on a lock or a free machine show as waiting rows, with the reason muted.
+- Producers an earlier run built are remembered, so a resumed run still nests its units.
+
+### Changed
+
+- Nix lookups spawn without forking, run at most two at a time in batches, and are killed past a timeout or when rom exits, through `setpriv` on Linux.
+- Realisation checks wait until a build settles and skip derivations Nix would spin on.
+- Producers fold into their package row and drop the `.drv` suffix.
+- Units sit under their consumers, placed lazily as each frame needs them.
+- Content-addressed derivations that only the dry run lists stay hidden until something shows they will build.
+- The output check after a failed build gives up after 10 seconds.
+- `Engine::poll_lookups` takes the current time.
+- State, lookup and error types are `#[non_exhaustive]`.
+
+### Fixed
+
+- A running unit no longer shows its count once all its inputs are done.
+- Rows for running units are budgeted before the units holding them.
+- A unit counts as done once the derivation its scan wrote is.
+- A producer whose lookup Nix refuses to start counts as unbuilt.
+
 ## 0.3.0
 
 ### Added
