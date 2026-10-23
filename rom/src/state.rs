@@ -227,6 +227,8 @@ pub struct DerivationInfo {
   pub floating:           bool,
   /// Whether it takes a derivation another one writes as an input.
   pub dynamic:            bool,
+  /// Whether a lookup found it unbuilt.
+  pub unbuilt:            bool,
   /// What holds it back while Nix waits to start it.
   pub blocked:            Option<Blocker>,
 }
@@ -472,6 +474,7 @@ impl State {
       writes:             None,
       floating:           false,
       dynamic:            false,
+      unbuilt:            false,
       blocked:            None,
     });
     self.derivation_ids.insert(drv, id);
@@ -543,6 +546,7 @@ impl State {
     original_info.writes = original_info.writes.or(resolved_info.writes);
     original_info.floating |= resolved_info.floating;
     original_info.dynamic |= resolved_info.dynamic;
+    original_info.unbuilt |= resolved_info.unbuilt;
 
     for id in self.derivation_ids.values_mut() {
       if *id == resolved {
@@ -885,6 +889,13 @@ impl State {
     } else {
       self.full_summary.planned_downloads.insert(id)
     }
+  }
+
+  pub(crate) fn mark_unbuilt(&mut self, id: DerivationId) -> bool {
+    self
+      .derivation_infos
+      .get_mut(&id)
+      .is_some_and(|info| !std::mem::replace(&mut info.unbuilt, true))
   }
 
   /// Marks a realised derivation available, and every unannounced unit under
