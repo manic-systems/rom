@@ -675,7 +675,7 @@ fn look_up_batch(producers: Vec<PathBuf>, answers: &mut Vec<Answer>) {
   }
 
   let stderr = String::from_utf8_lossy(&output.stderr);
-  if !stderr.contains("unbuilt derivation") {
+  if !unbuilt(&stderr) {
     report_unavailable(stderr.trim());
     unanswered(batch, answers);
     return;
@@ -734,7 +734,7 @@ fn build_trace(
 
   if !output.status.success() {
     let stderr = String::from_utf8_lossy(&output.stderr);
-    return Err(if stderr.contains("unbuilt derivation") {
+    return Err(if unbuilt(&stderr) {
       TraceError::Unbuilt
     } else {
       TraceError::Unavailable(stderr.trim().to_owned())
@@ -743,6 +743,13 @@ fn build_trace(
 
   serde_json::from_slice(&output.stdout)
     .map_err(|error| TraceError::Unavailable(error.to_string()))
+}
+
+/// Whether Nix failed only because something is not built yet, which with
+/// `--max-jobs 0` it reports as either error.
+fn unbuilt(stderr: &str) -> bool {
+  stderr.contains("unbuilt derivation")
+    || stderr.contains("Unable to start any build")
 }
 
 /// Returns the producer in Nix's warning that it skipped one while planning.
