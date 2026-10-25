@@ -345,22 +345,53 @@ fn run_monitored_command(
 
   // A dry run exits 0 with the same "will be built" announcements.
   let builds = !arguments.iter().any(|argument| argument == "--dry-run");
+
   let mut command = Command::new(program);
   command
     .args(arguments)
     .stdout(Stdio::piped())
     .stderr(Stdio::piped());
+
   #[cfg(unix)]
   command.process_group(0);
+
+  // Its own process group keeps terminal signals from reaching the build, so
+  // a killed rom would leave it running.
+  #[cfg(target_os = "linux")]
+  {
+    let parent = std::process::id();
+    let hook = move || {
+      // SAFETY: prctl is async-signal-safe.
+      if unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) } != 0 {
+        return Err(io::Error::last_os_error());
+      }
+
+      // SAFETY: getppid is async-signal-safe.
+      if u32::try_from(unsafe { libc::getppid() }) != Ok(parent) {
+        return Err(io::Error::from_raw_os_error(libc::ESRCH));
+      }
+
+      Ok(())
+    };
+
+    // SAFETY: the hook only makes async-signal-safe calls.
+    unsafe {
+      command.pre_exec(hook);
+    }
+  }
+
   let mut child = command
     .spawn()
     .with_context(|| format!("running {program}"))?;
+
   #[cfg(unix)]
   let signal_forwarder = SignalForwarder::start(child.id())?;
+
   #[cfg(unix)]
   let interrupted = Arc::clone(&signal_forwarder.interrupted);
   #[cfg(not(unix))]
   let interrupted = Arc::new(AtomicBool::new(false));
+
   let stdout = child.stdout.take().context("missing child stdout")?;
   let stderr = child.stderr.take().context("missing child stderr")?;
 
@@ -370,9 +401,11 @@ fn run_monitored_command(
     io::copy(&mut source, &mut destination)?;
     destination.flush()
   });
+
   let (receiver, reader_thread) = byte_reader(stderr);
   let mut monitor_config = config.monitor.clone();
   monitor_config.engine.input_mode = InputMode::Auto;
+
   let result = drive(
     &receiver,
     monitor_config,
@@ -383,11 +416,14 @@ fn run_monitored_command(
   if result.is_err() {
     terminate_process(&mut child);
   }
+
   let status = child
     .wait()
     .with_context(|| format!("waiting for {program}"))?;
+
   #[cfg(unix)]
   signal_forwarder.stop();
+
   reader_thread
     .join()
     .map_err(|_| misstep::report!("stderr reader panicked"))?
@@ -397,6 +433,7 @@ fn run_monitored_command(
     .map_err(|_| misstep::report!("stdout relay panicked"))?
     .context("relaying child stdout")?;
   result?;
+
   Ok(exit_status_code(status))
 }
 
