@@ -251,15 +251,14 @@ fn monitored(
   rest: impl IntoIterator<Item = String>,
   config: &WrapperConfig,
 ) -> misstep::Result<i32> {
-  let log_flags = [
-    format!("-{}", "v".repeat(config.verbose.max(1).into())),
-    "--log-format".to_owned(),
-    "internal-json".to_owned(),
-  ];
+  let verbosity = (config.verbose > 0)
+    .then(|| format!("-{}", "v".repeat(config.verbose.into())));
+  let log_flags = ["--log-format".to_owned(), "internal-json".to_owned()];
 
   let arguments = head
     .iter()
     .map(|&word| word.to_owned())
+    .chain(verbosity)
     .chain(log_flags)
     .chain(rest)
     .collect::<Vec<String>>();
