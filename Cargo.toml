@@ -22,7 +22,7 @@ indexmap = "2.14.2"
 jiff = { version = "0.2.37", default-features = false, features = ["std"] }
 libc = "0.2.189"
 misstep = { version = "0.4.1", features = ["pretty"] }
-pound = "0.5.3"
+pound = "0.6.1"
 ratatui-core = "0.1.2"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
