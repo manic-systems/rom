@@ -1,7 +1,7 @@
 //! Shared synchronous ingestion engine and append-only stream adapter.
 
 use std::{
-  collections::{BTreeSet, HashMap, HashSet, VecDeque, hash_map::Entry},
+  collections::{BTreeSet, VecDeque, hash_map::Entry},
   fs::{self, File, OpenOptions},
   io::{self, BufRead, BufWriter, Read, Write},
   iter,
@@ -21,6 +21,7 @@ use std::{
 
 use cognos::{DecodedAction, Id, UnsupportedRecord};
 use etcetera::{BaseStrategy, choose_base_strategy};
+use foldhash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use serde::Deserialize;
 
 use crate::{
