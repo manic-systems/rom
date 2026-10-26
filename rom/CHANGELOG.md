@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.2
+
+### Changed
+
+- Producer lookups go through indexes by consumer and name, so a build's start and stop no longer scan every producer.
+- Frames are spaced at ten times the last frame's cost, between 50 ms and 1 s.
+- Shared derivation names are counted as derivations are added, and state maps hash with foldhash.
+- `State::derivations` and `State::store_paths` return maps keyed with foldhash.
+- pound is 0.6.1, so `--platform` parses through `FromStr` with no parser named.
+
+### Fixed
+
+- The `nix build` rom wraps is killed when rom exits.
+- Non-Linux builds no longer warn about an unused `env` import.
+
 ## 0.3.1
 
 ### Added
