@@ -361,11 +361,20 @@ fn run_program(
 ) -> misstep::Result<ExitCode> {
   let binary = config.platform.binary();
 
-  let split = args
-    .iter()
-    .position(|word| word == "--")
-    .unwrap_or(args.len());
-  let realise = &args[..split];
+  // Nix treats the first positional after `--` as the installable.
+  let separator = args.iter().position(|word| word == "--");
+  let realise = separator.map_or_else(
+    || args.clone(),
+    |index| {
+      let mut realise = args[..index].to_vec();
+      if !realise.iter().any(|word| !word.starts_with('-'))
+        && let Some(installable) = args.get(index + 1)
+      {
+        realise.push(installable.clone());
+      }
+      realise
+    },
+  );
 
   // Program args and flag values can pass for the installable. A failed
   // realise still runs, since `nix build` never looks in `apps`.
