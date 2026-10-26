@@ -1,6 +1,6 @@
 //! Render snapshot derived from state, shared by every display format.
 
-use std::{collections::BTreeMap, path::Path};
+use std::collections::BTreeMap;
 
 use cognos::Host;
 use foldhash::{HashMap, HashMapExt, HashSet, HashSetExt, fast::RandomState};
@@ -216,9 +216,11 @@ impl<'a> RenderSnapshot<'a> {
       {
         let counts = packages.entry(package).or_default();
         counts.total += 1;
-        let producer = Path::new(&info.name.name)
-          .extension()
-          .is_some_and(|extension| extension == "drv");
+        let producer = info
+          .name
+          .name
+          .rsplit_once('.')
+          .is_some_and(|(_, extension)| extension == "drv");
         let started = match &info.build_status {
           BuildStatus::Unknown | BuildStatus::Planned => None,
           BuildStatus::Available => {
