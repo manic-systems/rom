@@ -594,6 +594,13 @@ impl Presenter {
     Ok(())
   }
 
+  fn frame_interval(&self) -> Duration {
+    match self {
+      Self::Live(terminal) => terminal.frame_interval(),
+      Self::Fallback { .. } | Self::Append(_) => Duration::from_millis(50),
+    }
+  }
+
   fn write(&mut self, bytes: &[u8]) -> io::Result<()> {
     match self {
       Self::Live(terminal) => terminal.write_passthrough(bytes),
@@ -729,7 +736,7 @@ fn drive(
     let timer_due = last_timer.elapsed() >= Duration::from_secs(1);
     if !silent
       && (dirty || timer_due)
-      && last_frame.elapsed() >= Duration::from_millis(50)
+      && last_frame.elapsed() >= presenter.frame_interval()
     {
       presenter.render(&stream, &render, current_time(), false)?;
       dirty = false;
