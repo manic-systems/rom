@@ -1,7 +1,7 @@
 //! Shared synchronous ingestion engine and append-only stream adapter.
 
 use std::{
-  collections::{BTreeSet, HashMap, HashSet, VecDeque},
+  collections::{BTreeSet, HashMap, HashSet, VecDeque, hash_map::Entry},
   fs::{self, File, OpenOptions},
   io::{self, BufRead, BufWriter, Read, Write},
   iter,
@@ -827,7 +827,7 @@ pub struct Engine {
   suppressed_logs:      HashSet<Id>,
   reported_unsupported: HashSet<UnsupportedRecord>,
   resolved_drvs:        HashSet<PathBuf>,
-  producers:            HashMap<DerivationId, Producer>,
+  producers:            Producers,
   next_retry:           Option<f64>,
   /// Planned content-addressed derivations not yet asked about, which wait
   /// until their planned inputs are realised, since Nix cannot resolve them
@@ -851,7 +851,7 @@ impl Engine {
       suppressed_logs: HashSet::new(),
       reported_unsupported: HashSet::new(),
       resolved_drvs: HashSet::new(),
-      producers: HashMap::new(),
+      producers: Producers::default(),
       next_retry: None,
       unchecked: BTreeSet::new(),
       checking: HashSet::new(),
@@ -977,7 +977,7 @@ impl Engine {
     let Some(id) = tree.state.derivation_id(path) else {
       return;
     };
-    if let Some(producer) = tree.producers.get_mut(&id)
+    if let Some(producer) = tree.producers.entries.get_mut(&id)
       && !std::mem::replace(&mut producer.requested, true)
     {
       tree
@@ -996,6 +996,7 @@ impl Engine {
     let mut next = None::<f64>;
     let due = self
       .producers
+      .entries
       .values_mut()
       .filter_map(|producer| {
         let at = producer.retry_at?;
@@ -1169,7 +1170,7 @@ impl Engine {
         changed |= tree.resolve(path);
       }
       if effects.stopped.is_some() {
-        tree.request_produced(Lookup::Built);
+        tree.request_produced(Lookup::Built(effects.built));
       }
       if let Some(id) = effects.started {
         tree.request_produced(Lookup::Consumer(id));
@@ -1238,6 +1239,16 @@ impl Engine {
   }
 }
 
+#[derive(Default)]
+struct Producers {
+  entries:     HashMap<DerivationId, Producer>,
+  by_consumer: HashMap<DerivationId, Vec<DerivationId>>,
+  /// Keyed by the name of the derivation each one writes.
+  by_name:     HashMap<String, Vec<DerivationId>>,
+  /// Registered after their build stopped, so asked about at the next stop.
+  built_late:  Vec<DerivationId>,
+}
+
 /// A dynamic-derivation producer whose output is not yet linked.
 struct Producer {
   /// Its resolved copy once known, since Nix re-resolves an original's inputs.
@@ -1268,7 +1279,7 @@ const LINKED_LOOKUPS: usize = 64;
 
 #[derive(Clone, Copy)]
 enum Lookup {
-  Built,
+  Built(Option<DerivationId>),
   /// Ask a last time about the producers of a build that started, which Nix
   /// only starts once they are realised.
   Consumer(DerivationId),
@@ -1281,7 +1292,7 @@ struct DerivationTree<'engine> {
   state:      &'engine mut State,
   resolver:   &'engine dyn DerivationResolver,
   resolved:   &'engine mut HashSet<PathBuf>,
-  producers:  &'engine mut HashMap<DerivationId, Producer>,
+  producers:  &'engine mut Producers,
   /// The earliest [`Producer::retry_at`].
   next_retry: &'engine mut Option<f64>,
 }
@@ -1343,32 +1354,61 @@ impl DerivationTree<'_> {
       .state
       .get_derivation_info(id)
       .is_some_and(|info| info.name.path != path);
-    let producer = self.producers.entry(id).or_insert_with(|| {
-      Producer {
-        path:      path.to_path_buf(),
-        consumers: Vec::new(),
-        lookups:   0,
-        requested: false,
-        retry_at:  None,
-      }
-    });
+    let Producers {
+      entries,
+      by_consumer,
+      by_name,
+      built_late,
+    } = &mut *self.producers;
+    let producer = match entries.entry(id) {
+      Entry::Occupied(entry) => entry.into_mut(),
+      Entry::Vacant(entry) => {
+        if let Some(info) = self.state.get_derivation_info(id) {
+          if let Some(name) = info.name.name.strip_suffix(".drv") {
+            by_name.entry(name.to_owned()).or_default().push(id);
+          }
+          if matches!(info.build_status, BuildStatus::Built { .. }) {
+            built_late.push(id);
+          }
+        }
+        entry.insert(Producer {
+          path:      path.to_path_buf(),
+          consumers: Vec::new(),
+          lookups:   0,
+          requested: false,
+          retry_at:  None,
+        })
+      },
+    };
     if resolved {
       producer.path = path.to_path_buf();
     }
-    producer.consumers.extend(consumers);
+    for consumer in consumers {
+      if !producer.consumers.contains(&consumer) {
+        producer.consumers.push(consumer);
+        by_consumer.entry(consumer).or_default().push(id);
+      }
+    }
   }
 
   fn request_produced(&mut self, lookup: Lookup) {
-    if self.producers.is_empty() {
+    let Producers {
+      entries,
+      by_consumer,
+      by_name,
+      built_late,
+    } = &mut *self.producers;
+    if entries.is_empty() {
       return;
     }
 
     match lookup {
-      Lookup::Built => {
-        let due = self
-          .producers
-          .iter_mut()
-          .filter_map(|(&id, producer)| {
+      Lookup::Built(built) => {
+        let due = built_late
+          .drain(..)
+          .chain(built)
+          .filter_map(|id| {
+            let producer = entries.get_mut(&id)?;
             let built =
               self.state.get_derivation_info(id).is_some_and(|info| {
                 matches!(info.build_status, BuildStatus::Built { .. })
@@ -1385,11 +1425,13 @@ impl DerivationTree<'_> {
         }
       },
       Lookup::Consumer(consumer) => {
-        let due = self
-          .producers
-          .values_mut()
-          .filter(|producer| producer.consumers.contains(&consumer))
-          .filter_map(|producer| {
+        let Some(ids) = by_consumer.get(&consumer) else {
+          return;
+        };
+        let due = ids
+          .iter()
+          .filter_map(|id| {
+            let producer = entries.get_mut(id)?;
             let ask = !producer.requested && producer.lookups < BUILT_LOOKUPS;
             producer.lookups = BUILT_LOOKUPS;
             producer.retry_at = None;
@@ -1407,21 +1449,23 @@ impl DerivationTree<'_> {
         let Some(drv) = self.state.get_derivation_info(orphan) else {
           return;
         };
-        let candidates = self
-          .producers
+        let Some(ids) = by_name.get(&drv.name.name) else {
+          return;
+        };
+        let candidates = ids
           .iter()
-          .filter(|&(&id, _)| {
-            self.state.get_derivation_info(id).is_some_and(|info| {
-              info.name.name.strip_suffix(".drv") == Some(&drv.name.name)
-                && matches!(
-                  info.build_status,
-                  BuildStatus::Unknown
-                    | BuildStatus::Available
-                    | BuildStatus::Built { .. }
-                )
+          .filter(|id| {
+            self.state.get_derivation_info(**id).is_some_and(|info| {
+              matches!(
+                info.build_status,
+                BuildStatus::Unknown
+                  | BuildStatus::Available
+                  | BuildStatus::Built { .. }
+              )
             })
           })
-          .map(|(_, producer)| producer.path.clone())
+          .filter_map(|id| entries.get(id))
+          .map(|producer| producer.path.clone())
           .collect::<Vec<PathBuf>>();
         if !candidates.is_empty() {
           self
@@ -1445,7 +1489,7 @@ impl DerivationTree<'_> {
       .and_then(Derivation::parse)
       .map(|derivation| self.state.get_or_create_derivation_id(derivation))?;
     let Some(drv) = answer.drv else {
-      if let Some(producer) = self.producers.get_mut(&id) {
+      if let Some(producer) = self.producers.entries.get_mut(&id) {
         producer.requested = false;
         if let Some(delay) =
           RETRY_DELAYS.get(usize::from(producer.lookups).wrapping_sub(1))
@@ -1459,7 +1503,7 @@ impl DerivationTree<'_> {
       return None;
     };
     let derivation = drv.to_str().and_then(Derivation::parse)?;
-    let producer = self.producers.remove(&id)?;
+    let producer = self.producers.entries.remove(&id)?;
     if let Some(info) = self.state.get_derivation_info(id) {
       self.resolver.remember_produced(&info.name.path, &drv);
     }
@@ -1479,14 +1523,19 @@ impl DerivationTree<'_> {
     self.state.join_package(id, produced_id);
     let due = self
       .producers
-      .values_mut()
-      .filter(|producer| producer.consumers.contains(&produced_id))
+      .by_consumer
+      .get(&produced_id)
+      .into_iter()
+      .flatten()
+      .copied()
+      .filter(|id| self.producers.entries.contains_key(id))
       .take(LINKED_LOOKUPS + 1)
-      .collect::<Vec<&mut Producer>>();
+      .collect::<Vec<DerivationId>>();
     if due.len() <= LINKED_LOOKUPS {
       let due = due
-        .into_iter()
-        .filter_map(|producer| {
+        .iter()
+        .filter_map(|id| {
+          let producer = self.producers.entries.get_mut(id)?;
           (!std::mem::replace(&mut producer.requested, true))
             .then(|| producer.path.clone())
         })
