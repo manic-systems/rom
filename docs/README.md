@@ -26,7 +26,7 @@ ROM also accepts an existing stream. By default it decodes lines beginning with
 `@nix` and passes every other byte through exactly once:
 
 ```console
-nix build nixpkgs#hello -v --log-format internal-json 2>&1 | rom
+nix build nixpkgs#hello --log-format internal-json 2>&1 | rom
 ```
 
 Use `--json` only for an unprefixed stream containing one internal-JSON object
