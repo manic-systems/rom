@@ -33,6 +33,7 @@ pub struct Effects {
   pub resolve:             Vec<PathBuf>,
   pub started:             Option<DerivationId>,
   pub stopped:             Option<Id>,
+  pub built:               Option<DerivationId>,
   pub planned:             Option<DerivationId>,
   /// A content-addressed derivation Nix resolved, which it may then find
   /// realised without building.
@@ -55,7 +56,7 @@ pub fn apply_event_at(state: &mut State, event: Event, now: f64) -> Effects {
   match event {
     Event::Start(start) => apply_start(state, start, now, &mut effects),
     Event::Stop { id } => {
-      effects.changed |= apply_stop(state, id, now);
+      effects.changed |= apply_stop(state, id, now, &mut effects);
       effects.stopped = Some(id);
     },
     Event::Message(message) => {
@@ -237,15 +238,25 @@ fn apply_start(
   });
 }
 
-fn apply_stop(state: &mut State, id: Id, now: f64) -> bool {
+fn apply_stop(
+  state: &mut State,
+  id: Id,
+  now: f64,
+  effects: &mut Effects,
+) -> bool {
   let Some(activity) = state.take_activity(id) else {
     return false;
   };
   match activity.activity {
     Activities::Build => {
-      activity
-        .derivation
-        .is_some_and(|derivation| state.complete_build(derivation, now))
+      let Some(derivation) = activity.derivation else {
+        return false;
+      };
+      let built = state.complete_build(derivation, now);
+      if built {
+        effects.built = Some(derivation);
+      }
+      built
     },
     Activities::Substitute => {
       activity
