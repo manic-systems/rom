@@ -144,6 +144,7 @@ pub fn run() -> misstep::Result<ExitCode> {
       PathBuf::from(path).file_name()?.to_str().map(str::to_owned)
     })
     .unwrap_or_else(|| "rom".to_owned());
+
   let mut arguments = process_args
     .map(|argument| {
       argument
@@ -157,7 +158,9 @@ pub fn run() -> misstep::Result<ExitCode> {
     "rom-develop" => arguments.insert(0, "develop".to_owned()),
     _ => {},
   }
+
   let cli = Cli::parse_from(arguments.iter().map(String::as_str));
+
   let filter = match env::var("RUST_LOG") {
     Ok(directives) => {
       directives
@@ -229,11 +232,11 @@ pub fn run() -> misstep::Result<ExitCode> {
     Some(Commands::Shell {
       packages,
       nix_flags,
-    }) => shell(packages, nix_flags, &config),
+    }) => enter("shell", packages, nix_flags, &config),
     Some(Commands::Develop {
       packages,
       nix_flags,
-    }) => develop(packages, nix_flags, &config),
+    }) => enter("develop", packages, nix_flags, &config),
     Some(Commands::Other(External { name, args, .. })) => {
       other(name, args, &config)
     },
@@ -241,8 +244,27 @@ pub fn run() -> misstep::Result<ExitCode> {
   }
 }
 
-fn nix_verbosity_flag(verbose: u8) -> String {
-  format!("-{}", "v".repeat(verbose.max(1) as usize))
+/// Runs `program` monitored, with Nix's log flags after `head`.
+fn monitored(
+  program: &str,
+  head: &[&str],
+  rest: impl IntoIterator<Item = String>,
+  config: &WrapperConfig,
+) -> misstep::Result<i32> {
+  let log_flags = [
+    format!("-{}", "v".repeat(config.verbose.max(1).into())),
+    "--log-format".to_owned(),
+    "internal-json".to_owned(),
+  ];
+
+  let arguments = head
+    .iter()
+    .map(|&word| word.to_owned())
+    .chain(log_flags)
+    .chain(rest)
+    .collect::<Vec<String>>();
+
+  run_monitored_command(program, arguments, config)
 }
 
 fn build(
@@ -254,81 +276,45 @@ fn build(
     !packages.is_empty(),
     "No package or flake specified for build"
   );
-  let mut arguments = vec![
-    "build".to_owned(),
-    nix_verbosity_flag(config.verbose),
-    "--log-format".to_owned(),
-    "internal-json".to_owned(),
-  ];
-  arguments.extend(packages);
-  arguments.extend(nix_flags);
-  Ok(exit_code(run_monitored_command(
+
+  let rest = packages.into_iter().chain(nix_flags);
+
+  Ok(exit_code(monitored(
     config.platform.binary(),
-    arguments,
+    &["build"],
+    rest,
     config,
   )?))
 }
 
-fn shell(
+/// Realises a `shell` or `develop` environment monitored, then enters it.
+fn enter(
+  subcommand: &str,
   packages: Vec<String>,
   nix_flags: Vec<String>,
   config: &WrapperConfig,
 ) -> misstep::Result<ExitCode> {
   misstep::ensure!(
     !packages.is_empty(),
-    "No package or flake specified for shell"
+    "No package or flake specified for {subcommand}"
   );
-  let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
-  let mut monitored = vec![
-    "shell".to_owned(),
-    nix_verbosity_flag(config.verbose),
-    "--log-format".to_owned(),
-    "internal-json".to_owned(),
-  ];
-  monitored.extend(replace_command_with_exit(&original));
-  let code =
-    run_monitored_command(config.platform.binary(), monitored, config)?;
-  if code != 0 {
-    return Ok(exit_code(code));
-  }
-  let mut arguments = vec!["shell".to_owned()];
-  arguments.extend(packages);
-  arguments.extend(nix_flags);
-  Ok(exit_code(run_inherited(
-    config.platform.binary(),
-    &arguments,
-  )?))
-}
 
-fn develop(
-  packages: Vec<String>,
-  nix_flags: Vec<String>,
-  config: &WrapperConfig,
-) -> misstep::Result<ExitCode> {
-  misstep::ensure!(
-    !packages.is_empty(),
-    "No package or flake specified for develop"
-  );
-  let original: Vec<_> = packages.iter().chain(&nix_flags).cloned().collect();
-  let mut monitored = vec![
-    "develop".to_owned(),
-    nix_verbosity_flag(config.verbose),
-    "--log-format".to_owned(),
-    "internal-json".to_owned(),
-  ];
-  monitored.extend(replace_command_with_exit(&original));
-  let code =
-    run_monitored_command(config.platform.binary(), monitored, config)?;
+  let binary = config.platform.binary();
+
+  let arguments = packages
+    .into_iter()
+    .chain(nix_flags)
+    .collect::<Vec<String>>();
+
+  let realise = replace_command_with_exit(&arguments);
+
+  let code = monitored(binary, &[subcommand], realise, config)?;
   if code != 0 {
     return Ok(exit_code(code));
   }
-  let mut arguments = vec!["develop".to_owned()];
-  arguments.extend(packages);
-  arguments.extend(nix_flags);
-  Ok(exit_code(run_inherited(
-    config.platform.binary(),
-    &arguments,
-  )?))
+
+  let arguments = iter::once(subcommand.to_owned()).chain(arguments);
+  Ok(exit_code(run_inherited(binary, arguments)?))
 }
 
 fn other(
@@ -337,6 +323,7 @@ fn other(
   config: &WrapperConfig,
 ) -> misstep::Result<ExitCode> {
   let binary = config.platform.binary();
+
   match name.as_str() {
     "help"
       if args.first().is_none_or(|word| {
@@ -351,59 +338,50 @@ fn other(
     },
     "env" if args.first().is_some_and(|word| word == "shell") => {
       let packages = args.split_off(1);
-      return shell(packages, Vec::new(), config);
+      enter("shell", packages, Vec::new(), config)
     },
     // These own the terminal, which a piped Nix cannot.
     "repl" | "edit" | "help" | "log" => {
-      let arguments = iter::once(name).chain(args).collect::<Vec<String>>();
-      return Ok(exit_code(run_inherited(binary, &arguments)?));
+      Ok(exit_code(run_inherited(
+        binary,
+        iter::once(name).chain(args),
+      )?))
     },
-    "run" => return nix_run(args, config),
-    _ => {},
+    "run" => run_program(args, config),
+    _ => {
+      let rest = iter::once(name).chain(args);
+      Ok(exit_code(monitored(binary, &[], rest, config)?))
+    },
   }
-
-  let mut arguments = vec![
-    nix_verbosity_flag(config.verbose),
-    "--log-format".to_owned(),
-    "internal-json".to_owned(),
-    name,
-  ];
-  arguments.extend(args);
-  Ok(exit_code(run_monitored_command(binary, arguments, config)?))
 }
 
-fn nix_run(
+fn run_program(
   args: Vec<String>,
   config: &WrapperConfig,
 ) -> misstep::Result<ExitCode> {
   let binary = config.platform.binary();
+
   let split = args
     .iter()
     .position(|word| word == "--")
     .unwrap_or(args.len());
-  let before = &args[..split];
+  let realise = &args[..split];
 
   // Program args and flag values can pass for the installable. A failed
   // realise still runs, since `nix build` never looks in `apps`.
-  if before.iter().filter(|word| !word.starts_with('-')).count() <= 1 {
-    let mut monitored = vec![
-      "build".to_owned(),
-      "--no-link".to_owned(),
-      nix_verbosity_flag(config.verbose),
-      "--log-format".to_owned(),
-      "internal-json".to_owned(),
-    ];
-    monitored.extend_from_slice(before);
-    run_monitored_command(binary, monitored, config)?;
+  if realise.iter().filter(|word| !word.starts_with('-')).count() <= 1 {
+    let rest = realise.iter().cloned();
+    monitored(binary, &["build", "--no-link"], rest, config)?;
   }
 
-  let arguments = iter::once("run".to_owned())
-    .chain(args)
-    .collect::<Vec<String>>();
-  Ok(exit_code(run_inherited(binary, &arguments)?))
+  let arguments = iter::once("run".to_owned()).chain(args);
+  Ok(exit_code(run_inherited(binary, arguments)?))
 }
 
-fn run_inherited(command: &str, arguments: &[String]) -> io::Result<i32> {
+fn run_inherited(
+  command: &str,
+  arguments: impl IntoIterator<Item = String>,
+) -> io::Result<i32> {
   let status = Command::new(command).args(arguments).status()?;
   Ok(exit_status_code(status))
 }
