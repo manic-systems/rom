@@ -4,6 +4,7 @@ use std::{
   collections::HashSet,
   env::{self, VarError},
   io::{self, IsTerminal, Read, Write},
+  iter,
   path::PathBuf,
   process::{Child, Command, ExitCode, Stdio},
   sync::{
@@ -17,7 +18,7 @@ use std::{
 
 use cognos::Verbosity;
 use misstep::{OptionExt, ResultExt};
-use pound::Parse;
+use pound::{External, Parse};
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{
   filter::Targets,
@@ -117,6 +118,9 @@ pub enum Commands {
     #[pound(last)]
     nix_flags: Vec<String>,
   },
+  /// Run any other nix/lix subcommand, monitored unless it needs the terminal.
+  #[pound(external)]
+  Other(External),
 }
 
 struct WrapperConfig {
@@ -230,6 +234,9 @@ pub fn run() -> misstep::Result<ExitCode> {
       packages,
       nix_flags,
     }) => develop(packages, nix_flags, &config),
+    Some(Commands::Other(External { name, args, .. })) => {
+      other(name, args, &config)
+    },
     None => run_input(io::stdin(), config.monitor).map(|()| ExitCode::SUCCESS),
   }
 }
@@ -322,6 +329,78 @@ fn develop(
     config.platform.binary(),
     &arguments,
   )?))
+}
+
+fn other(
+  name: String,
+  mut args: Vec<String>,
+  config: &WrapperConfig,
+) -> misstep::Result<ExitCode> {
+  let binary = config.platform.binary();
+  match name.as_str() {
+    "help"
+      if args.first().is_none_or(|word| {
+        matches!(word.as_str(), "build" | "shell" | "develop")
+      }) =>
+    {
+      let words = args.iter().map(String::as_str).chain(["--help"]);
+      let help = Cli::try_parse_from(words)
+        .err()
+        .context("--help did not end the parse")?;
+      help.exit()
+    },
+    "env" if args.first().is_some_and(|word| word == "shell") => {
+      let packages = args.split_off(1);
+      return shell(packages, Vec::new(), config);
+    },
+    // These own the terminal, which a piped Nix cannot.
+    "repl" | "edit" | "help" | "log" => {
+      let arguments = iter::once(name).chain(args).collect::<Vec<String>>();
+      return Ok(exit_code(run_inherited(binary, &arguments)?));
+    },
+    "run" => return nix_run(args, config),
+    _ => {},
+  }
+
+  let mut arguments = vec![
+    nix_verbosity_flag(config.verbose),
+    "--log-format".to_owned(),
+    "internal-json".to_owned(),
+    name,
+  ];
+  arguments.extend(args);
+  Ok(exit_code(run_monitored_command(binary, arguments, config)?))
+}
+
+fn nix_run(
+  args: Vec<String>,
+  config: &WrapperConfig,
+) -> misstep::Result<ExitCode> {
+  let binary = config.platform.binary();
+  let split = args
+    .iter()
+    .position(|word| word == "--")
+    .unwrap_or(args.len());
+  let before = &args[..split];
+
+  // Program args and flag values can pass for the installable. A failed
+  // realise still runs, since `nix build` never looks in `apps`.
+  if before.iter().filter(|word| !word.starts_with('-')).count() <= 1 {
+    let mut monitored = vec![
+      "build".to_owned(),
+      "--no-link".to_owned(),
+      nix_verbosity_flag(config.verbose),
+      "--log-format".to_owned(),
+      "internal-json".to_owned(),
+    ];
+    monitored.extend_from_slice(before);
+    run_monitored_command(binary, monitored, config)?;
+  }
+
+  let arguments = iter::once("run".to_owned())
+    .chain(args)
+    .collect::<Vec<String>>();
+  Ok(exit_code(run_inherited(binary, &arguments)?))
 }
 
 fn run_inherited(command: &str, arguments: &[String]) -> io::Result<i32> {
