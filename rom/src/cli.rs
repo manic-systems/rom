@@ -82,7 +82,7 @@ pub struct Cli {
   pub log_lines: Option<usize>,
 
   /// Nix-family evaluator to use, nix or lix. Auto-detected by default.
-  #[pound(long, global, parse = str::parse::<cognos::Platform>)]
+  #[pound(long, global)]
   pub platform: Option<cognos::Platform>,
 
   /// Increase Nix and ROM diagnostic verbosity.
