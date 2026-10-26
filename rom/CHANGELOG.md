@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.3
+
+### Added
+
+- rom now wraps any other nix subcommand, like `rom eval` or `rom run`.
+- `LiveTerminal::flush_logs` writes pending log lines without drawing a frame.
+
+### Fixed
+
+- Builder log lines are written between throttled frames instead of waiting for the next one.
+
 ## 0.3.2
 
 ### Changed
