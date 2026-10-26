@@ -38,18 +38,11 @@ impl StorePath {
       return None;
     }
 
-    let path_buf = PathBuf::from(path);
-    let file_name = path_buf.file_name()?.to_str()?;
-
-    let parts: Vec<&str> = file_name.splitn(2, '-').collect();
-    if parts.len() != 2 {
-      return None;
-    }
-
+    let (hash, name) = file_name(path)?.split_once('-')?;
     Some(Self {
-      path: path_buf.clone(),
-      hash: parts[0].to_owned(),
-      name: parts[1].to_owned(),
+      path: PathBuf::from(path),
+      hash: hash.to_owned(),
+      name: name.to_owned(),
     })
   }
 }
@@ -67,22 +60,19 @@ impl Derivation {
   /// Parses a `.drv` path, returning `None` if it is not one.
   #[must_use]
   pub fn parse(path: &str) -> Option<Self> {
-    let path_buf = PathBuf::from(path);
-    let file_name = path_buf.file_name()?.to_str()?;
-
-    let name = file_name.strip_suffix(".drv")?;
-    let parts: Vec<&str> = name.splitn(2, '-').collect();
-    let display_name = if parts.len() == 2 {
-      parts[1].to_owned()
-    } else {
-      name.to_owned()
-    };
-
+    let name = file_name(path)?.strip_suffix(".drv")?;
+    let name = name.split_once('-').map_or(name, |(_, name)| name);
     Some(Self {
-      path: path_buf,
-      name: display_name,
+      path: PathBuf::from(path),
+      name: name.to_owned(),
     })
   }
+}
+
+/// [`Path::file_name`] without parsing every component.
+fn file_name(path: &str) -> Option<&str> {
+  let name = path.trim_end_matches('/').rsplit('/').next()?;
+  (!name.is_empty() && name != "." && name != "..").then_some(name)
 }
 
 /// Transfer information for a download or upload.
