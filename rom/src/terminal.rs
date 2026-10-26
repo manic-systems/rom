@@ -257,17 +257,32 @@ impl<W: Write> LiveTerminal<W> {
     Ok(())
   }
 
-  fn overflow(&mut self) -> io::Result<()> {
+  /// Writes pending log lines above the last frame.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the logs cannot be written to the terminal.
+  pub fn flush_logs(&mut self) -> io::Result<()> {
     let complete = complete_lines(&self.pending);
-    if !self.initialized || complete == 0 {
+    if self.retired || !self.initialized || complete == 0 {
+      return Ok(());
+    }
+
+    let bytes = self.compose(&self.pending[..complete], &self.frame)?;
+    self.partial_line = false;
+    self.writer.write_all(&bytes)?;
+    self.pending.drain(..complete);
+    self.writer.flush()
+  }
+
+  fn overflow(&mut self) -> io::Result<()> {
+    if !self.initialized || complete_lines(&self.pending) == 0 {
       self.partial_line = !self.pending.ends_with(b"\n");
       self.clear_graph()?;
       return self.writer.flush();
     }
-    let bytes = self.compose(&self.pending[..complete], &self.frame)?;
-    self.writer.write_all(&bytes)?;
-    self.pending.drain(..complete);
-    self.writer.flush()
+
+    self.flush_logs()
   }
 
   /// Clears the live graph and permanently falls back to plain passthrough.

@@ -601,6 +601,13 @@ impl Presenter {
     }
   }
 
+  fn flush_logs(&mut self) -> io::Result<()> {
+    match self {
+      Self::Live(terminal) => terminal.flush_logs(),
+      Self::Fallback { .. } | Self::Append(_) => Ok(()),
+    }
+  }
+
   fn write(&mut self, bytes: &[u8]) -> io::Result<()> {
     match self {
       Self::Live(terminal) => terminal.write_passthrough(bytes),
@@ -691,6 +698,8 @@ impl Presenter {
   }
 }
 
+const LOG_INTERVAL: Duration = Duration::from_millis(50);
+
 fn drive(
   receiver: &Receiver<io::Result<Vec<u8>>>,
   config: Config,
@@ -715,6 +724,7 @@ fn drive(
     .checked_sub(Duration::from_secs(1))
     .unwrap_or_else(Instant::now);
   let mut last_timer = Instant::now();
+  let mut last_logs = Instant::now();
   if !silent && presenter.render_initial(&stream, &render, current_time())? {
     last_frame = Instant::now();
   }
@@ -744,6 +754,9 @@ fn drive(
       if timer_due {
         last_timer = Instant::now();
       }
+    } else if last_logs.elapsed() >= LOG_INTERVAL {
+      presenter.flush_logs()?;
+      last_logs = Instant::now();
     }
   }
 
