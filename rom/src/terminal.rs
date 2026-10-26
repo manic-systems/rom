@@ -1,6 +1,9 @@
 //! Terminal admission and atomic normal-screen composition.
 
-use std::io::{self, IsTerminal, Write};
+use std::{
+  io::{self, IsTerminal, Write},
+  time::{Duration, Instant},
+};
 
 use crossterm::{
   cursor::{Hide, MoveToColumn, MoveToPreviousLine, Show},
@@ -20,6 +23,8 @@ const MIN_LIVE_COLUMNS: u16 = 20;
 const MIN_LIVE_ROWS: u16 = 8;
 const MAX_PENDING_BYTES: usize = 64 * 1024;
 const PARTIAL_LINE_GRACE: f64 = 0.5;
+const MIN_FRAME_INTERVAL: Duration = Duration::from_millis(50);
+const MAX_FRAME_INTERVAL: Duration = Duration::from_secs(1);
 
 /// Why live presentation was or was not admitted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -81,6 +86,7 @@ pub struct LiveTerminal<W: Write> {
   partial_line:  bool,
   partial_since: Option<f64>,
   frame:         String,
+  frame_cost:    Duration,
 }
 
 impl<W: Write> LiveTerminal<W> {
@@ -97,6 +103,7 @@ impl<W: Write> LiveTerminal<W> {
       partial_line: false,
       partial_since: None,
       frame: String::new(),
+      frame_cost: Duration::ZERO,
     }
   }
 
@@ -104,6 +111,12 @@ impl<W: Write> LiveTerminal<W> {
   #[must_use]
   pub const fn is_retired(&self) -> bool {
     self.retired
+  }
+
+  /// Returns the wait before the next frame, scaled to the last frame's cost.
+  #[must_use]
+  pub fn frame_interval(&self) -> Duration {
+    (self.frame_cost * 10).clamp(MIN_FRAME_INTERVAL, MAX_FRAME_INTERVAL)
   }
 
   /// Renders one frame, retrying a bounded number of times if the terminal is
@@ -150,6 +163,7 @@ impl<W: Write> LiveTerminal<W> {
       }
     }
     for _ in 0..3 {
+      let begin = Instant::now();
       let (columns, rows) = crossterm::terminal::size()?;
       if !live_geometry(columns, rows) {
         self.retire()?;
@@ -180,6 +194,7 @@ impl<W: Write> LiveTerminal<W> {
       self.frame = text;
       self.graph_height = (frame.height + padding as u16).min(rows - 1);
       self.initialized = true;
+      self.frame_cost = begin.elapsed();
       return Ok(true);
     }
     self.retire()?;
