@@ -1,11 +1,9 @@
 //! Render snapshot derived from state, shared by every display format.
 
-use std::{
-  collections::{BTreeMap, HashMap, HashSet},
-  path::Path,
-};
+use std::{collections::BTreeMap, path::Path};
 
 use cognos::Host;
+use foldhash::{HashMap, HashMapExt, HashSet, HashSetExt, fast::RandomState};
 use indexmap::IndexMap;
 
 use crate::state::{
@@ -127,10 +125,8 @@ const SOURCE_FETCH_DELAY: f64 = 1.0;
 
 /// Immutable presentation input derived once for a complete frame.
 pub(super) struct RenderSnapshot<'a> {
-  /// Names shared by several derivations, whose history mixes unrelated
-  /// builds and so gives no usable estimate.
-  pub shared_names:     HashSet<&'a str>,
-  pub derivations:      &'a IndexMap<DerivationId, DerivationInfo>,
+  pub state:            &'a State,
+  pub derivations:      &'a IndexMap<DerivationId, DerivationInfo, RandomState>,
   pub summary:          &'a DependencySummary,
   pub builds:           Builds<'a>,
   pub roots:            &'a [DerivationId],
@@ -147,7 +143,7 @@ pub(super) struct RenderSnapshot<'a> {
 
 /// A floating derivation surely builds once it is unbuilt or an input builds.
 fn unconfirmed(
-  derivations: &IndexMap<DerivationId, DerivationInfo>,
+  derivations: &IndexMap<DerivationId, DerivationInfo, RandomState>,
 ) -> HashSet<DerivationId> {
   let mut builds = HashMap::<DerivationId, bool>::new();
   let mut unconfirmed = HashSet::new();
@@ -290,15 +286,8 @@ impl<'a> RenderSnapshot<'a> {
         failed:    0,
       },
     };
-    let mut seen_names = HashSet::new();
-    let shared_names = state
-      .derivations()
-      .values()
-      .map(|info| info.name.name.as_str())
-      .filter(|name| !seen_names.insert(*name))
-      .collect();
     let mut snapshot = Self {
-      shared_names,
+      state,
       derivations: state.derivations(),
       summary,
       builds,
@@ -329,7 +318,7 @@ impl<'a> RenderSnapshot<'a> {
 
   fn collect_transfers(
     &mut self,
-    store_paths: &IndexMap<StorePathId, StorePathInfo>,
+    store_paths: &IndexMap<StorePathId, StorePathInfo, RandomState>,
     now: f64,
   ) {
     for (&path, transfer) in &self.summary.running_downloads {
@@ -375,7 +364,7 @@ impl<'a> RenderSnapshot<'a> {
 
   fn add_transfer(
     &mut self,
-    store_paths: &IndexMap<StorePathId, StorePathInfo>,
+    store_paths: &IndexMap<StorePathId, StorePathInfo, RandomState>,
     path: StorePathId,
     transfer: &TransferInfo,
     direction: Direction,
@@ -396,7 +385,7 @@ impl<'a> RenderSnapshot<'a> {
 
   fn add_completed_transfer(
     &mut self,
-    store_paths: &IndexMap<StorePathId, StorePathInfo>,
+    store_paths: &IndexMap<StorePathId, StorePathInfo, RandomState>,
     path: StorePathId,
     transfer: &CompletedTransferInfo,
     direction: Direction,

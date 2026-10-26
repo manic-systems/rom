@@ -17,6 +17,7 @@ crossterm = { version = "0.29.0", default-features = false }
 csv = "1.4.0"
 etcetera = "0.11.0"
 flub = "0.1.0"
+foldhash = "0.2.0"
 indexmap = "2.14.2"
 jiff = { version = "0.2.37", default-features = false, features = ["std"] }
 libc = "0.2.189"

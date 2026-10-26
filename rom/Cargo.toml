@@ -33,6 +33,7 @@ serde_json.workspace = true
 crossterm.workspace = true
 ratatui-core.workspace = true
 indexmap.workspace = true
+foldhash.workspace = true
 csv.workspace = true
 jiff.workspace = true
 flub.workspace = true

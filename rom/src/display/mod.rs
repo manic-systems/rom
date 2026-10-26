@@ -11,8 +11,9 @@ mod model;
 mod summary;
 mod tree;
 
-use std::{collections::HashSet, path::Path};
+use std::path::Path;
 
+use foldhash::{HashSet, HashSetExt};
 pub use frame::{Frame, format_log, write_final};
 use ratatui_core::{
   buffer::Buffer,

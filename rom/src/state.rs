@@ -1,12 +1,13 @@
 //! State management for ROM.
 use std::{
-  collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+  collections::{BTreeMap, BTreeSet},
   path::{Path, PathBuf},
   time::{Duration, SystemTime},
 };
 
 pub use cognos::ProgressState;
 use cognos::{Activities, Host, Id};
+use foldhash::{HashMap, HashMapExt, HashSet, HashSetExt, fast::RandomState};
 use indexmap::IndexMap;
 
 /// Unique identifier for store paths.
@@ -319,8 +320,8 @@ pub struct BuildReport {
 /// Main state for ROM.
 #[derive(Debug, Clone)]
 pub struct State {
-  derivation_infos:   IndexMap<DerivationId, DerivationInfo>,
-  store_path_infos:   IndexMap<StorePathId, StorePathInfo>,
+  derivation_infos:   IndexMap<DerivationId, DerivationInfo, RandomState>,
+  store_path_infos:   IndexMap<StorePathId, StorePathInfo, RandomState>,
   full_summary:       DependencySummary,
   forest_roots:       Vec<DerivationId>,
   build_cache:        BTreeMap<(String, String), Vec<BuildReport>>,
@@ -328,6 +329,7 @@ pub struct State {
   progress:           ProgressState,
   store_path_ids:     HashMap<StorePath, StorePathId>,
   derivation_ids:     HashMap<Derivation, DerivationId>,
+  name_counts:        HashMap<String, usize>,
   activities:         HashMap<ActivityId, ActivityStatus>,
   source_fetches:     BTreeMap<ActivityId, SourceFetch>,
   nix_errors:         Vec<String>,
@@ -347,8 +349,8 @@ impl State {
   #[must_use]
   pub fn new() -> Self {
     Self {
-      derivation_infos:   IndexMap::new(),
-      store_path_infos:   IndexMap::new(),
+      derivation_infos:   IndexMap::default(),
+      store_path_infos:   IndexMap::default(),
       full_summary:       DependencySummary::default(),
       forest_roots:       Vec::new(),
       build_cache:        BTreeMap::new(),
@@ -356,6 +358,7 @@ impl State {
       progress:           ProgressState::JustStarted,
       store_path_ids:     HashMap::new(),
       derivation_ids:     HashMap::new(),
+      name_counts:        HashMap::new(),
       activities:         HashMap::new(),
       source_fetches:     BTreeMap::new(),
       nix_errors:         Vec::new(),
@@ -391,13 +394,17 @@ impl State {
 
   /// Returns every known derivation.
   #[must_use]
-  pub const fn derivations(&self) -> &IndexMap<DerivationId, DerivationInfo> {
+  pub const fn derivations(
+    &self,
+  ) -> &IndexMap<DerivationId, DerivationInfo, RandomState> {
     &self.derivation_infos
   }
 
   /// Returns every known store path.
   #[must_use]
-  pub const fn store_paths(&self) -> &IndexMap<StorePathId, StorePathInfo> {
+  pub const fn store_paths(
+    &self,
+  ) -> &IndexMap<StorePathId, StorePathInfo, RandomState> {
     &self.store_path_infos
   }
 
@@ -490,9 +497,17 @@ impl State {
       unbuilt:            false,
       blocked:            None,
     });
+    *self.name_counts.entry(drv.name.clone()).or_default() += 1;
     self.derivation_ids.insert(drv, id);
 
     id
+  }
+
+  /// Names shared by several derivations, whose history mixes unrelated
+  /// builds and so gives no usable estimate.
+  #[must_use]
+  pub fn name_is_shared(&self, name: &str) -> bool {
+    self.name_counts.get(name).is_some_and(|&count| count > 1)
   }
 
   pub(crate) fn resolve_derivation(

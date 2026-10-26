@@ -3,10 +3,11 @@
 use std::{
   cell::RefCell,
   cmp::Reverse,
-  collections::{BinaryHeap, HashMap, HashSet, VecDeque},
+  collections::{BinaryHeap, VecDeque},
 };
 
 use cognos::Host;
+use foldhash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use ratatui_core::text::{Line, Span};
 use unicode_width::UnicodeWidthStr;
 
@@ -941,7 +942,7 @@ impl Renderer<'_> {
           suffix.push(span(label, self.config.theme.host));
         }
         if let Some(estimate) = build.estimate
-          && !self.snapshot.shared_names.contains(info.name.name.as_str())
+          && !self.snapshot.state.name_is_shared(&info.name.name)
         {
           suffix.push(span(
             format!(
