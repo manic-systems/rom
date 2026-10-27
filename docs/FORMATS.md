@@ -96,6 +96,24 @@ the screen. At this moment they only affect the **tree format**.
 ┗━  ⏵ 1 building ✔ 0 completed ✗ 0 failed ⏸ 4 waiting
 ```
 
+## Transfer Layouts
+
+`--transfers` controls how download and upload progress is laid out. It applies
+to every format, and can also be set as `transfers` in the config file.
+
+- `inline` (default): progress follows each transfer's name.
+- `aligned`: bars start after the longest name (up to 40 columns), and
+  percentages, sizes, durations, and hosts share columns across rows.
+
+**Aligned**:
+
+```plaintext
+├─ Transfers
+│  ├─ jq-1.8.2            ↓ ━━━━━━━━━━━━━━━━━╸──────────────  55%    55 KiB/100 KiB  0s  cache.nixos.org
+│  ├─ libgpg-error-1.61   ↓ ────────────────────────────────   0%   7.0 KiB/4.6 MiB  0s  cache.nixos.org
+│  ╰─ xxHash-0.8.3        ↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━─  97%  970 KiB/1000 KiB  0s  cache.nixos.org
+```
+
 ## Icon Legend
 
 All formats use consistent icons:

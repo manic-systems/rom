@@ -9,6 +9,7 @@ mod formats;
 mod frame;
 mod model;
 mod summary;
+mod transfers;
 mod tree;
 
 use std::path::Path;
@@ -23,7 +24,10 @@ use ratatui_core::{
 };
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
-use self::model::{Direction, RenderSnapshot, Transfer, aggregate_transfers};
+use self::{
+  model::{Direction, RenderSnapshot, Transfer, aggregate_transfers},
+  transfers::TransferRow,
+};
 use crate::{
   icons::Icons,
   state::{
@@ -35,7 +39,7 @@ use crate::{
     elapsed,
     whole_seconds,
   },
-  types::{DisplayFormat, RenderConfig},
+  types::{DisplayFormat, RenderConfig, TransferLayout},
 };
 
 /// Formats a duration without introducing sub-second redraw noise.
@@ -87,6 +91,8 @@ struct Renderer<'a> {
   width:      u16,
   max_height: u16,
   seen:       HashSet<DerivationId>,
+  /// Tree rows awaiting aligned transfer progress.
+  transfers:  Vec<TransferRow>,
 }
 
 impl<'a> Renderer<'a> {
@@ -106,6 +112,7 @@ impl<'a> Renderer<'a> {
       width,
       max_height,
       seen: HashSet::new(),
+      transfers: Vec::new(),
     }
   }
 
@@ -193,6 +200,10 @@ impl<'a> Renderer<'a> {
     let graph_budget = graph_limit.min(maximum.saturating_sub(tail.len()));
 
     (tail, graph_budget)
+  }
+
+  const fn aligned_transfers(&self) -> bool {
+    matches!(self.config.transfer_layout, TransferLayout::Aligned)
   }
 
   const fn transfer_color(&self, transfer: &Transfer) -> Color {

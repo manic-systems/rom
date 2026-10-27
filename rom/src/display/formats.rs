@@ -4,6 +4,7 @@ use ratatui_core::text::Line;
 
 use super::{
   Renderer,
+  TransferRow,
   aggregate_transfers,
   fit_line,
   format_duration,
@@ -152,13 +153,32 @@ impl Renderer<'_> {
 
     let mut transfers = self.snapshot.transfers().collect::<Vec<&Transfer>>();
     transfers.sort_by(|left, right| left.name.cmp(&right.name));
-    for transfer in transfers {
-      let mut spans = vec![
-        span("  ", self.config.theme.text),
-        span(transfer.name.clone(), self.transfer_color(transfer)),
-      ];
-      spans.extend(self.transfer_suffix(transfer, spans_width(&spans)));
-      lines.push(fit_line(spans, self.width));
+    if self.aligned_transfers() {
+      let rows = transfers
+        .into_iter()
+        .enumerate()
+        .map(|(index, transfer)| {
+          TransferRow {
+            line:     lines.len() + index,
+            lead:     vec![span("  ", self.config.theme.text)],
+            name:     transfer.name.clone(),
+            color:    self.transfer_color(transfer),
+            transfer: transfer.clone(),
+            trailing: Vec::new(),
+          }
+        })
+        .collect::<Vec<_>>();
+      lines.resize(lines.len() + rows.len(), Line::default());
+      self.place_transfers(&mut lines, rows);
+    } else {
+      for transfer in transfers {
+        let mut spans = vec![
+          span("  ", self.config.theme.text),
+          span(transfer.name.clone(), self.transfer_color(transfer)),
+        ];
+        spans.extend(self.transfer_suffix(transfer, spans_width(&spans)));
+        lines.push(fit_line(spans, self.width));
+      }
     }
 
     for fetch in &self.snapshot.source_fetches {
@@ -258,12 +278,26 @@ impl Renderer<'_> {
     let mut transfers = self.snapshot.transfers().peekable();
     if transfers.peek().is_some() {
       let transfer = aggregate_transfers(transfers);
-      let mut spans = vec![
+      let lead = vec![
         span("│  ", self.config.theme.connector),
         span("Transfer  │", self.config.theme.muted),
       ];
-      spans.extend(self.transfer_suffix(&transfer, spans_width(&spans)));
-      lines.push(fit_line(spans, self.width));
+      if self.aligned_transfers() {
+        let row = TransferRow {
+          line: lines.len(),
+          lead,
+          name: String::new(),
+          color: self.config.theme.text,
+          transfer,
+          trailing: Vec::new(),
+        };
+        lines.push(Line::default());
+        self.place_transfers(&mut lines, vec![row]);
+      } else {
+        let mut spans = lead;
+        spans.extend(self.transfer_suffix(&transfer, spans_width(&spans)));
+        lines.push(fit_line(spans, self.width));
+      }
     }
     lines.push(fit_line(
       vec![

@@ -40,6 +40,7 @@ pub use types::{
   RenderConfig,
   SummaryStyle,
   Theme,
+  TransferLayout,
 };
 
 /// Runs the CLI with the process's command-line arguments and returns the

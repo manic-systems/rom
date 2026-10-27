@@ -47,6 +47,7 @@ use crate::{
     LogPrefixStyle,
     RenderConfig,
     SummaryStyle,
+    TransferLayout,
   },
   usage::CgroupUsage,
 };
@@ -101,6 +102,10 @@ pub struct DisplayOptions {
   #[pound(long, global)]
   pub icons: Option<IconMode>,
 
+  /// Transfer progress layout. Defaults to inline.
+  #[pound(long, global)]
+  pub transfers: Option<TransferLayout>,
+
   /// Builder-log prefix. Defaults to short.
   #[pound(long, global)]
   pub log_prefix: Option<LogPrefixStyle>,
@@ -118,6 +123,7 @@ impl DisplayOptions {
       legend:     self.legend.or(file.legend),
       summary:    self.summary.or(file.summary),
       icons:      self.icons.or(file.icons),
+      transfers:  self.transfers.or(file.transfers),
       log_prefix: self.log_prefix.or(file.log_prefix),
       log_lines:  self.log_lines.or(file.log_lines),
     }
@@ -262,6 +268,7 @@ pub fn run() -> misstep::Result<ExitCode> {
       legend_style: cli.display.legend.unwrap_or_default(),
       summary_style: cli.display.summary.unwrap_or_default(),
       icons: cli.display.icons.unwrap_or_default(),
+      transfer_layout: cli.display.transfers.unwrap_or_default(),
       ..RenderConfig::default()
     },
   };

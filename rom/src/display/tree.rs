@@ -15,16 +15,14 @@ use ratatui_core::{
 use unicode_width::UnicodeWidthStr;
 
 use super::{
-  Direction,
   Renderer,
   Transfer,
+  TransferRow,
   aggregate_transfers,
   fit_line,
-  format_bytes,
   format_duration,
   format_secs,
   model::{RenderSnapshot, TransferPlacement, UnitCounts},
-  progress_bar,
   span,
   spans_width,
   truncate_text,
@@ -598,6 +596,8 @@ impl Renderer<'_> {
         break;
       }
     }
+    let transfers = std::mem::take(&mut self.transfers);
+    self.place_transfers(&mut lines, transfers);
     if truncated && maximum > 1 {
       let hidden = plan.line_count().saturating_sub(lines.len());
       let active = plan
@@ -845,7 +845,7 @@ impl Renderer<'_> {
           lines,
           ancestors,
           last,
-          &self.snapshot.placed_transfers[index].transfer,
+          self.snapshot.placed_transfers[index].transfer.clone(),
           row.consumers,
         );
       },
@@ -904,19 +904,34 @@ impl Renderer<'_> {
     );
     let name_width =
       usize::from(self.width).saturating_sub(spans_width(&spans) + reserve);
-    let name = self.row_name(info);
-    spans.push(span(truncate_text(name, name_width), color));
+    let name = self.row_name(info).to_owned();
+    let children = self.visible_children(id, row, selection);
+    let trailing = self.hidden_sources(row, &children);
 
     match transfer {
-      Some(aggregate) => {
-        spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
+      Some(transfer) if self.aligned_transfers() => {
+        self.transfers.push(TransferRow {
+          line: lines.len(),
+          lead: spans,
+          name,
+          color,
+          transfer,
+          trailing: trailing.into_iter().collect(),
+        });
+        lines.push(Line::default());
       },
-      None => spans.extend(suffix),
+      unaligned => {
+        spans.push(span(truncate_text(&name, name_width), color));
+        match unaligned {
+          Some(aggregate) => {
+            spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
+          },
+          None => spans.extend(suffix),
+        }
+        spans.extend(trailing);
+        lines.push(fit_line(spans, self.width));
+      },
     }
-
-    let children = self.visible_children(id, row, selection);
-    spans.extend(self.hidden_sources(row, &children));
-    lines.push(fit_line(spans, self.width));
     self.push_children(lines, children, ancestors, last, selection);
   }
 
@@ -1312,16 +1327,16 @@ impl Renderer<'_> {
   }
 
   fn push_transfer_row(
-    &self,
+    &mut self,
     lines: &mut Vec<Line<'static>>,
     ancestors: &[bool],
     last: bool,
-    transfer: &Transfer,
+    transfer: Transfer,
     consumers: usize,
   ) {
-    let mut spans = self.prefix(ancestors, last);
+    let lead = self.prefix(ancestors, last);
     let available =
-      usize::from(self.width).saturating_sub(spans_width(&spans) + 12);
+      usize::from(self.width).saturating_sub(spans_width(&lead) + 12);
     let shared = if consumers > 1 {
       let label = format!(" (used by {consumers} builds)");
       if label.width() + 8 <= available {
@@ -1332,68 +1347,26 @@ impl Renderer<'_> {
     } else {
       String::new()
     };
-    let name =
-      truncate_text(&transfer.name, available.saturating_sub(shared.width()));
-    spans.push(span(
-      format!("{name}{shared}"),
-      self.transfer_color(transfer),
-    ));
-    spans.extend(self.transfer_suffix(transfer, spans_width(&spans)));
-    lines.push(fit_line(spans, self.width));
-  }
-
-  pub(super) fn transfer_suffix(
-    &self,
-    transfer: &Transfer,
-    occupied: usize,
-  ) -> Vec<Span<'static>> {
-    let color = self.transfer_color(transfer);
-    let arrow = match transfer.direction {
-      Direction::Download => self.icons.download,
-      Direction::Upload => self.icons.upload,
-    };
-    let percent = transfer
-      .total
-      .filter(|total| *total > 0)
-      .map(|total| (transfer.done.saturating_mul(100) / total).min(100));
-    let bytes = transfer.total.map_or_else(
-      || format_bytes(transfer.done),
-      |total| {
-        format!("{}/{}", format_bytes(transfer.done), format_bytes(total))
-      },
-    );
-    let duration = format_duration(elapsed(transfer.start, self.now));
-    let essential = percent.map_or(8, |value| 7 + value.to_string().len());
-    let available = usize::from(self.width).saturating_sub(occupied);
-    let mut spans = vec![span(format!("  {arrow}{}", self.icons.gap), color)];
-    if let Some(value) = percent {
-      let bar_width = available.saturating_sub(essential).min(32);
-      if bar_width >= 4 {
-        spans.extend(progress_bar(
-          transfer.done,
-          transfer.total.unwrap_or(0),
-          bar_width,
-          color,
-          self.config.theme.progress_track,
-        ));
-        spans.push(Span::raw(" "));
-      }
-      spans.push(span(format!("{value:>3}%"), color));
-    } else {
-      spans.push(span(self.spinner(), color));
+    if !self.aligned_transfers() {
+      let name =
+        truncate_text(&transfer.name, available.saturating_sub(shared.width()));
+      let mut spans = lead;
+      spans.push(span(
+        format!("{name}{shared}"),
+        self.transfer_color(&transfer),
+      ));
+      spans.extend(self.transfer_suffix(&transfer, spans_width(&spans)));
+      lines.push(fit_line(spans, self.width));
+      return;
     }
-    if available > essential + bytes.len() + 2 {
-      spans.push(span(format!("  {bytes}"), self.config.theme.muted));
-    }
-    if available > essential + bytes.len() + duration.len() + 5 {
-      spans.push(span(format!("  {duration}"), self.config.theme.timer));
-    }
-    if transfer.host != "localhost"
-      && available
-        > essential + bytes.len() + duration.len() + transfer.host.len() + 9
-    {
-      spans.push(span(format!("  {}", transfer.host), self.config.theme.host));
-    }
-    spans
+    self.transfers.push(TransferRow {
+      line: lines.len(),
+      lead,
+      name: format!("{}{shared}", transfer.name),
+      color: self.transfer_color(&transfer),
+      transfer,
+      trailing: Vec::new(),
+    });
+    lines.push(Line::default());
   }
 }

@@ -44,6 +44,19 @@ pub enum LegendStyle {
   Verbose,
 }
 
+/// How transfer progress is laid out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
+#[cfg_attr(feature = "cli", derive(serde::Deserialize))]
+#[cfg_attr(feature = "cli", serde(rename_all = "kebab-case"))]
+pub enum TransferLayout {
+  /// Progress follows each transfer's name.
+  #[default]
+  Inline,
+  /// Bars, percentages, sizes, and hosts share columns across rows.
+  Aligned,
+}
+
 /// Final-summary detail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
@@ -177,23 +190,25 @@ pub struct RenderConfig {
   /// Emit ANSI styling for decoded logs and append-only presentations.
   ///
   /// Exact non-protocol passthrough is never changed by this setting.
-  pub ansi:          bool,
+  pub ansi:            bool,
   /// Show elapsed and estimated times.
-  pub show_timers:   bool,
+  pub show_timers:     bool,
   /// Width override; defaults to the terminal width.
-  pub width:         Option<u16>,
+  pub width:           Option<u16>,
   /// Height override; defaults to the terminal height.
-  pub height:        Option<u16>,
+  pub height:          Option<u16>,
   /// Primary presentation.
-  pub format:        DisplayFormat,
+  pub format:          DisplayFormat,
   /// Legend detail.
-  pub legend_style:  LegendStyle,
+  pub legend_style:    LegendStyle,
   /// Final summary detail.
-  pub summary_style: SummaryStyle,
+  pub summary_style:   SummaryStyle,
+  /// Transfer progress layout.
+  pub transfer_layout: TransferLayout,
   /// Colors.
-  pub theme:         Theme,
+  pub theme:           Theme,
   /// Icon selection.
-  pub icons:         IconMode,
+  pub icons:           IconMode,
 }
 
 impl Default for EngineConfig {
@@ -212,15 +227,16 @@ impl Default for EngineConfig {
 impl Default for RenderConfig {
   fn default() -> Self {
     Self {
-      ansi:          false,
-      show_timers:   true,
-      width:         None,
-      height:        None,
-      format:        DisplayFormat::Tree,
-      legend_style:  LegendStyle::Table,
-      summary_style: SummaryStyle::Concise,
-      theme:         Theme::default(),
-      icons:         IconMode::Nerd,
+      ansi:            false,
+      show_timers:     true,
+      width:           None,
+      height:          None,
+      format:          DisplayFormat::Tree,
+      legend_style:    LegendStyle::Table,
+      summary_style:   SummaryStyle::Concise,
+      transfer_layout: TransferLayout::Inline,
+      theme:           Theme::default(),
+      icons:           IconMode::Nerd,
     }
   }
 }

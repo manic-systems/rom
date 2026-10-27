@@ -91,6 +91,7 @@ Flags that affect the rom CLI's output can be set persistently in
 The keys are the same as the command line options, e.g.:
 
 ```toml
+transfers = "aligned"
 log-prefix = "short"
 log-lines = 20
 ```

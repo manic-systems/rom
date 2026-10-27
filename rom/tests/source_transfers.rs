@@ -11,7 +11,7 @@ use rom::{
   EngineConfig,
   display::render_frame,
   monitor::{DerivationResolver, Engine},
-  types::{DisplayFormat, RenderConfig},
+  types::{DisplayFormat, RenderConfig, TransferLayout},
 };
 use serde_json::json;
 
@@ -586,4 +586,60 @@ fn active_source_details_take_priority_over_completion_grace() {
   assert!(!text.contains("bbb-completed"), "{text}");
   assert!(text.contains("2 source downloads hidden"), "{text}");
   assert!(text.lines().count() <= 9, "{text}");
+}
+
+#[test]
+fn transfer_columns_align_across_rows() {
+  let mut engine = Engine::new(EngineConfig::default());
+  let downloads = [
+    ("gggggggggggggggggggggggggggggggg-jq-1.8.2", 55, 100),
+    (
+      "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh-libgpg-error-1.61",
+      7,
+      4_700,
+    ),
+    ("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii-xxHash-0.8.3", 970, 1_000),
+  ];
+  for (id, (name, done, total)) in (10..).zip(downloads) {
+    feed(
+      &mut engine,
+      &json!({"action":"start", "id":id, "parent":0, "level":3,
+      "text":"copying", "type":108,
+      "fields":[format!("/nix/store/{name}"), "https://cache.nixos.org"]}),
+      1.0,
+    );
+    feed(
+      &mut engine,
+      &json!({"action":"result", "id":id, "type":105,
+      "fields":[done * 1024, total * 1024, 1, 0]}),
+      1.1,
+    );
+  }
+  let text = render_frame(
+    engine.state(),
+    &RenderConfig {
+      transfer_layout: TransferLayout::Aligned,
+      ..RenderConfig::default()
+    },
+    1.2,
+    119,
+    23,
+    false,
+  )
+  .text();
+  let rows = text
+    .lines()
+    .filter(|line| line.contains('%'))
+    .collect::<Vec<&str>>();
+  assert_eq!(rows.len(), 3, "{text}");
+  let column = |line: &str, needle: &str| {
+    line[..line.find(needle).unwrap()].chars().count()
+  };
+  for needle in ["  \u{f063}", "%", "B  0s", "cache.nixos.org"] {
+    let first = column(rows[0], needle);
+    assert!(
+      rows.iter().all(|row| column(row, needle) == first),
+      "{needle} misaligned:\n{text}"
+    );
+  }
 }
