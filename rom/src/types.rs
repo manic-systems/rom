@@ -17,6 +17,8 @@ pub enum InputMode {
 /// Primary presentation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
+#[cfg_attr(feature = "cli", derive(serde::Deserialize))]
+#[cfg_attr(feature = "cli", serde(rename_all = "kebab-case"))]
 pub enum DisplayFormat {
   /// A connected dependency forest.
   #[default]
@@ -30,6 +32,8 @@ pub enum DisplayFormat {
 /// Legend detail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
+#[cfg_attr(feature = "cli", derive(serde::Deserialize))]
+#[cfg_attr(feature = "cli", serde(rename_all = "kebab-case"))]
 pub enum LegendStyle {
   /// Status counts on a single line.
   Compact,
@@ -43,6 +47,8 @@ pub enum LegendStyle {
 /// Final-summary detail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
+#[cfg_attr(feature = "cli", derive(serde::Deserialize))]
+#[cfg_attr(feature = "cli", serde(rename_all = "kebab-case"))]
 pub enum SummaryStyle {
   /// A single line of totals.
   #[default]
@@ -56,6 +62,8 @@ pub enum SummaryStyle {
 /// Prefix used for decoded builder log lines.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
+#[cfg_attr(feature = "cli", derive(serde::Deserialize))]
+#[cfg_attr(feature = "cli", serde(rename_all = "kebab-case"))]
 pub enum LogPrefixStyle {
   /// The derivation's short name.
   #[default]

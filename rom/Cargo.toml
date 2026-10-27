@@ -22,6 +22,7 @@ cli = [
   "dep:misstep",
   "dep:signal-hook",
   "dep:tracing-subscriber",
+  "dep:toml",
 ]
 
 [dependencies]
@@ -44,6 +45,7 @@ etcetera.workspace = true
 unicode-width.workspace = true
 libc.workspace = true
 signal-hook = { workspace = true, optional = true }
+toml = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile.workspace = true
