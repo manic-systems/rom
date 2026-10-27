@@ -3,6 +3,7 @@
 use std::{
   collections::HashSet,
   env::{self, VarError},
+  fs,
   io::{self, IsTerminal, Read, Write},
   iter,
   path::PathBuf,
@@ -17,8 +18,10 @@ use std::{
 };
 
 use cognos::Verbosity;
+use etcetera::{BaseStrategy, choose_base_strategy};
 use misstep::{OptionExt, ResultExt};
 use pound::{External, Parse};
+use serde::Deserialize;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{
   filter::Targets,
@@ -63,25 +66,8 @@ pub struct Cli {
   #[pound(long, global)]
   pub silent: bool,
 
-  /// Output format.
-  #[pound(long, global, default = DisplayFormat::Tree)]
-  pub format: DisplayFormat,
-
-  /// Legend style.
-  #[pound(long, global, default = LegendStyle::Table)]
-  pub legend: LegendStyle,
-
-  /// Final summary style.
-  #[pound(long, global, default = SummaryStyle::Concise)]
-  pub summary: SummaryStyle,
-
-  /// Builder-log prefix.
-  #[pound(long, global, default = LogPrefixStyle::Short)]
-  pub log_prefix: LogPrefixStyle,
-
-  /// Maximum decoded builder log lines per activity.
-  #[pound(long, global)]
-  pub log_lines: Option<usize>,
+  #[pound(flatten)]
+  pub display: DisplayOptions,
 
   /// Nix-family evaluator to use, nix or lix. Auto-detected by default.
   #[pound(long, global)]
@@ -90,6 +76,67 @@ pub struct Cli {
   /// Increase Nix and ROM diagnostic verbosity.
   #[pound(short = 'v', count, global)]
   pub verbose: u8,
+}
+
+/// Display flags, which can also be set in `$XDG_CONFIG_HOME/rom/config.toml`.
+///
+/// Flags given on the command line override the file.
+#[derive(Debug, Clone, Copy, Default, Parse, Deserialize)]
+#[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
+pub struct DisplayOptions {
+  /// Output format. Defaults to tree.
+  #[pound(long, global)]
+  pub format: Option<DisplayFormat>,
+
+  /// Legend style. Defaults to table.
+  #[pound(long, global)]
+  pub legend: Option<LegendStyle>,
+
+  /// Final summary style. Defaults to concise.
+  #[pound(long, global)]
+  pub summary: Option<SummaryStyle>,
+
+  /// Builder-log prefix. Defaults to short.
+  #[pound(long, global)]
+  pub log_prefix: Option<LogPrefixStyle>,
+
+  /// Maximum decoded builder log lines per activity.
+  #[pound(long, global)]
+  pub log_lines: Option<usize>,
+}
+
+impl DisplayOptions {
+  /// Fills the flags left unset from `file`.
+  fn or(self, file: Self) -> Self {
+    Self {
+      format:     self.format.or(file.format),
+      legend:     self.legend.or(file.legend),
+      summary:    self.summary.or(file.summary),
+      log_prefix: self.log_prefix.or(file.log_prefix),
+      log_lines:  self.log_lines.or(file.log_lines),
+    }
+  }
+}
+
+/// Reads the display flags set in the config file, if there is one.
+fn read_config() -> misstep::Result<DisplayOptions> {
+  let Ok(strategy) = choose_base_strategy() else {
+    return Ok(DisplayOptions::default());
+  };
+  let path = strategy.config_dir().join("rom").join("config.toml");
+  let text = match fs::read_to_string(&path) {
+    Ok(text) => text,
+    Err(error) if error.kind() == io::ErrorKind::NotFound => {
+      return Ok(DisplayOptions::default());
+    },
+    Err(error) => {
+      Err(error).with_context(|| format!("reading {}", path.display()))?
+    },
+  };
+  Ok(
+    toml::from_str(&text)
+      .with_context(|| format!("parsing {}", path.display()))?,
+  )
 }
 
 /// Nix commands that `rom` can wrap.
@@ -160,7 +207,8 @@ pub fn run() -> misstep::Result<ExitCode> {
     _ => {},
   }
 
-  let cli = Cli::parse_from(arguments.iter().map(String::as_str));
+  let mut cli = Cli::parse_from(arguments.iter().map(String::as_str));
+  cli.display = cli.display.or(read_config()?);
 
   let filter = match env::var("RUST_LOG") {
     Ok(directives) => {
@@ -198,15 +246,15 @@ pub fn run() -> misstep::Result<ExitCode> {
       } else {
         InputMode::Auto
       },
-      log_prefix_style: cli.log_prefix,
-      log_line_limit: cli.log_lines,
+      log_prefix_style: cli.display.log_prefix.unwrap_or_default(),
+      log_line_limit: cli.display.log_lines,
       ..EngineConfig::default()
     },
     render: RenderConfig {
       ansi: io::stderr().is_terminal(),
-      format: cli.format,
-      legend_style: cli.legend,
-      summary_style: cli.summary,
+      format: cli.display.format.unwrap_or_default(),
+      legend_style: cli.display.legend.unwrap_or_default(),
+      summary_style: cli.display.summary.unwrap_or_default(),
       ..RenderConfig::default()
     },
   };
