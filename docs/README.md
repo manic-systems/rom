@@ -85,6 +85,17 @@ Direct live rendering requires at least 20 columns by 8 rows; smaller terminals
 use the append-only fallback rather than dropping legend rows or drawing a
 disconnected tree.
 
+## Configuration
+
+Flags that affect the rom CLI's output can be set persistently in
+`$XDG_CONFIG_HOME/rom/config.toml` (usually `~/.config/rom/config.toml`).
+The keys are the same as the command line options, e.g.:
+
+```toml
+log-prefix = "short"
+log-lines = 20
+```
+
 ## Library
 
 `Engine` is the deterministic reducer. It owns no terminal, threads, global
