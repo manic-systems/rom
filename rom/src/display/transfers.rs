@@ -55,6 +55,8 @@ struct Columns {
   /// Width of the arrow, the percentage, and the space around them, without
   /// the bar.
   status:   usize,
+  /// Width of the percentage, or of the spinner when no row has one.
+  percent:  usize,
   bar:      usize,
   bytes:    usize,
   duration: usize,
@@ -145,7 +147,8 @@ impl Renderer<'_> {
       + self.icons.gap.width();
     let has_bar = figures.iter().any(|item| item.percent.is_some());
     // Without any bar, the arrow and spinner follow the names directly.
-    let status = if has_bar { arrow + PERCENT } else { arrow + 1 };
+    let percent = if has_bar { PERCENT } else { 1 };
+    let status = arrow + percent;
     let widest = |measure: fn(&Figures) -> usize| {
       figures.iter().map(measure).max().unwrap_or(0)
     };
@@ -177,6 +180,7 @@ impl Renderer<'_> {
         return Columns {
           name_end,
           status,
+          percent,
           bar,
           bytes: kept[2],
           duration: kept[1],
@@ -187,6 +191,7 @@ impl Renderer<'_> {
     Columns {
       name_end: width.saturating_sub(status),
       status,
+      percent,
       bar: 0,
       bytes: 0,
       duration: 0,
@@ -216,14 +221,13 @@ impl Renderer<'_> {
 
     let progress = self.transfer_color(&transfer);
     let arrow = self.arrow(&transfer);
-    let bar = if columns.bar > 0 { columns.bar + 1 } else { 0 };
+    let gap =
+      columns.status - columns.percent - arrow.width() - self.icons.gap.width();
+    lead.push(span(
+      format!("{}{arrow}{}", " ".repeat(gap), self.icons.gap),
+      progress,
+    ));
     if let Some(value) = figures.percent {
-      let gap =
-        columns.status - PERCENT - arrow.width() - self.icons.gap.width();
-      lead.push(span(
-        format!("{}{arrow}{}", " ".repeat(gap), self.icons.gap),
-        progress,
-      ));
       if columns.bar > 0 {
         lead.extend(progress_bar(
           transfer.done,
@@ -236,11 +240,18 @@ impl Renderer<'_> {
       }
       lead.push(span(format!("{value:>3}%"), progress));
     } else {
-      // Without a total, the arrow sits beside the spinner in the percent
-      // column.
-      let label = format!("{arrow}{}{}", self.icons.gap, self.spinner());
-      let padding = (columns.status + bar).saturating_sub(label.width());
-      lead.push(span(format!("{}{label}", " ".repeat(padding)), progress));
+      // Without a total, the bar stays blank and the spinner takes the place
+      // of the percentage.
+      let bar = if columns.bar > 0 { columns.bar + 1 } else { 0 };
+      lead.push(span(
+        format!(
+          "{}{:>width$}",
+          " ".repeat(bar),
+          self.spinner(),
+          width = columns.percent
+        ),
+        progress,
+      ));
     }
     if columns.bytes > 0 {
       lead.push(span(
