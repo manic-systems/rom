@@ -90,8 +90,8 @@ pub fn apply_event_at(state: &mut State, event: Event, now: f64) -> Effects {
         ActivityResult::SetPhase(phase) => {
           effects.changed |= state.set_activity_phase(id, phase);
         },
-        ActivityResult::Progress { done, expected, .. } => {
-          effects.changed |= state.update_activity_progress(id, done, expected);
+        ActivityResult::Progress(progress) => {
+          effects.changed |= state.update_activity_progress(id, progress);
         },
         ActivityResult::UntrustedPath(path) => {
           state.record_error(format!("Untrusted path: {path}"));
