@@ -669,17 +669,28 @@ impl Renderer<'_> {
     }
 
     let mut remaining = maximum.saturating_sub(1); // Builds header
-    selection.rows.extend(
-      order
-        .iter()
-        .copied()
-        .filter(|id| {
-          let row = plan.row(*id);
-          !focus_active || row.active
-        })
-        .take(remaining),
-    );
-    remaining -= selection.rows.len();
+    // A row without its parent draws at the top level.
+    for &id in order
+      .iter()
+      .filter(|id| !focus_active || plan.row(**id).active)
+    {
+      if selection.rows.contains(&id) {
+        continue;
+      }
+      let mut chain = vec![id];
+      let mut above = selection.parents[&id];
+      while let Some(parent) =
+        above.filter(|parent| !selection.rows.contains(parent))
+      {
+        chain.push(parent);
+        above = selection.parents[&parent];
+      }
+      if chain.len() > remaining {
+        continue;
+      }
+      remaining -= chain.len();
+      selection.rows.extend(chain);
+    }
     if focus_active {
       let mut ancestors: VecDeque<_> = order
         .iter()
