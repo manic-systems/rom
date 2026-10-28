@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use cognos::{Actions, Activities, Host, Id, ResultType, Verbosity};
 use serde_json::Value;
 
-use crate::state::{Blocker, Derivation, StorePath};
+use crate::state::{Blocker, Derivation, Progress, StorePath};
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -77,7 +77,7 @@ pub enum ActivityResult {
   BuildLog(String),
   PostBuildLog(String),
   SetPhase(String),
-  Progress { done: u64, expected: u64 },
+  Progress(Progress),
   UntrustedPath(String),
   CorruptedPath(String),
   Ignored,
@@ -235,9 +235,16 @@ fn decode_result(result_type: ResultType, fields: &[Value]) -> ActivityResult {
     ResultType::Progress => {
       match fields {
         [done, expected, ..] => {
+          let count =
+            |at: usize| fields.get(at).and_then(Value::as_u64).unwrap_or(0);
           match (done.as_u64(), expected.as_u64()) {
             (Some(done), Some(expected)) => {
-              ActivityResult::Progress { done, expected }
+              ActivityResult::Progress(Progress {
+                done,
+                expected,
+                running: count(2),
+                failed: count(3),
+              })
             },
             _ => ActivityResult::Ignored,
           }

@@ -272,7 +272,10 @@ impl<'a> RenderSnapshot<'a> {
       builds:    StatusCounts {
         running:   builds.running.len(),
         completed: builds.completed.len() + available,
-        waiting:   builds.planned.len(),
+        waiting:   builds.planned.len().max(
+          usize::try_from(state.builds_progress().waiting())
+            .unwrap_or(usize::MAX),
+        ),
         failed:    builds.failed.len() + dependency_failed,
       },
       downloads: StatusCounts {
