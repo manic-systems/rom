@@ -72,7 +72,7 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
     );
     let styled = frame.ansi_text();
     let unstyled = strip_ansi(&styled);
-    let unstyled: Vec<_> = unstyled.lines().map(str::trim_end).collect();
+    let unstyled = unstyled.lines().map(str::trim_end).collect::<Vec<&str>>();
     assert_eq!(unstyled.join("\n"), frame.text(), "{snapshot}: {name}");
     writeln!(actual, "=== {name} @ {at_ms}ms ===").unwrap();
     actual.push_str(&visible_escapes(&styled));
@@ -88,7 +88,7 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
         index + 1
       )
     });
-    let time: u64 = time.parse().unwrap();
+    let time = time.parse::<u64>().unwrap();
     assert!(time >= at_ms, "{log}: timestamps must be monotonic");
     at_ms = time;
     if let Some(name) = rest.strip_prefix("= ") {
@@ -174,8 +174,8 @@ fn assert_or_bless(path: &Path, actual: &str) {
 }
 
 fn simple_diff(expected: &str, actual: &str) -> String {
-  let expected: Vec<_> = expected.lines().collect();
-  let actual: Vec<_> = actual.lines().collect();
+  let expected = expected.lines().collect::<Vec<&str>>();
+  let actual = actual.lines().collect::<Vec<&str>>();
   let mut diff = String::from("--- expected\n+++ actual\n");
   for index in 0..expected.len().max(actual.len()) {
     match (expected.get(index), actual.get(index)) {

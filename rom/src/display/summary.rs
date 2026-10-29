@@ -8,7 +8,7 @@ use unicode_width::UnicodeWidthStr;
 
 use super::{Renderer, fit_line, format_duration, span, spans_width};
 use crate::{
-  state::elapsed,
+  state::{BuildInfo, elapsed},
   types::{LegendStyle, SummaryStyle},
 };
 
@@ -160,7 +160,7 @@ impl Renderer<'_> {
 
   fn verbose_legend(&self) -> Vec<Line<'static>> {
     let mut rows = vec![vec![span("Build Summary", self.config.theme.text)]];
-    let mut builds: Vec<_> = self
+    let mut builds = self
       .snapshot
       .builds
       .running
@@ -168,7 +168,7 @@ impl Renderer<'_> {
       .filter_map(|(id, build)| {
         Some((self.snapshot.derivation(*id)?.name.name.clone(), *build))
       })
-      .collect();
+      .collect::<Vec<(String, &BuildInfo)>>();
     builds.sort_by(|left, right| left.0.cmp(&right.0));
     for (name, build) in builds {
       let host = build.host.name();
@@ -347,7 +347,7 @@ impl Renderer<'_> {
 
 /// Lays out rows as aligned columns separated by `gap` spaces.
 fn status_grid(rows: &[StatusRow], gap: usize) -> Vec<Vec<Span<'static>>> {
-  let mut widths: [usize; 6] = std::array::from_fn(|column| {
+  let mut widths = std::array::from_fn::<usize, 6, _>(|column| {
     rows
       .iter()
       .map(|row| row[column].0.width())

@@ -69,7 +69,7 @@ fn shrinking_graph_stays_anchored_to_the_bottom() {
   // Each repaint clears the previous region one row at a time and then draws
   // logs and the new frame. Drawing fewer rows than were cleared would leave
   // blank rows under the graph. Only the final frame may shrink.
-  let repaints: Vec<_> = frames
+  let repaints = frames
     .iter()
     .filter_map(|frame| {
       let cleared = count(frame, CLEAR_LINE);
@@ -77,7 +77,7 @@ fn shrinking_graph_stays_anchored_to_the_bottom() {
         .map(|end| count(&frame[end..], b"\n") + 1)?;
       Some((cleared, drawn))
     })
-    .collect();
+    .collect::<Vec<(usize, usize)>>();
   assert!(repaints.len() > 2, "too few live repaints to check");
   for (cleared, drawn) in &repaints[..repaints.len() - 1] {
     assert!(
