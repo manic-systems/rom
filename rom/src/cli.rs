@@ -44,6 +44,7 @@ use crate::{
     RenderConfig,
     SummaryStyle,
   },
+  usage::CgroupUsage,
 };
 
 /// Pretty build graphs for your pretty Nix builds.
@@ -783,6 +784,9 @@ fn drive(
     .engine_mut()
     .set_resolver(FilesystemResolver::default());
   stream.engine_mut().load_history(&history);
+  if let Some(usage) = CgroupUsage::detect() {
+    stream.engine_mut().set_usage(usage);
+  }
   let mut presenter = Presenter::new(silent);
   let mut dirty = false;
   let mut last_frame = Instant::now()
@@ -808,6 +812,7 @@ fn drive(
       Err(RecvTimeoutError::Timeout) => {},
     }
     dirty |= stream.engine_mut().poll_lookups(current_time());
+    dirty |= stream.engine_mut().sample_usage(current_time());
     let timer_due = last_timer.elapsed() >= Duration::from_secs(1);
     if !silent
       && (dirty || timer_due)
