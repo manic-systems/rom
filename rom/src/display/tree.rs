@@ -8,7 +8,10 @@ use std::{
 
 use cognos::Host;
 use foldhash::{HashMap, HashMapExt, HashSet, HashSetExt};
-use ratatui_core::text::{Line, Span};
+use ratatui_core::{
+  style::Color,
+  text::{Line, Span},
+};
 use unicode_width::UnicodeWidthStr;
 
 use super::{
@@ -26,7 +29,15 @@ use super::{
   spans_width,
   truncate_text,
 };
-use crate::state::{Blocker, BuildStatus, DerivationId, Membership, elapsed};
+use crate::state::{
+  Blocker,
+  BuildInfo,
+  BuildStatus,
+  DerivationId,
+  DerivationInfo,
+  Membership,
+  elapsed,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum RowId {
@@ -812,6 +823,7 @@ impl Renderer<'_> {
     if lines.len() >= selection.maximum || !selection.rows.contains(&id) {
       return;
     }
+
     match id {
       RowId::Build(derivation) => {
         self.push_build(lines, derivation, ancestors, last, selection);
@@ -849,9 +861,11 @@ impl Renderer<'_> {
     if !self.seen.insert(id) {
       return;
     }
+
     let Some(info) = self.snapshot.derivation(id) else {
       return;
     };
+
     let row = selection.plan.row(RowId::Build(id));
 
     let mut spans = self.prefix(ancestors, last);
@@ -860,6 +874,103 @@ impl Renderer<'_> {
     {
       spans.push(span("\u{2026} ", self.config.theme.muted)); // …
     }
+
+    let (icon, color, suffix) = self.build_status(id, info, row, selection);
+    spans.push(span(format!("{icon}{}", self.icons.gap), color));
+
+    let transfer = (!row.inline.is_empty()).then(|| {
+      aggregate_transfers(
+        row
+          .inline
+          .iter()
+          .map(|&index| &self.snapshot.placed_transfers[index].transfer),
+      )
+    });
+
+    let reserve = transfer.as_ref().map_or_else(
+      || spans_width(&suffix),
+      |item| if item.total.is_some() { 12 } else { 8 },
+    );
+    let name_width =
+      usize::from(self.width).saturating_sub(spans_width(&spans) + reserve);
+    let name = self.row_name(info);
+    spans.push(span(truncate_text(name, name_width), color));
+
+    match transfer {
+      Some(aggregate) => {
+        spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
+      },
+      None => spans.extend(suffix),
+    }
+
+    let children = self.visible_children(id, row, selection);
+    spans.extend(self.hidden_sources(row, &children));
+    lines.push(fit_line(spans, self.width));
+    self.push_children(lines, children, ancestors, last, selection);
+  }
+
+  /// Draws `children` one level below a row, stopping at the line limit.
+  fn push_children(
+    &mut self,
+    lines: &mut Vec<Line<'static>>,
+    children: Vec<RowId>,
+    ancestors: &[bool],
+    last: bool,
+    selection: &TreeSelection<'_>,
+  ) {
+    let mut descendants = ancestors.to_vec();
+    descendants.push(!last);
+    let count = children.len();
+    for (position, child) in children.into_iter().enumerate() {
+      self.push_row(
+        lines,
+        child,
+        &descendants,
+        position + 1 == count,
+        selection,
+      );
+      if lines.len() >= selection.maximum {
+        break;
+      }
+    }
+  }
+
+  fn hidden_sources(
+    &self,
+    row: &PlannedRow,
+    children: &[RowId],
+  ) -> Option<Span<'static>> {
+    let source_count = row
+      .children
+      .iter()
+      .filter(|child| matches!(child, RowId::Transfer(_)))
+      .count();
+    let shown_sources = children
+      .iter()
+      .filter(|child| matches!(child, RowId::Transfer(_)))
+      .count();
+    let hidden_sources = source_count.saturating_sub(shown_sources);
+    if hidden_sources == 0 {
+      return None;
+    }
+
+    let plural = if hidden_sources == 1 { "" } else { "s" };
+    Some(span(
+      format!("  ({hidden_sources} source download{plural} hidden)"),
+      self.config.theme.muted,
+    ))
+  }
+
+  /// Returns the icon, color and status suffix for a build row.
+  ///
+  /// A running or failed producer stands in for the derivation it writes.
+  fn build_status(
+    &self,
+    id: DerivationId,
+    info: &DerivationInfo,
+    row: &PlannedRow,
+    selection: &TreeSelection<'_>,
+  ) -> (&'static str, Color, Vec<Span<'static>>) {
     let units = self
       .snapshot
       .packages
@@ -879,22 +990,12 @@ impl Renderer<'_> {
         )
       })
       .unwrap_or(&info.build_status);
+
     let (icon, color, mut suffix) = match status {
-      BuildStatus::Unknown | BuildStatus::Planned if unit_start.is_some() => {
-        let mut suffix = Vec::new();
-        if self.config.show_timers
-          && let Some(start) = unit_start
-        {
-          suffix.push(span(
-            format!(
-              "  {}{}{}",
-              self.icons.clock,
-              self.icons.gap,
-              format_duration(elapsed(start, self.now))
-            ),
-            self.config.theme.timer,
-          ));
-        }
+      BuildStatus::Unknown | BuildStatus::Planned
+        if let Some(start) = unit_start =>
+      {
+        let suffix = self.clock(start).into_iter().collect();
         (self.icons.running, self.config.theme.running, suffix)
       },
       BuildStatus::Unknown
@@ -922,69 +1023,7 @@ impl Renderer<'_> {
         )
       },
       BuildStatus::Building(build) => {
-        let mut suffix = Vec::new();
-        if let Some(phase) = &build.phase {
-          suffix.push(span(format!("  ({phase})"), self.config.theme.muted));
-        }
-        if self.config.show_timers {
-          suffix.push(span(
-            format!(
-              "  {}{}{}",
-              self.icons.clock,
-              self.icons.gap,
-              format_duration(elapsed(build.start, self.now))
-            ),
-            self.config.theme.timer,
-          ));
-        }
-        if let Some(cores) = build.cpu {
-          suffix.push(span(
-            format!("  {}{}{cores:.1}", self.icons.cpu, self.icons.gap),
-            self.config.theme.timer,
-          ));
-        }
-        if let Host::Remote(machine) = &build.host {
-          let label = format!(" @{machine}");
-          suffix.push(span(label, self.config.theme.host));
-        }
-        if let Some(estimate) = build.estimate
-          && !self.snapshot.state.name_is_shared(&info.name.name)
-        {
-          suffix.push(span(
-            format!(
-              "  ({}{}{})",
-              self.icons.estimate,
-              self.icons.gap,
-              format_secs(estimate)
-            ),
-            self.config.theme.timer,
-          ));
-        }
-        let mut seen = HashSet::new();
-        let mut above = vec![id];
-        let mut unseen = 0;
-        while let Some(current) = above.pop() {
-          let Some(node) = self.snapshot.derivation(current) else {
-            continue;
-          };
-          for &parent in &node.derivation_parents {
-            let waiting =
-              self.snapshot.derivation(parent).is_some_and(|derivation| {
-                matches!(derivation.build_status, BuildStatus::Planned)
-              });
-            if waiting && seen.insert(parent) {
-              unseen +=
-                usize::from(!selection.rows.contains(&RowId::Build(parent)));
-              above.push(parent);
-            }
-          }
-        }
-        if unseen > 0 {
-          suffix.push(span(
-            format!("  (+{unseen} waiting)"),
-            self.config.theme.planned,
-          ));
-        }
+        let suffix = self.running_suffix(id, info, build, selection);
         (self.icons.running, self.config.theme.running, suffix)
       },
       BuildStatus::Built { .. } | BuildStatus::Available => {
@@ -997,6 +1036,7 @@ impl Renderer<'_> {
         (self.icons.failed, self.config.theme.muted, Vec::new())
       },
     };
+
     if let Some(counts) = units
       && !matches!(
         info.build_status,
@@ -1005,50 +1045,140 @@ impl Renderer<'_> {
     {
       suffix.insert(0, self.unit_summary(counts));
     }
+
     if let Some(progress) = self.unit_progress(id) {
       suffix.insert(0, progress);
     }
-    let stripped = info.name.name.strip_suffix(".drv");
-    if stripped.is_some() && matches!(info.membership, Membership::Unit(_)) {
+
+    if info.name.name.strip_suffix(".drv").is_some()
+      && matches!(info.membership, Membership::Unit(_))
+    {
       suffix.insert(0, span("  (scan)", self.config.theme.muted));
     }
-    spans.push(span(format!("{icon}{}", self.icons.gap), color));
-    let transfer = (!row.inline.is_empty()).then(|| {
-      aggregate_transfers(
-        row
-          .inline
-          .iter()
-          .map(|&index| &self.snapshot.placed_transfers[index].transfer),
-      )
-    });
-    let has_transfer = transfer.is_some();
-    let reserve = transfer.as_ref().map_or_else(
-      || spans_width(&suffix),
-      |item| if item.total.is_some() { 12 } else { 8 },
-    );
-    let name_width =
-      usize::from(self.width).saturating_sub(spans_width(&spans) + reserve);
-    let stem = stripped.unwrap_or(&info.name.name);
-    let name = match info.membership {
-      Membership::Unit(package) => {
-        self.snapshot.derivation(package).map_or(stem, |package| {
-          stem
-            .strip_prefix(package.name.name.as_str())
-            .and_then(|name| name.strip_prefix('-'))
-            .unwrap_or(stem)
-        })
-      },
-      Membership::Outside | Membership::Package => stem,
-    };
-    spans.push(span(truncate_text(name, name_width), color));
-    if let Some(aggregate) = transfer {
-      spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
-    }
-    if !has_transfer {
-      spans.extend(suffix);
+
+    (icon, color, suffix)
+  }
+
+  fn running_suffix(
+    &self,
+    id: DerivationId,
+    info: &DerivationInfo,
+    build: &BuildInfo,
+    selection: &TreeSelection<'_>,
+  ) -> Vec<Span<'static>> {
+    let mut suffix = Vec::new();
+
+    if let Some(phase) = &build.phase {
+      suffix.push(span(format!("  ({phase})"), self.config.theme.muted));
     }
 
-    let mut children: Vec<_> = row
+    suffix.extend(self.clock(build.start));
+
+    if let Some(cores) = build.cpu {
+      suffix.push(span(
+        format!("  {}{}{cores:.1}", self.icons.cpu, self.icons.gap),
+        self.config.theme.timer,
+      ));
+    }
+
+    if let Host::Remote(machine) = &build.host {
+      suffix.push(span(format!(" @{machine}"), self.config.theme.host));
+    }
+
+    if let Some(estimate) = build.estimate
+      && !self.snapshot.state.name_is_shared(&info.name.name)
+    {
+      suffix.push(span(
+        format!(
+          "  ({}{}{})",
+          self.icons.estimate,
+          self.icons.gap,
+          format_secs(estimate)
+        ),
+        self.config.theme.timer,
+      ));
+    }
+
+    let waiting = self.hidden_waiting(id, selection);
+    if waiting > 0 {
+      suffix.push(span(
+        format!("  (+{waiting} waiting)"),
+        self.config.theme.planned,
+      ));
+    }
+
+    suffix
+  }
+
+  /// Counts the planned derivations above `id`, transitively, that have no
+  /// row of their own.
+  fn hidden_waiting(
+    &self,
+    id: DerivationId,
+    selection: &TreeSelection<'_>,
+  ) -> usize {
+    let mut seen = HashSet::new();
+    let mut hidden = 0;
+    let mut above = vec![id];
+
+    while let Some(current) = above.pop() {
+      let Some(node) = self.snapshot.derivation(current) else {
+        continue;
+      };
+
+      for &parent in &node.derivation_parents {
+        let waiting =
+          self.snapshot.derivation(parent).is_some_and(|derivation| {
+            matches!(derivation.build_status, BuildStatus::Planned)
+          });
+        if waiting && seen.insert(parent) {
+          hidden +=
+            usize::from(!selection.rows.contains(&RowId::Build(parent)));
+          above.push(parent);
+        }
+      }
+    }
+
+    hidden
+  }
+
+  fn clock(&self, start: f64) -> Option<Span<'static>> {
+    self.config.show_timers.then(|| {
+      span(
+        format!(
+          "  {}{}{}",
+          self.icons.clock,
+          self.icons.gap,
+          format_duration(elapsed(start, self.now))
+        ),
+        self.config.theme.timer,
+      )
+    })
+  }
+
+  /// Drops a unit's package name from its own, which the row above shows.
+  fn row_name<'info>(&self, info: &'info DerivationInfo) -> &'info str {
+    let name = &info.name.name;
+    let stem = name.strip_suffix(".drv").unwrap_or(name);
+    let Membership::Unit(package) = info.membership else {
+      return stem;
+    };
+    self.snapshot.derivation(package).map_or(stem, |package| {
+      stem
+        .strip_prefix(package.name.name.as_str())
+        .and_then(|name| name.strip_prefix('-'))
+        .unwrap_or(stem)
+    })
+  }
+
+  /// Child rows drawn under `id`, sources first, then by priority.
+  fn visible_children(
+    &self,
+    id: DerivationId,
+    row: &PlannedRow,
+    selection: &TreeSelection<'_>,
+  ) -> Vec<RowId> {
+    let mut children = row
       .children
       .iter()
       .copied()
@@ -1057,47 +1187,14 @@ impl Renderer<'_> {
       .filter(|child| {
         !matches!(child, RowId::Build(child) if self.seen.contains(child))
       })
-      .collect();
+      .collect::<Vec<RowId>>();
     children.sort_by_key(|child| {
       (
         !matches!(child, RowId::Transfer(_)),
         Reverse(selection.plan.row(*child).priority),
       )
     });
-    let source_count = row
-      .children
-      .iter()
-      .filter(|child| matches!(child, RowId::Transfer(_)))
-      .count();
-    let shown_sources = children
-      .iter()
-      .filter(|child| matches!(child, RowId::Transfer(_)))
-      .count();
-    let hidden_sources = source_count.saturating_sub(shown_sources);
-    if hidden_sources > 0 {
-      let plural = if hidden_sources == 1 { "" } else { "s" };
-      spans.push(span(
-        format!("  ({hidden_sources} source download{plural} hidden)"),
-        self.config.theme.muted,
-      ));
-    }
-    lines.push(fit_line(spans, self.width));
-
-    let mut descendants = ancestors.to_vec();
-    descendants.push(!last);
-    let count = children.len();
-    for (position, child) in children.into_iter().enumerate() {
-      self.push_row(
-        lines,
-        child,
-        &descendants,
-        position + 1 == count,
-        selection,
-      );
-      if lines.len() >= selection.maximum {
-        break;
-      }
-    }
+    children
   }
 
   /// Returns how many of the units a unit waits on are done, like `(12/15)`.
@@ -1190,18 +1287,7 @@ impl Renderer<'_> {
     spans.push(span(label, self.config.theme.text));
     lines.push(Line::from(spans));
 
-    let mut descendants = ancestors.to_vec();
-    descendants.push(!last);
-    let count = shown.len();
-    for (position, child) in shown.into_iter().enumerate() {
-      self.push_row(
-        lines,
-        child,
-        &descendants,
-        position + 1 == count,
-        selection,
-      );
-    }
+    self.push_children(lines, shown, ancestors, last, selection);
   }
 
   fn prefix(&self, ancestors: &[bool], last: bool) -> Vec<Span<'static>> {
