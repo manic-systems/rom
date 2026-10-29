@@ -74,8 +74,7 @@ impl BuildReportCache {
     let reader = BufReader::new(file);
     let mut csv_reader = Reader::from_reader(reader);
 
-    let mut reports: BTreeMap<(String, String), Vec<BuildReport>> =
-      BTreeMap::new();
+    let mut reports = BTreeMap::<(String, String), Vec<BuildReport>>::new();
 
     for result in csv_reader.deserialize::<BuildReportRow>() {
       let Ok(row) = result else {
@@ -200,8 +199,10 @@ impl BuildReportCache {
       return None;
     }
 
-    let mut durations: Vec<u64> =
-      reports.iter().map(|r| r.duration_secs).collect();
+    let mut durations = reports
+      .iter()
+      .map(|r| r.duration_secs)
+      .collect::<Vec<u64>>();
     durations.sort_unstable();
 
     let len = durations.len();

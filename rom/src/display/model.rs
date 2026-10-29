@@ -454,7 +454,7 @@ impl<'a> RenderSnapshot<'a> {
 pub(super) fn aggregate_transfers<'a>(
   transfers: impl IntoIterator<Item = &'a Transfer>,
 ) -> Transfer {
-  let mut selected: Vec<_> = transfers.into_iter().collect();
+  let mut selected = transfers.into_iter().collect::<Vec<&Transfer>>();
   // A just-completed transfer remains visible briefly, but must not be folded
   // into an active transfer's progress. Mixing those scopes makes the total
   // jump whenever the completed-transfer grace period starts or expires.

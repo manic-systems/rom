@@ -51,7 +51,7 @@ fn main() {
 
   let render = RenderConfig::default();
   let started = Instant::now();
-  let rendered_rows: usize = (0..FRAMES)
+  let rendered_rows = (0..FRAMES)
     .map(|frame| {
       usize::from(
         black_box(render_frame(
@@ -65,7 +65,7 @@ fn main() {
         .height,
       )
     })
-    .sum();
+    .sum::<usize>();
   let elapsed = started.elapsed();
   println!(
     "rendered {FRAMES} frames over {DERIVATIONS} visible derivations in \

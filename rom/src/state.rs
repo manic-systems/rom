@@ -846,7 +846,7 @@ impl State {
 
     let mut pending = vec![id];
     while let Some(current) = pending.pop() {
-      let adopted: Vec<_> =
+      let adopted =
         self.derivation_infos[&current]
           .input_derivations
           .iter()
@@ -861,7 +861,7 @@ impl State {
                 })
             })
           })
-          .collect();
+          .collect::<Vec<DerivationId>>();
       for &input in &adopted {
         self.derivation_infos[&input].membership = Membership::Unit(package);
       }

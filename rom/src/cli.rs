@@ -887,14 +887,14 @@ fn available_derivations(
 ) -> io::Result<Vec<DerivationId>> {
   #[cfg(unix)] use std::os::unix::process::CommandExt;
 
-  let mut relevant: HashSet<_> = state
+  let mut relevant = state
     .derivations()
     .iter()
     .filter_map(|(&id, info)| {
       matches!(info.build_status, BuildStatus::Planned).then_some(id)
     })
-    .collect();
-  let mut ancestors: Vec<_> = relevant.iter().copied().collect();
+    .collect::<HashSet<DerivationId>>();
+  let mut ancestors = relevant.iter().copied().collect::<Vec<DerivationId>>();
   while let Some(id) = ancestors.pop() {
     for &parent in &state.derivations()[&id].derivation_parents {
       if relevant.insert(parent) {
@@ -902,7 +902,7 @@ fn available_derivations(
       }
     }
   }
-  let candidates: Vec<_> = state
+  let candidates = state
     .derivations()
     .iter()
     .filter(|(id, info)| {
@@ -914,8 +914,10 @@ fn available_derivations(
         && info.name.path.is_file()
     })
     .map(|(&id, info)| (id, &info.name.path))
-    .collect();
-  let mut pending: Vec<_> = candidates.chunks(128).collect();
+    .collect::<Vec<(DerivationId, &PathBuf)>>();
+  let mut pending = candidates
+    .chunks(128)
+    .collect::<Vec<&[(DerivationId, &PathBuf)]>>();
   let mut available = Vec::new();
 
   // Older Nix clients can spin for good resolving dynamic derivations.
