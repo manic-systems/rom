@@ -766,6 +766,61 @@ impl Presenter {
 
 const LOG_INTERVAL: Duration = Duration::from_millis(50);
 
+/// Feeds Nix's output to `stream` and redraws the live frame until the output
+/// ends.
+fn watch(
+  receiver: &Receiver<io::Result<Vec<u8>>>,
+  stream: &mut StreamEngine,
+  presenter: &mut Presenter,
+  render: &RenderConfig,
+  silent: bool,
+) -> misstep::Result<()> {
+  let rendered =
+    !silent && presenter.render_initial(stream, render, current_time())?;
+
+  let started = Instant::now();
+  let mut last_frame = rendered.then_some(started);
+  let mut last_timer = started;
+  let mut last_logs = started;
+  let mut dirty = false;
+  loop {
+    match receiver.recv_timeout(Duration::from_millis(25)) {
+      Ok(Ok(bytes)) => {
+        let Processed { changed, output } =
+          stream.push_at(&bytes, current_time())?;
+        let has_output = !output.is_empty();
+        presenter.output(output, render)?;
+        dirty |= changed || has_output;
+      },
+      Ok(Err(error)) => Err(error).context("reading build output")?,
+      Err(RecvTimeoutError::Disconnected) => return Ok(()),
+      Err(RecvTimeoutError::Timeout) => {},
+    }
+
+    let now = Instant::now();
+    let time = current_time();
+    dirty |= stream.engine_mut().poll_lookups(time);
+    dirty |= stream.engine_mut().sample_usage(time);
+
+    let timer_due = now - last_timer >= Duration::from_secs(1);
+    let redraw = !silent && (dirty || timer_due);
+    let frame_due =
+      last_frame.is_none_or(|frame| now - frame >= presenter.frame_interval());
+
+    if redraw && frame_due {
+      presenter.render(stream, render, time, false)?;
+      dirty = false;
+      last_frame = Some(now);
+      if timer_due {
+        last_timer = now;
+      }
+    } else if now - last_logs >= LOG_INTERVAL {
+      presenter.flush_logs()?;
+      last_logs = now;
+    }
+  }
+}
+
 fn drive(
   receiver: &Receiver<io::Result<Vec<u8>>>,
   config: Config,
@@ -779,56 +834,19 @@ fn drive(
     BuildReportCache::default_cache_path()
       .context("locating the build history")?,
   );
+
   let mut stream = StreamEngine::new(engine);
   stream
     .engine_mut()
     .set_resolver(FilesystemResolver::default());
   stream.engine_mut().load_history(&history);
+
   if let Some(usage) = CgroupUsage::detect() {
     stream.engine_mut().set_usage(usage);
   }
-  let mut presenter = Presenter::new(silent);
-  let mut dirty = false;
-  let mut last_frame = Instant::now()
-    .checked_sub(Duration::from_secs(1))
-    .unwrap_or_else(Instant::now);
-  let mut last_timer = Instant::now();
-  let mut last_logs = Instant::now();
-  if !silent && presenter.render_initial(&stream, &render, current_time())? {
-    last_frame = Instant::now();
-  }
 
-  loop {
-    match receiver.recv_timeout(Duration::from_millis(25)) {
-      Ok(Ok(bytes)) => {
-        let Processed { changed, output } =
-          stream.push_at(&bytes, current_time())?;
-        let has_output = !output.is_empty();
-        presenter.output(output, &render)?;
-        dirty |= changed || has_output;
-      },
-      Ok(Err(error)) => Err(error).context("reading build output")?,
-      Err(RecvTimeoutError::Disconnected) => break,
-      Err(RecvTimeoutError::Timeout) => {},
-    }
-    dirty |= stream.engine_mut().poll_lookups(current_time());
-    dirty |= stream.engine_mut().sample_usage(current_time());
-    let timer_due = last_timer.elapsed() >= Duration::from_secs(1);
-    if !silent
-      && (dirty || timer_due)
-      && last_frame.elapsed() >= presenter.frame_interval()
-    {
-      presenter.render(&stream, &render, current_time(), false)?;
-      dirty = false;
-      last_frame = Instant::now();
-      if timer_due {
-        last_timer = Instant::now();
-      }
-    } else if last_logs.elapsed() >= LOG_INTERVAL {
-      presenter.flush_logs()?;
-      last_logs = Instant::now();
-    }
-  }
+  let mut presenter = Presenter::new(silent);
+  watch(receiver, &mut stream, &mut presenter, &render, silent)?;
 
   let final_output = stream.finish_at(current_time())?;
   presenter.output(final_output.output, &render)?;
@@ -836,9 +854,11 @@ fn drive(
     Some(child) => child.wait().context("waiting for nix")?.success(),
     None => false,
   };
+
   if succeeded {
     stream.engine_mut().mark_planned_available();
   }
+
   if !silent {
     if !succeeded {
       for id in available_derivations(stream.engine().state(), interrupted)? {
@@ -848,6 +868,7 @@ fn drive(
     let _ = presenter.render(&stream, &render, current_time(), true)?;
     presenter.final_append(&stream, &render, silent, current_time())?;
   }
+
   if let Err(error) = stream.engine().save_history(&history) {
     tracing::debug!("failed to save build history: {error}");
   }

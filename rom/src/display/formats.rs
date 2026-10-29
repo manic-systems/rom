@@ -20,6 +20,7 @@ impl Renderer<'_> {
       span("\u{2500} ", self.config.theme.connector), // ─
       span("Builds", self.config.theme.text),
     ];
+
     if self.config.show_timers {
       header.push(span(
         format!(
@@ -31,6 +32,7 @@ impl Renderer<'_> {
         self.config.theme.timer,
       ));
     }
+
     for (icon, count, label, color) in [
       (
         self.icons.running,
@@ -74,6 +76,7 @@ impl Renderer<'_> {
       })
       .collect();
     builds.sort_by(|left, right| left.0.cmp(&right.0));
+
     for (name, build) in builds {
       let mut spans = vec![
         span("  ", self.config.theme.text),
@@ -82,21 +85,25 @@ impl Renderer<'_> {
           self.config.theme.running,
         ),
       ];
+
       if let Some(phase) = &build.phase {
         spans.push(span(format!("  ({phase})"), self.config.theme.muted));
       }
+
       if self.config.show_timers {
         spans.push(span(
           format!("  {}", format_duration(elapsed(build.start, self.now))),
           self.config.theme.timer,
         ));
       }
+
       if let Some(cores) = build.cpu {
         spans.push(span(
           format!("  {}{}{cores:.1}", self.icons.cpu, self.icons.gap),
           self.config.theme.timer,
         ));
       }
+
       if let Some(estimate) = build.estimate {
         let spent = whole_seconds(elapsed(build.start, self.now));
         spans.push(span(
@@ -109,6 +116,7 @@ impl Renderer<'_> {
           self.config.theme.timer,
         ));
       }
+
       let host = build.host.name();
       if host != "localhost" {
         spans.push(span(format!("  {host}"), self.config.theme.host));
@@ -152,6 +160,7 @@ impl Renderer<'_> {
       spans.extend(self.transfer_suffix(transfer, spans_width(&spans)));
       lines.push(fit_line(spans, self.width));
     }
+
     for fetch in &self.snapshot.source_fetches {
       let prefix = vec![span("  ", self.config.theme.text)];
       lines.push(self.source_fetch_line(prefix, fetch));
