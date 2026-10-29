@@ -11,7 +11,7 @@ use cognos::{ParsedDerivation, aterm::Error};
 use rom::{
   EngineConfig,
   display::render_frame,
-  monitor::{DerivationResolver, Engine},
+  monitor::{DerivationResolver, Engine, Output},
   state::State,
   types::{DisplayFormat, IconMode, LegendStyle, RenderConfig},
 };
@@ -111,7 +111,7 @@ fn running_build_displays_its_current_phase() {
     )
     .unwrap();
   assert!(processed.changed);
-  assert!(processed.output.is_empty());
+  assert_eq!(processed.output, Vec::<Output>::new());
 
   for format in [DisplayFormat::Tree, DisplayFormat::Plain] {
     let frame = render_frame(
