@@ -1455,7 +1455,6 @@ pub fn current_time() -> f64 {
 
 /// Returns the seconds from `start` to `now`.
 #[must_use]
-#[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
 pub const fn elapsed(start: f64, now: f64) -> f64 {
   now - start
 }

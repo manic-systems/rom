@@ -52,7 +52,6 @@ pub fn format_secs(secs: u64) -> String {
 #[must_use]
 #[expect(
   clippy::cast_precision_loss,
-  clippy::float_arithmetic,
   reason = "fractional units are rounded for display"
 )]
 pub fn format_bytes(bytes: u64) -> String {
@@ -200,7 +199,6 @@ impl<'a> Renderer<'a> {
 
   #[expect(
     clippy::cast_sign_loss,
-    clippy::float_arithmetic,
     reason = "the frame index is clamped to zero"
   )]
   fn spinner(&self) -> &'static str {

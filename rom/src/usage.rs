@@ -75,7 +75,6 @@ impl CgroupUsage {
 
   /// Returns the cores each build used since the previous sample, or [`None`]
   /// for a build whose cgroup could not be read.
-  #[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
   pub(crate) fn sample(
     &mut self,
     running: &[(DerivationId, &Path, f64)],
