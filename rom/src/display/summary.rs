@@ -58,10 +58,11 @@ impl Renderer<'_> {
     // Prefer the labelled grid; terminals too narrow for it get the same rows
     // without the header and with tighter spacing.
     let show_failed = self.snapshot.counts.builds.failed > 0;
-    let rows = self.status_rows(show_failed);
+    let rows = self.status_rows();
     let labelled = status_grid(
-      &[vec![self.status_header(show_failed)], rows.clone()].concat(),
+      &[vec![self.status_header()], rows.clone()].concat(),
       3,
+      show_failed,
     );
     // Every box row starts with a three-column corner or vertical line.
     let fits = labelled
@@ -70,7 +71,7 @@ impl Renderer<'_> {
     let mut grid = if fits {
       labelled
     } else {
-      status_grid(&rows, 1)
+      status_grid(&rows, 1, show_failed)
     };
     let mut elapsed_row = vec![
       span("Elapsed ", self.config.theme.text),
@@ -89,22 +90,20 @@ impl Renderer<'_> {
     self.status_box(grid)
   }
 
-  fn status_header(&self, show_failed: bool) -> StatusRow {
+  fn status_header(&self) -> StatusRow {
     let theme = &self.config.theme;
-    let mut header = vec![
-      ("Status".to_owned(), theme.text),
-      ("Running".to_owned(), theme.running),
-      ("Completed".to_owned(), theme.completed),
-      ("Waiting".to_owned(), theme.planned),
-      ("Total".to_owned(), theme.text),
-    ];
-    if show_failed {
-      header.push(("Failed".to_owned(), theme.failed));
-    }
-    header
+    [
+      ("Status", theme.text),
+      ("Running", theme.running),
+      ("Completed", theme.completed),
+      ("Waiting", theme.planned),
+      ("Failed", theme.failed),
+      ("Total", theme.text),
+    ]
+    .map(|(text, color)| (text.to_owned(), color))
   }
 
-  fn status_rows(&self, show_failed: bool) -> Vec<StatusRow> {
+  fn status_rows(&self) -> Vec<StatusRow> {
     let theme = &self.config.theme;
     let icons = self.icons;
     let counts = &self.snapshot.counts;
@@ -115,17 +114,14 @@ impl Renderer<'_> {
         });
         (text, color)
       };
-      let mut row = vec![
+      [
         (label.to_owned(), theme.text),
         cell(0, theme.running),
         cell(1, theme.completed),
         cell(2, theme.planned),
+        cell(3, theme.failed),
         (format!("{}{}{total}", icons.summary, icons.gap), theme.text),
-      ];
-      if show_failed {
-        row.push(cell(3, theme.failed));
-      }
-      row
+      ]
     };
 
     let builds = counts.builds;
@@ -357,14 +353,18 @@ impl Renderer<'_> {
 }
 
 /// Lays out rows as aligned columns separated by `gap` spaces.
-fn status_grid(rows: &[StatusRow], gap: usize) -> Vec<Vec<Span<'static>>> {
-  let width = rows.iter().map(Vec::len).max().unwrap_or(0);
-  let mut widths = vec![0; width];
-  for row in rows {
-    for (column, (text, _)) in row.iter().enumerate() {
-      widths[column] = widths[column].max(text.width());
-    }
-  }
+fn status_grid(
+  rows: &[StatusRow],
+  gap: usize,
+  show_failed: bool,
+) -> Vec<Vec<Span<'static>>> {
+  let mut widths = std::array::from_fn::<usize, 6, _>(|column| {
+    rows
+      .iter()
+      .map(|row| row[column].0.width())
+      .max()
+      .unwrap_or(0)
+  });
   // Size labels for the widest row kind so columns stay put while transfer
   // rows come and go.
   widths[0] = widths[0].max("Downloads".len());
@@ -372,7 +372,11 @@ fn status_grid(rows: &[StatusRow], gap: usize) -> Vec<Vec<Span<'static>>> {
     .iter()
     .map(|row| {
       let mut spans = Vec::new();
-      for (column, (text, color)) in row.iter().enumerate() {
+      let cells = row
+        .iter()
+        .enumerate()
+        .filter(|&(column, _)| show_failed || column != FAILED_COLUMN);
+      for (column, (text, color)) in cells {
         let padding = if column + 1 == row.len() {
           0
         } else {
@@ -384,5 +388,8 @@ fn status_grid(rows: &[StatusRow], gap: usize) -> Vec<Vec<Span<'static>>> {
     })
     .collect()
 }
-/// Status cells with optional transfers and failures columns.
-type StatusRow = Vec<(String, Color)>;
+
+const FAILED_COLUMN: usize = 4;
+
+/// Label, running, completed, waiting, failed, and total cells.
+type StatusRow = [(String, Color); 6];
