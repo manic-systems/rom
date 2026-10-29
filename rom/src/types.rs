@@ -98,6 +98,14 @@ pub struct Theme {
   pub upload:         Color,
   /// The unfilled part of progress bars.
   pub progress_track: Color,
+  /// A build's cores while it runs in parallel.
+  pub cpu:            Color,
+  /// A build stuck under 1.5 cores.
+  pub cpu_serial:     Color,
+  /// A build using almost no CPU.
+  pub cpu_idle:       Color,
+  /// A build taking most of the machine while others run.
+  pub cpu_heavy:      Color,
 }
 
 /// Icon selection.
@@ -131,6 +139,10 @@ impl Default for Theme {
       download:       Color::Cyan,
       upload:         Color::Magenta,
       progress_track: Color::DarkGray,
+      cpu:            Color::Gray,
+      cpu_serial:     Color::Yellow,
+      cpu_idle:       Color::Red,
+      cpu_heavy:      Color::Magenta,
     }
   }
 }

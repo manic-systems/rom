@@ -1094,9 +1094,10 @@ impl Engine {
       .local_builds()
       .collect::<Vec<(DerivationId, &Path, f64)>>();
 
-    let mut changed = false;
-    for (id, cores) in usage.sample(&running, now) {
-      changed |= self.state.set_build_cpu(id, cores);
+    let sampled = usage.sample(&running, now);
+    let mut changed = self.state.set_machine_cpu(sampled.machine);
+    for (id, cpu) in sampled.builds {
+      changed |= self.state.set_build_cpu(id, cpu);
     }
     changed
   }
