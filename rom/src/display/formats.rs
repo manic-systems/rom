@@ -11,7 +11,10 @@ use super::{
   span,
   spans_width,
 };
-use crate::state::{elapsed, whole_seconds};
+use crate::{
+  display::Transfer,
+  state::{BuildInfo, elapsed, whole_seconds},
+};
 
 impl Renderer<'_> {
   pub(super) fn plain(&self) -> Vec<Line<'static>> {
@@ -66,7 +69,7 @@ impl Renderer<'_> {
     }
     let mut lines = vec![fit_line(header, self.width)];
 
-    let mut builds: Vec<_> = self
+    let mut builds = self
       .snapshot
       .builds
       .running
@@ -74,7 +77,7 @@ impl Renderer<'_> {
       .filter_map(|(id, build)| {
         Some((self.snapshot.derivation(*id)?.name.name.clone(), *build))
       })
-      .collect();
+      .collect::<Vec<(String, &BuildInfo)>>();
     builds.sort_by(|left, right| left.0.cmp(&right.0));
 
     for (name, build) in builds {
@@ -124,7 +127,7 @@ impl Renderer<'_> {
       lines.push(fit_line(spans, self.width));
     }
 
-    let mut failed: Vec<_> = self
+    let mut failed = self
       .snapshot
       .builds
       .failed
@@ -135,7 +138,7 @@ impl Renderer<'_> {
           .derivation(*id)
           .map(|info| info.name.name.clone())
       })
-      .collect();
+      .collect::<Vec<String>>();
     failed.sort();
     for name in failed {
       lines.push(fit_line(
@@ -150,7 +153,7 @@ impl Renderer<'_> {
       ));
     }
 
-    let mut transfers: Vec<_> = self.snapshot.transfers().collect();
+    let mut transfers = self.snapshot.transfers().collect::<Vec<&Transfer>>();
     transfers.sort_by(|left, right| left.name.cmp(&right.name));
     for transfer in transfers {
       let mut spans = vec![

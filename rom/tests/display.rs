@@ -163,7 +163,7 @@ fn live_tree_is_capped_at_two_thirds_and_keeps_its_legend() {
   let text =
     render_frame(engine.state(), &RenderConfig::default(), 2.0, 79, 23, false)
       .text();
-  let lines: Vec<_> = text.lines().collect();
+  let lines = text.lines().collect::<Vec<&str>>();
   let legend = lines
     .iter()
     .position(|line| line.starts_with("┢━ Status"))
@@ -190,7 +190,7 @@ fn deeply_nested_live_graph_is_bounded_before_rendering() {
   let text =
     render_frame(engine.state(), &RenderConfig::default(), 2.0, 79, 23, false)
       .text();
-  let lines: Vec<_> = text.lines().collect();
+  let lines = text.lines().collect::<Vec<&str>>();
   assert_eq!(lines.len(), 18, "{text}");
   assert!(lines[14].contains("… 1987 more"), "{text}");
   assert!(lines[15].starts_with("┢━ Status"), "{text}");
@@ -217,7 +217,7 @@ fn waiting_roots_fill_rows_left_after_active_work() {
   let text =
     render_frame(engine.state(), &RenderConfig::default(), 2.0, 79, 23, false)
       .text();
-  let lines: Vec<_> = text.lines().collect();
+  let lines = text.lines().collect::<Vec<&str>>();
   assert!(lines[1].contains("active"), "{text}");
   assert!(text.contains("waiting-1"), "{text}");
   assert!(text.contains("… 8 more"), "{text}");
@@ -236,7 +236,7 @@ fn minimum_live_height_keeps_every_table_legend_row() {
   let text =
     render_frame(engine.state(), &RenderConfig::default(), 2.0, 79, 7, false)
       .text();
-  let lines: Vec<_> = text.lines().collect();
+  let lines = text.lines().collect::<Vec<&str>>();
   assert_eq!(lines.len(), 7, "{text}");
   assert!(lines[1].starts_with("├─ …"), "{text}");
   assert!(lines[2].starts_with("┢━ Status"), "{text}");

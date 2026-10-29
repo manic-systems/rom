@@ -350,7 +350,7 @@ impl Renderer<'_> {
       let Some(info) = self.snapshot.derivation(id) else {
         continue;
       };
-      let children: Vec<_> = info
+      let children = info
         .input_derivations
         .iter()
         .filter(|&&child| {
@@ -360,7 +360,7 @@ impl Renderer<'_> {
         })
         .map(|&child| RowId::Build(child))
         .filter(|child| plan.rows.contains_key(child))
-        .collect();
+        .collect::<Vec<RowId>>();
       plan.row_mut(RowId::Build(id)).children.extend(children);
     }
     for (id, &priority) in relevance.iter().enumerate() {
@@ -370,7 +370,7 @@ impl Renderer<'_> {
       let Some(info) = self.snapshot.derivation(id) else {
         continue;
       };
-      let hosts: Vec<_> = match info.membership {
+      let hosts = match info.membership {
         Membership::Unit(package) => {
           vec![unit_parents.get(id).unwrap_or(package)]
         },
@@ -384,7 +384,7 @@ impl Renderer<'_> {
                 Membership::Outside | Membership::Package => None,
               }
             })
-            .collect()
+            .collect::<Vec<DerivationId>>()
         },
       };
       for host in hosts {
@@ -692,11 +692,11 @@ impl Renderer<'_> {
     );
     remaining -= selection.rows.len();
     if focus_active {
-      let mut ancestors: VecDeque<_> = order
+      let mut ancestors = order
         .iter()
         .filter(|id| selection.rows.contains(id))
         .filter_map(|id| selection.parents[id])
-        .collect();
+        .collect::<VecDeque<RowId>>();
       while remaining > 0 {
         let Some(ancestor) = ancestors.pop_front() else {
           break;
@@ -713,7 +713,7 @@ impl Renderer<'_> {
 
     let fill_transfers =
       |rows: &mut HashSet<RowId>, remaining: &mut usize, completed: bool| {
-        let mut groups: VecDeque<_> = order
+        let mut groups = order
           .iter()
           .filter(|id| rows.contains(id))
           .map(|&id| {
@@ -728,7 +728,7 @@ impl Renderer<'_> {
               }
             })
           })
-          .collect();
+          .collect::<VecDeque<_>>();
         while *remaining > 0 {
           let Some(mut group) = groups.pop_front() else {
             break;
@@ -752,14 +752,14 @@ impl Renderer<'_> {
     while remaining > 0
       && let Some(id) = nearby.pop_front()
     {
-      let mut children: Vec<_> = plan
+      let mut children = plan
         .row(id)
         .children
         .iter()
         .copied()
         .filter(|&child| matches!(child, RowId::Build(_)) && waiting(child))
         .filter(|child| selection.parents.get(child) == Some(&Some(id)))
-        .collect();
+        .collect::<Vec<RowId>>();
       children.sort_by_key(|child| {
         (Reverse(plan.row(*child).priority), !self.ready(*child))
       });
@@ -1271,12 +1271,12 @@ impl Renderer<'_> {
     selection: &TreeSelection<'_>,
   ) {
     let row = selection.plan.row(RowId::TransferGroup);
-    let shown: Vec<_> = row
+    let shown = row
       .children
       .iter()
       .copied()
       .filter(|child| selection.rows.contains(child))
-      .collect();
+      .collect::<Vec<RowId>>();
     let hidden = row.children.len() - shown.len();
     let label = if hidden == 0 {
       "Transfers".to_owned()

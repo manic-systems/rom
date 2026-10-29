@@ -199,8 +199,8 @@ struct Envelope {
 /// Returns an error if `json` is not a JSON object with an `action` field, or
 /// if it is a malformed record of a known action and kind.
 pub fn decode_action(json: &[u8]) -> Result<DecodedAction, serde_json::Error> {
-  let value: serde_json::Value = serde_json::from_slice(json)?;
-  let envelope: Envelope = serde_json::from_value(value.clone())?;
+  let value = serde_json::from_slice::<serde_json::Value>(json)?;
+  let envelope = serde_json::from_value::<Envelope>(value.clone())?;
   let kind = envelope.kind.as_ref().and_then(serde_json::Value::as_u64);
   let level = envelope.level.as_ref().and_then(serde_json::Value::as_u64);
   let unsupported = match envelope.action.as_str() {

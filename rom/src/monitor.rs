@@ -576,7 +576,7 @@ fn collect_lookup(mut child: Child) -> io::Result<process::Output> {
   let pid = child.id();
   loop {
     // SAFETY: `siginfo_t` is plain data that `waitid` fills in.
-    let mut info: libc::siginfo_t = unsafe { std::mem::zeroed() };
+    let mut info = unsafe { std::mem::zeroed::<libc::siginfo_t>() };
     // SAFETY: `WNOWAIT` leaves the child unreaped, and `waitid` writes only
     // to `info`.
     let waited = unsafe {

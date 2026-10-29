@@ -178,7 +178,7 @@ fn shared_sources_choose_a_planned_consumer_once_and_keep_global_counts_unique()
     let text = frame(&engine, DisplayFormat::Tree, 1.2, 23);
     assert_eq!(text.matches("source-tree").count(), 1, "{text}");
     assert!(text.contains("used by 2 builds"), "{text}");
-    let lines: Vec<_> = text.lines().collect();
+    let lines = text.lines().collect::<Vec<&str>>();
     let source = lines
       .iter()
       .position(|line| line.contains("source-tree"))
@@ -346,7 +346,7 @@ fn shared_sources_use_stable_ties_and_prefer_a_running_consumer() {
   plan(&mut engine, OTHER);
   download(&mut engine, SOURCE, 10, 0);
   let selected_parent = |text: &str| {
-    let lines: Vec<_> = text.lines().collect();
+    let lines = text.lines().collect::<Vec<&str>>();
     let index = lines
       .iter()
       .position(|line| line.contains("source-tree"))
@@ -374,11 +374,11 @@ fn shared_sources_use_stable_ties_and_prefer_a_running_consumer() {
 
 #[test]
 fn source_rows_obey_the_live_graph_budget() {
-  let paths: Vec<_> = (0..30)
+  let paths = (0..30)
     .map(|id| {
       format!("/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-source-{id:02}")
     })
-    .collect();
+    .collect::<Vec<String>>();
   let mut engine = setup(Sources {
     paths: paths.clone(),
     ..Sources::default()
@@ -387,7 +387,7 @@ fn source_rows_obey_the_live_graph_budget() {
     download(&mut engine, path, id as u64 + 10, 0);
   }
   let text = frame(&engine, DisplayFormat::Tree, 1.2, 23);
-  let lines: Vec<_> = text.lines().collect();
+  let lines = text.lines().collect::<Vec<&str>>();
   let legend = lines
     .iter()
     .position(|line| line.starts_with("┢━ Status"))
@@ -474,11 +474,11 @@ fn final_source_filter_preserves_active_transfers_and_completed_totals() {
 
 #[test]
 fn source_heavy_branch_cannot_displace_another_active_build() {
-  let paths: Vec<_> = (0..20)
+  let paths = (0..20)
     .map(|id| {
       format!("/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-source-{id:02}")
     })
-    .collect();
+    .collect::<Vec<String>>();
   let mut engine = setup(Sources {
     shared: true,
     paths: paths.clone(),
@@ -539,11 +539,11 @@ fn source_heavy_branch_cannot_displace_another_active_build() {
 
 #[test]
 fn source_details_share_spare_rows_with_unmatched_transfers() {
-  let paths: Vec<_> = (0..20)
+  let paths = (0..20)
     .map(|id| {
       format!("/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-source-{id:02}")
     })
-    .collect();
+    .collect::<Vec<String>>();
   let mut engine = setup(Sources {
     paths: paths.clone(),
     ..Sources::default()
