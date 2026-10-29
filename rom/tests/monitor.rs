@@ -5,10 +5,6 @@
   reason = "integration tests are their own crate"
 )]
 #![expect(clippy::panic, reason = "tests fail by panicking")]
-#![expect(
-  clippy::non_ascii_literal,
-  reason = "expected frames contain the glyphs they check"
-)]
 
 use std::collections::BTreeMap;
 

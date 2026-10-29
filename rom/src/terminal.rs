@@ -394,10 +394,6 @@ impl<W: Write> Write for LiveTerminal<W> {
 }
 
 #[cfg(test)]
-#[expect(
-  clippy::non_ascii_literal,
-  reason = "expected frames contain the glyphs they check"
-)]
 mod tests {
   use super::*;
 
