@@ -130,7 +130,7 @@ fn eof_preserves_an_unterminated_passthrough_record() {
   let mut stream = StreamEngine::new(EngineConfig::default());
   let first = stream.push_at(b"tail", 0.0).unwrap();
   assert_eq!(first.output, vec![Output::Passthrough(b"tail".to_vec())]);
-  assert!(stream.finish_at(1.0).unwrap().output.is_empty());
+  assert_eq!(stream.finish_at(1.0).unwrap().output, Vec::<Output>::new());
 }
 
 #[test]
