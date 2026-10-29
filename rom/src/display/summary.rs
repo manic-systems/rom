@@ -42,10 +42,10 @@ impl Renderer<'_> {
       .map(|(index, row)| {
         // The light tree trunk turns into a heavy, square-cornered box.
         let corner = match index {
-          _ if count == 1 => "\u{2515}\u{2501} ", // ┕━
-          0 => "\u{2522}\u{2501} ",               // ┢━
-          _ if index + 1 == count => "\u{2517}\u{2501} ", // ┗━
-          _ => "\u{2503}  ",                      // ┃
+          _ if count == 1 => "┕━ ",
+          0 => "┢━ ",
+          _ if index + 1 == count => "┗━ ",
+          _ => "┃  ",
         };
         let mut spans = vec![span(corner, self.config.theme.connector)];
         spans.extend(row);

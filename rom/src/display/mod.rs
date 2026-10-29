@@ -157,7 +157,7 @@ impl<'a> Renderer<'a> {
           if matches!(self.config.format, DisplayFormat::Plain) {
             ""
           } else {
-            "\u{2570}\u{2500} " // ╰─
+            "╰─ "
           },
           self.config.theme.connector,
         ),
@@ -204,8 +204,7 @@ impl<'a> Renderer<'a> {
     reason = "the frame index is clamped to zero"
   )]
   fn spinner(&self) -> &'static str {
-    ["\u{25d0}", "\u{25d3}", "\u{25d1}", "\u{25d2}"] // ◐ ◓ ◑ ◒
-      [((self.now * 4.0).max(0.0) as usize) % 4]
+    ["◐", "◓", "◑", "◒"][((self.now * 4.0).max(0.0) as usize) % 4]
   }
 
   /// Renders a source fetch after `prefix`.
@@ -276,19 +275,13 @@ fn progress_bar(
   let empty = width - filled - usize::from(half);
   let mut spans = Vec::new();
   if filled > 0 {
-    spans.push(Span::styled(
-      "\u{2501}".repeat(filled), // ━
-      Style::default().fg(fill),
-    ));
+    spans.push(Span::styled("━".repeat(filled), Style::default().fg(fill)));
   }
   if half {
-    spans.push(Span::styled("\u{2578}", Style::default().fg(fill))); // ╸
+    spans.push(Span::styled("╸", Style::default().fg(fill)));
   }
   if empty > 0 {
-    spans.push(Span::styled(
-      "\u{2500}".repeat(empty), // ─
-      Style::default().fg(track),
-    ));
+    spans.push(Span::styled("─".repeat(empty), Style::default().fg(track)));
   }
   spans
 }
@@ -367,10 +360,6 @@ pub fn render_frame(
 }
 
 #[cfg(test)]
-#[expect(
-  clippy::non_ascii_literal,
-  reason = "expected frames contain the glyphs they check"
-)]
 mod tests {
   use super::*;
   use crate::state::TransferInfo;
