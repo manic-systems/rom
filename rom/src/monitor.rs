@@ -1024,7 +1024,6 @@ impl Engine {
 
   /// Queues a realisation check, asked only if the derivation has not
   /// started by then.
-  #[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
   fn ask_realised(&mut self, ids: Vec<DerivationId>, now: f64) {
     let checking = &mut self.checking;
     self.realising.extend(
@@ -1080,7 +1079,6 @@ impl Engine {
   /// Samples the CPU use of local builds, at most once a second.
   ///
   /// Returns whether the state changed. Adapters call this while idle.
-  #[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
   pub fn sample_usage(&mut self, now: f64) -> bool {
     let Some(usage) = self.usage.as_mut() else {
       return false;
@@ -1514,7 +1512,6 @@ impl DerivationTree<'_> {
   }
 
   /// Returns the derivation the producer wrote, once linked.
-  #[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
   fn link_produced(
     &mut self,
     answer: ProducedDrv,

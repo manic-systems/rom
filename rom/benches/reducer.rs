@@ -4,7 +4,6 @@
 #![expect(clippy::use_debug, reason = "durations print best with Debug")]
 #![expect(
   clippy::cast_precision_loss,
-  clippy::float_arithmetic,
   reason = "synthetic timestamps are small integers"
 )]
 
