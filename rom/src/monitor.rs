@@ -1255,8 +1255,8 @@ impl Engine {
         return self.suppressed_logs.insert(id).then(|| {
           LogLine {
             prefix,
-            styled: "\u{2026} further build logs suppressed".to_owned(), // …
-            plain: "\u{2026} further build logs suppressed".to_owned(),  // …
+            styled: "… further build logs suppressed".to_owned(),
+            plain: "… further build logs suppressed".to_owned(),
           }
         });
       }

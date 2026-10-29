@@ -37,16 +37,16 @@ pub struct Icons {
 
 /// Standard Unicode icons, which need no special font.
 pub static UNICODE: Icons = Icons {
-  running:  "\u{23f5}", // ⏵
-  done:     "\u{2714}", // ✔
-  planned:  "\u{23f8}", // ⏸
-  failed:   "\u{2717}", // ✗
-  download: "\u{2193}", // ↓
-  upload:   "\u{2191}", // ↑
-  clock:    "\u{23f1}", // ⏱
-  estimate: "\u{2205}", // ∅
-  cpu:      "\u{2699}", // ⚙
-  summary:  "\u{2211}", // ∑
+  running:  "⏵",
+  done:     "✔",
+  planned:  "⏸",
+  failed:   "✗",
+  download: "↓",
+  upload:   "↑",
+  clock:    "⏱",
+  estimate: "∅",
+  cpu:      "⚙",
+  summary:  "∑",
   gap:      "\u{a0}",
 };
 
@@ -56,16 +56,16 @@ pub static UNICODE: Icons = Icons {
 /// detection can be overridden with `NERD_FONTS=1` (or
 /// disabled with `NERD_FONTS=0`).
 pub static NERD: Icons = Icons {
-  running:  "\u{f04b}",  // 
-  done:     "\u{f00c}",  // 
-  planned:  "\u{f04c}",  // 
-  failed:   "\u{f071}",  // 
-  download: "\u{f063}",  // 
-  upload:   "\u{f062}",  // 
-  clock:    "\u{f1da}",  // 
-  estimate: "\u{f252}",  // 
-  cpu:      "\u{f2db}",  // 
-  summary:  "\u{f04a0}", // 󰒠
+  running:  "",
+  done:     "",
+  planned:  "",
+  failed:   "",
+  download: "",
+  upload:   "",
+  clock:    "",
+  estimate: "",
+  cpu:      "",
+  summary:  "󰒠",
   gap:      "\u{a0}",
 };
 
