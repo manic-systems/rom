@@ -133,11 +133,35 @@ pub struct BuildInfo {
   pub estimate: Option<u64>,
   /// Current build phase, such as `buildPhase`.
   pub phase:    Option<String>,
-  /// Cores the build used over the last second, from its cgroup.
-  pub cpu:      Option<f32>,
+  /// CPU use, from the build's cgroup.
+  pub cpu:      Option<BuildCpu>,
   /// Derivation Nix builds, the resolved one for a content-addressed
   /// derivation.
   pub path:     PathBuf,
+}
+
+/// CPU use of a running build.
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[non_exhaustive]
+pub struct BuildCpu {
+  /// Cores used over the last second.
+  pub cores: f32,
+  /// How the build has been using them.
+  pub load:  BuildLoad,
+}
+
+/// A build's CPU use over the last minute or so.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum BuildLoad {
+  /// Several cores, or not low for long.
+  Parallel,
+  /// Under 1.5 cores for a minute, like a single-threaded configure or link.
+  Serial,
+  /// Almost no CPU for 30 seconds, like a hung test or a wait on the network.
+  Idle,
+  /// Over half the machine for a minute while other builds run.
+  Heavy,
 }
 
 /// Build failure information.
@@ -356,6 +380,7 @@ pub struct State {
   source_fetches:     BTreeMap<ActivityId, SourceFetch>,
   nix_errors:         Vec<String>,
   nix_error_count:    usize,
+  machine_cpu:        Option<f32>,
   next_store_path_id: StorePathId,
   next_derivation_id: DerivationId,
 }
@@ -386,6 +411,7 @@ impl State {
       source_fetches:     BTreeMap::new(),
       nix_errors:         Vec::new(),
       nix_error_count:    0,
+      machine_cpu:        None,
       next_store_path_id: 0,
       next_derivation_id: 0,
     }
@@ -409,6 +435,13 @@ impl State {
         failed:   sum.failed + each.failed,
       }
     })
+  }
+
+  /// Returns the share of the machine's cores every local build is using
+  /// together.
+  #[must_use]
+  pub const fn machine_cpu(&self) -> Option<f32> {
+    self.machine_cpu
   }
 
   /// Returns the start time, in seconds since the UNIX epoch.
@@ -1258,10 +1291,16 @@ impl State {
     })
   }
 
+  pub(crate) fn set_machine_cpu(&mut self, share: Option<f32>) -> bool {
+    let changed = self.machine_cpu != share;
+    self.machine_cpu = share;
+    changed
+  }
+
   pub(crate) fn set_build_cpu(
     &mut self,
     id: DerivationId,
-    cores: Option<f32>,
+    cpu: Option<BuildCpu>,
   ) -> bool {
     let Some(info) = self.get_derivation_info_mut(id) else {
       return false;
@@ -1269,10 +1308,10 @@ impl State {
     let BuildStatus::Building(build) = &mut info.build_status else {
       return false;
     };
-    if build.cpu == cores {
+    if build.cpu == cpu {
       return false;
     }
-    build.cpu = cores;
+    build.cpu = cpu;
     true
   }
 

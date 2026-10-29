@@ -69,7 +69,7 @@ impl Renderer<'_> {
     } else {
       status_grid(&rows, 1)
     };
-    grid.push(vec![
+    let mut elapsed_row = vec![
       span("Elapsed ", self.config.theme.text),
       span(
         format!(
@@ -80,7 +80,9 @@ impl Renderer<'_> {
         ),
         self.config.theme.text,
       ),
-    ]);
+    ];
+    elapsed_row.extend(self.machine_cpu());
+    grid.push(elapsed_row);
     self.status_box(grid)
   }
 
@@ -228,6 +230,7 @@ impl Renderer<'_> {
       };
       spans.push(span(label, color));
     }
+    spans.extend(self.machine_cpu());
     spans
   }
 
