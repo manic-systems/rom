@@ -35,11 +35,17 @@ fn fetch_to_store_records_are_supported_in_both_input_modes() {
       input_mode: mode,
       ..EngineConfig::default()
     });
-    assert!(output(&mut engine, &record(FETCH_START, mode)).is_empty());
-    assert!(output(&mut engine, &record(FETCH_RESULT, mode)).is_empty());
-    assert!(
-      output(&mut engine, &record(r#"{"action":"stop","id":2}"#, mode))
-        .is_empty()
+    assert_eq!(
+      output(&mut engine, &record(FETCH_START, mode)),
+      Vec::<Output>::new()
+    );
+    assert_eq!(
+      output(&mut engine, &record(FETCH_RESULT, mode)),
+      Vec::<Output>::new()
+    );
+    assert_eq!(
+      output(&mut engine, &record(r#"{"action":"stop","id":2}"#, mode)),
+      Vec::<Output>::new()
     );
     assert!(!engine.state().has_errors());
   }
@@ -58,7 +64,7 @@ fn repeated_unsupported_records_report_once() {
     log.plain,
     "rom: ignored unsupported internal-JSON start type 114"
   );
-  assert!(second.is_empty());
+  assert_eq!(second, Vec::<Output>::new());
 }
 
 #[test]

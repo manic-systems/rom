@@ -292,7 +292,9 @@ mod tests {
   fn start_no_fields_defaults_to_empty() {
     let json = r#"{"action":"start","id":1,"level":4,"parent":0,"text":"evaluating","type":0}"#;
     match parse(json) {
-      Actions::Start { fields, .. } => assert!(fields.is_empty()),
+      Actions::Start { fields, .. } => {
+        assert_eq!(fields, Vec::<serde_json::Value>::new());
+      },
       _ => panic!("expected Start"),
     }
   }
