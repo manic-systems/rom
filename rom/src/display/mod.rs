@@ -26,7 +26,15 @@ use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 use self::model::{Direction, RenderSnapshot, Transfer, aggregate_transfers};
 use crate::{
   icons::Icons,
-  state::{DerivationId, SourceFetch, State, elapsed, whole_seconds},
+  state::{
+    BuildCpu,
+    BuildLoad,
+    DerivationId,
+    SourceFetch,
+    State,
+    elapsed,
+    whole_seconds,
+  },
   types::{DisplayFormat, RenderConfig},
 };
 
@@ -203,6 +211,39 @@ impl<'a> Renderer<'a> {
   )]
   fn spinner(&self) -> &'static str {
     ["◐", "◓", "◑", "◒"][((self.now * 4.0).max(0.0) as usize) % 4]
+  }
+
+  /// Renders the cores a build is using, named and colored when it has been
+  /// serial, idle, or heavy for a while.
+  fn cpu(&self, cpu: BuildCpu) -> Span<'static> {
+    let theme = &self.config.theme;
+    let (label, color) = match cpu.load {
+      BuildLoad::Parallel => ("", theme.cpu),
+      BuildLoad::Serial => (" serial", theme.cpu_serial),
+      BuildLoad::Idle => (" idle", theme.cpu_idle),
+      BuildLoad::Heavy => (" heavy", theme.cpu_heavy),
+    };
+    span(
+      format!(
+        "  {}{}{:.1}{label}",
+        self.icons.cpu, self.icons.gap, cpu.cores
+      ),
+      color,
+    )
+  }
+
+  /// Renders the share of the machine every local build is using together.
+  fn machine_cpu(&self) -> Option<Span<'static>> {
+    let share = self.snapshot.state.machine_cpu()?;
+    Some(span(
+      format!(
+        "  {}{}{:.0}%",
+        self.icons.cpu,
+        self.icons.gap,
+        share * 100.0
+      ),
+      self.config.theme.cpu,
+    ))
   }
 
   /// Renders a source fetch after `prefix`.

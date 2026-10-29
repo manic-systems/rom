@@ -2,12 +2,14 @@
 
 use std::{
   fs,
+  num::NonZeroUsize,
   path::{Path, PathBuf},
+  thread,
 };
 
 use foldhash::{HashMap, HashMapExt};
 
-use crate::state::DerivationId;
+use crate::state::{BuildCpu, BuildLoad, DerivationId};
 
 /// Seconds a local build may run without a matching cgroup before it is no
 /// longer looked for.
@@ -17,6 +19,21 @@ const GIVE_UP: f64 = 10.0;
 /// it.
 const MIN_WINDOW: f64 = 0.5;
 
+const SERIAL_CORES: f32 = 1.5;
+const SERIAL_AFTER: f64 = 60.0;
+const IDLE_CORES: f32 = 0.1;
+const IDLE_AFTER: f64 = 30.0;
+const HEAVY_SHARE: f32 = 0.5;
+const HEAVY_AFTER: f64 = 60.0;
+
+/// CPU use from one sample.
+pub(crate) struct Usage {
+  /// Each build's use, or [`None`] for a build whose cgroup could not be read.
+  pub builds:  Vec<(DerivationId, Option<BuildCpu>)>,
+  /// Share of the machine's cores every build is using together.
+  pub machine: Option<f32>,
+}
+
 /// Samples the CPU time of local builds from their cgroups.
 ///
 /// Nix names a sandboxed build's cgroup `nix-build@<hash>-<owner>`.
@@ -25,13 +42,17 @@ pub struct CgroupUsage {
   roots:   Vec<PathBuf>,
   builds:  HashMap<DerivationId, Sample>,
   matched: bool,
+  cores:   f32,
 }
 
 #[derive(Debug)]
 struct Sample {
-  seen:   f64,
-  cgroup: Cgroup,
-  last:   Option<(u64, f64)>,
+  seen:        f64,
+  cgroup:      Cgroup,
+  last:        Option<(u64, f64)>,
+  low_since:   Option<f64>,
+  idle_since:  Option<f64>,
+  heavy_since: Option<f64>,
 }
 
 #[derive(Debug)]
@@ -65,23 +86,33 @@ impl CgroupUsage {
       .collect::<Vec<PathBuf>>();
 
     (!roots.is_empty()).then(|| {
+      #[expect(
+        clippy::cast_precision_loss,
+        reason = "core counts are far below f32's integer range"
+      )]
+      let cores =
+        thread::available_parallelism().map_or(1, NonZeroUsize::get) as f32;
       Self {
         roots,
         builds: HashMap::new(),
         matched: false,
+        cores,
       }
     })
   }
 
-  /// Returns the cores each build used since the previous sample, or [`None`]
-  /// for a build whose cgroup could not be read.
+  /// Returns each build's CPU use since the previous sample, and all of
+  /// theirs against the machine.
   pub(crate) fn sample(
     &mut self,
     running: &[(DerivationId, &Path, f64)],
     now: f64,
-  ) -> Vec<(DerivationId, Option<f32>)> {
+  ) -> Usage {
     if self.roots.is_empty() {
-      return Vec::new();
+      return Usage {
+        builds:  Vec::new(),
+        machine: None,
+      };
     }
 
     self
@@ -90,12 +121,16 @@ impl CgroupUsage {
 
     let mut listing = None;
     let mut searching = false;
-    let mut cores = Vec::new();
+    let mut builds = Vec::new();
+    let mut total = None;
     for &(id, drv, start) in running {
       let sample = self.builds.entry(id).or_insert(Sample {
-        seen:   now,
-        cgroup: Cgroup::Searching,
-        last:   None,
+        seen:        now,
+        cgroup:      Cgroup::Searching,
+        last:        None,
+        low_since:   None,
+        idle_since:  None,
+        heavy_since: None,
       });
 
       if matches!(sample.cgroup, Cgroup::Searching) {
@@ -118,7 +153,7 @@ impl CgroupUsage {
       };
 
       let Some(usec) = read_usage(cgroup) else {
-        cores.push((id, None));
+        builds.push((id, None));
         continue;
       };
 
@@ -129,9 +164,31 @@ impl CgroupUsage {
           clippy::cast_possible_truncation,
           reason = "a core count needs one decimal"
         )]
-        let busy =
+        let cores =
           (usec.saturating_sub(before) as f64 / ((now - at) * 1e6)) as f32;
-        cores.push((id, Some(busy)));
+        sample.low_since =
+          (cores < SERIAL_CORES).then(|| sample.low_since.unwrap_or(now));
+        sample.idle_since =
+          (cores < IDLE_CORES).then(|| sample.idle_since.unwrap_or(now));
+        sample.heavy_since = (cores / self.cores > HEAVY_SHARE
+          && running.len() > 1)
+          .then(|| sample.heavy_since.unwrap_or(now));
+
+        let lasted = |since: Option<f64>, after: f64| {
+          since.is_some_and(|since| now - since >= after)
+        };
+        let load = if lasted(sample.idle_since, IDLE_AFTER) {
+          BuildLoad::Idle
+        } else if lasted(sample.low_since, SERIAL_AFTER) {
+          BuildLoad::Serial
+        } else if lasted(sample.heavy_since, HEAVY_AFTER) {
+          BuildLoad::Heavy
+        } else {
+          BuildLoad::Parallel
+        };
+
+        builds.push((id, Some(BuildCpu { cores, load })));
+        *total.get_or_insert(0.0) += cores;
       }
 
       sample.last = Some((usec, now));
@@ -141,7 +198,9 @@ impl CgroupUsage {
       self.roots.clear();
     }
 
-    cores
+    let machine = total.map(|total| total / self.cores);
+
+    Usage { builds, machine }
   }
 }
 

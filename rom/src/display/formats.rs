@@ -36,6 +36,8 @@ impl Renderer<'_> {
       ));
     }
 
+    header.extend(self.machine_cpu());
+
     for (icon, count, label, color) in [
       (
         self.icons.running,
@@ -100,12 +102,7 @@ impl Renderer<'_> {
         ));
       }
 
-      if let Some(cores) = build.cpu {
-        spans.push(span(
-          format!("  {}{}{cores:.1}", self.icons.cpu, self.icons.gap),
-          self.config.theme.timer,
-        ));
-      }
+      spans.extend(build.cpu.map(|cpu| self.cpu(cpu)));
 
       if let Some(estimate) = build.estimate {
         let spent = whole_seconds(elapsed(build.start, self.now));

@@ -1074,12 +1074,7 @@ impl Renderer<'_> {
 
     suffix.extend(self.clock(build.start));
 
-    if let Some(cores) = build.cpu {
-      suffix.push(span(
-        format!("  {}{}{cores:.1}", self.icons.cpu, self.icons.gap),
-        self.config.theme.timer,
-      ));
-    }
+    suffix.extend(build.cpu.map(|cpu| self.cpu(cpu)));
 
     if let Host::Remote(machine) = &build.host {
       suffix.push(span(format!(" @{machine}"), self.config.theme.host));
