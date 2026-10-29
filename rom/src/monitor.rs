@@ -32,6 +32,7 @@ use crate::{
   state::{BuildStatus, Derivation, DerivationId, State, current_time},
   types::{Config, EngineConfig, InputMode, LogLine, RenderConfig},
   update::{self, LogEffect},
+  usage::CgroupUsage,
 };
 
 /// Optional source of `.drv` metadata.
@@ -839,6 +840,8 @@ pub struct Engine {
   /// Realisation checks waiting out [`REALISED_DELAY`].
   realising:            Vec<(DerivationId, f64)>,
   resolver:             Option<Box<dyn DerivationResolver>>,
+  usage:                Option<CgroupUsage>,
+  next_sample:          f64,
 }
 
 impl Engine {
@@ -858,6 +861,8 @@ impl Engine {
       checking: HashSet::new(),
       realising: Vec::new(),
       resolver: None,
+      usage: None,
+      next_sample: 0.0,
     }
   }
 
@@ -1065,6 +1070,37 @@ impl Engine {
   /// Sets the source of `.drv` metadata.
   pub fn set_resolver<R: DerivationResolver + 'static>(&mut self, resolver: R) {
     self.resolver = Some(Box::new(resolver));
+  }
+
+  /// Opts into sampling the CPU use of local builds.
+  pub fn set_usage(&mut self, usage: CgroupUsage) {
+    self.usage = Some(usage);
+  }
+
+  /// Samples the CPU use of local builds, at most once a second.
+  ///
+  /// Returns whether the state changed. Adapters call this while idle.
+  #[expect(clippy::float_arithmetic, reason = "timestamps are `f64` seconds")]
+  pub fn sample_usage(&mut self, now: f64) -> bool {
+    let Some(usage) = self.usage.as_mut() else {
+      return false;
+    };
+    if now < self.next_sample {
+      return false;
+    }
+
+    self.next_sample = now + 1.0;
+
+    let running = self
+      .state
+      .local_builds()
+      .collect::<Vec<(DerivationId, &Path, f64)>>();
+
+    let mut changed = false;
+    for (id, cores) in usage.sample(&running, now) {
+      changed |= self.state.set_build_cpu(id, cores);
+    }
+    changed
   }
 
   /// Returns the engine's configuration.

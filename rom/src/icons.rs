@@ -23,6 +23,8 @@ pub struct Icons {
   pub clock:    &'static str,
   /// Precedes an estimated duration.
   pub estimate: &'static str,
+  /// Precedes the cores a build is using.
+  pub cpu:      &'static str,
   /// Marks the summary.
   pub summary:  &'static str,
   /// Separator printed after an icon.
@@ -43,6 +45,7 @@ pub static UNICODE: Icons = Icons {
   upload:   "\u{2191}", // ↑
   clock:    "\u{23f1}", // ⏱
   estimate: "\u{2205}", // ∅
+  cpu:      "\u{2699}", // ⚙
   summary:  "\u{2211}", // ∑
   gap:      "\u{a0}",
 };
@@ -61,6 +64,7 @@ pub static NERD: Icons = Icons {
   upload:   "\u{f062}",  // 
   clock:    "\u{f1da}",  // 
   estimate: "\u{f252}",  // 
+  cpu:      "\u{f2db}",  // 
   summary:  "\u{f04a0}", // 󰒠
   gap:      "\u{a0}",
 };
