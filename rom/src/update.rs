@@ -136,6 +136,7 @@ fn apply_start(
       let parent = start
         .parent
         .and_then(|parent| state.activity_derivation(parent));
+      let path = drv.path.clone();
       let id = state.start_build(
         drv,
         BuildInfo {
@@ -143,6 +144,8 @@ fn apply_start(
           host,
           estimate,
           phase: None,
+          cpu: None,
+          path,
         },
         parent,
       );

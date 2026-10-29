@@ -937,6 +937,12 @@ impl Renderer<'_> {
             self.config.theme.timer,
           ));
         }
+        if let Some(cores) = build.cpu {
+          suffix.push(span(
+            format!("  {}{}{cores:.1}", self.icons.cpu, self.icons.gap),
+            self.config.theme.timer,
+          ));
+        }
         if let Host::Remote(machine) = &build.host {
           let label = format!(" @{machine}");
           suffix.push(span(label, self.config.theme.host));

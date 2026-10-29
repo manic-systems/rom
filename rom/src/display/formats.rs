@@ -91,6 +91,12 @@ impl Renderer<'_> {
           self.config.theme.timer,
         ));
       }
+      if let Some(cores) = build.cpu {
+        spans.push(span(
+          format!("  {}{}{cores:.1}", self.icons.cpu, self.icons.gap),
+          self.config.theme.timer,
+        ));
+      }
       if let Some(estimate) = build.estimate {
         let spent = whole_seconds(elapsed(build.start, self.now));
         spans.push(span(

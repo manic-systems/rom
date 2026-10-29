@@ -12,6 +12,7 @@ pub mod state;
 pub mod terminal;
 pub mod types;
 mod update;
+pub mod usage;
 
 pub use error::{Result, RomError};
 pub use monitor::{

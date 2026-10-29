@@ -133,6 +133,11 @@ pub struct BuildInfo {
   pub estimate: Option<u64>,
   /// Current build phase, such as `buildPhase`.
   pub phase:    Option<String>,
+  /// Cores the build used over the last second, from its cgroup.
+  pub cpu:      Option<f32>,
+  /// Derivation Nix builds, the resolved one for a content-addressed
+  /// derivation.
+  pub path:     PathBuf,
 }
 
 /// Build failure information.
@@ -1228,6 +1233,46 @@ impl State {
       return false;
     }
     build.phase = Some(phase);
+    true
+  }
+
+  /// Local builds Nix is running, with their derivation paths and start times.
+  pub(crate) fn local_builds(
+    &self,
+  ) -> impl Iterator<Item = (DerivationId, &Path, f64)> {
+    self.activities.values().filter_map(|activity| {
+      if !matches!(activity.activity, Activities::Build) {
+        return None;
+      }
+
+      let id = activity.derivation?;
+      match &self.derivation_infos.get(&id)?.build_status {
+        BuildStatus::Building(BuildInfo {
+          host: Host::Localhost,
+          path,
+          start,
+          ..
+        }) => Some((id, path.as_path(), *start)),
+        _ => None,
+      }
+    })
+  }
+
+  pub(crate) fn set_build_cpu(
+    &mut self,
+    id: DerivationId,
+    cores: Option<f32>,
+  ) -> bool {
+    let Some(info) = self.get_derivation_info_mut(id) else {
+      return false;
+    };
+    let BuildStatus::Building(build) = &mut info.build_status else {
+      return false;
+    };
+    if build.cpu == cores {
+      return false;
+    }
+    build.cpu = cores;
     true
   }
 
