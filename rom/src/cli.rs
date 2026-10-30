@@ -803,7 +803,9 @@ fn watch(
     dirty |= stream.engine_mut().sample_usage(time);
 
     let timer_due = now - last_timer >= Duration::from_secs(1);
-    let redraw = !silent && (dirty || timer_due);
+    // Animated build and transfer bars need redraws even while Nix is quiet.
+    let animating = stream.engine().state().has_unfinished();
+    let redraw = !silent && (dirty || timer_due || animating);
     let frame_due =
       last_frame.is_none_or(|frame| now - frame >= presenter.frame_interval());
 
