@@ -67,13 +67,6 @@ impl TransferPlacement {
   }
 }
 
-/// Downloads no build row shows that are already done.
-#[derive(Debug, Clone, Copy, Default)]
-pub(super) struct Settled {
-  pub count: usize,
-  pub bytes: u64,
-}
-
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(super) struct StatusCounts {
   pub running:   usize,
@@ -125,6 +118,8 @@ pub(super) struct Builds<'a> {
 /// Evaluation copies many already-cached sources in milliseconds; showing each
 /// would flash rows in and out of the graph.
 const SOURCE_FETCH_DELAY: f64 = 1.0;
+/// Unmatched transfers must last this long before entering the tree.
+pub(super) const TRANSFER_DISPLAY_DELAY: f64 = 1.0;
 
 /// Immutable presentation input derived once for a complete frame.
 pub(super) struct RenderSnapshot<'a> {
@@ -137,8 +132,6 @@ pub(super) struct RenderSnapshot<'a> {
   pub error_count:      usize,
   pub counts:           SummaryCounts,
   pub placed_transfers: Vec<PresentedTransfer>,
-  /// Unmatched downloads that finished before the grace period ended.
-  pub settled:          Settled,
   pub source_fetches:   Vec<&'a SourceFetch>,
   pub packages:         HashMap<DerivationId, UnitCounts<'a>>,
   pub finished:         bool,
@@ -306,7 +299,6 @@ impl<'a> RenderSnapshot<'a> {
       error_count: state.error_count(),
       counts,
       placed_transfers: Vec::new(),
-      settled: Settled::default(),
       source_fetches: state
         .source_fetches()
         .filter(|fetch| elapsed(fetch.start, now) >= SOURCE_FETCH_DELAY)
@@ -339,15 +331,7 @@ impl<'a> RenderSnapshot<'a> {
       self.add_transfer(store_paths, path, transfer, Direction::Upload, now);
     }
     for (&path, transfer) in &self.summary.completed_downloads {
-      if elapsed(transfer.end, now) > 1.0 {
-        let unmatched = store_paths.get(&path).is_some_and(|info| {
-          info.producer.is_none() && info.input_for.is_empty()
-        }) && transfer.parent.is_none();
-        if unmatched {
-          self.settled.count += 1;
-          self.settled.bytes += transfer.total_bytes;
-        }
-      } else {
+      if elapsed(transfer.end, now) <= 1.0 {
         self.add_completed_transfer(
           store_paths,
           path,
