@@ -12,9 +12,9 @@ use crossterm::{
 };
 
 use crate::{
-  display::{render_frame, write_final},
+  display::{MIN_TREE_WIDTH, render_frame, write_final},
   state::{State, elapsed},
-  types::RenderConfig,
+  types::{DisplayFormat, RenderConfig},
 };
 
 const BEGIN_SYNC: &[u8] = b"\x1b[?2026h";
@@ -165,7 +165,10 @@ impl<W: Write> LiveTerminal<W> {
     for _ in 0..3 {
       let begin = Instant::now();
       let (columns, rows) = crossterm::terminal::size()?;
-      if !live_geometry(columns, rows) {
+      // The renderer receives one fewer column than the terminal reserves.
+      let tree_too_narrow = matches!(config.format, DisplayFormat::Tree)
+        && columns <= MIN_TREE_WIDTH;
+      if !live_geometry(columns, rows) || tree_too_narrow {
         self.retire()?;
         return Ok(false);
       }
