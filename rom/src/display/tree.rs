@@ -261,15 +261,22 @@ impl Renderer<'_> {
 
     for (&id, info) in self.snapshot.derivations {
       let priority = match info.build_status {
-        BuildStatus::Failed { .. } | BuildStatus::DependencyFailed => 4,
+        BuildStatus::Failed { .. } => 4,
         BuildStatus::Building(_) => 3,
-        BuildStatus::Planned => 2,
+        // Dependency failures are useful context, but must not displace
+        // builds that are still running.
+        BuildStatus::DependencyFailed | BuildStatus::Planned => 2,
         BuildStatus::Available => 1,
         BuildStatus::Unknown | BuildStatus::Built { .. } => 0,
       };
       let units = self.snapshot.packages.get(&id);
       relevance[id] = match info.membership {
-        Membership::Unit(_) if priority < 3 => 0,
+        Membership::Unit(_)
+          if priority < 3
+            && !matches!(info.build_status, BuildStatus::DependencyFailed) =>
+        {
+          0
+        },
         Membership::Package
           if units.is_some_and(|counts| counts.running > 0) =>
         {
@@ -278,7 +285,7 @@ impl Renderer<'_> {
         Membership::Package
           if units.is_some_and(|counts| counts.failed > 0) =>
         {
-          priority.max(4)
+          priority.max(2)
         },
         Membership::Outside | Membership::Package | Membership::Unit(_) => {
           priority
