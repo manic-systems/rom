@@ -41,6 +41,7 @@ use crate::{
     Config,
     DisplayFormat,
     EngineConfig,
+    IconMode,
     InputMode,
     LegendStyle,
     LogPrefixStyle,
@@ -96,6 +97,10 @@ pub struct DisplayOptions {
   #[pound(long, global)]
   pub summary: Option<SummaryStyle>,
 
+  /// Icon set. Defaults to nerd.
+  #[pound(long, global)]
+  pub icons: Option<IconMode>,
+
   /// Builder-log prefix. Defaults to short.
   #[pound(long, global)]
   pub log_prefix: Option<LogPrefixStyle>,
@@ -112,6 +117,7 @@ impl DisplayOptions {
       format:     self.format.or(file.format),
       legend:     self.legend.or(file.legend),
       summary:    self.summary.or(file.summary),
+      icons:      self.icons.or(file.icons),
       log_prefix: self.log_prefix.or(file.log_prefix),
       log_lines:  self.log_lines.or(file.log_lines),
     }
@@ -255,6 +261,7 @@ pub fn run() -> misstep::Result<ExitCode> {
       format: cli.display.format.unwrap_or_default(),
       legend_style: cli.display.legend.unwrap_or_default(),
       summary_style: cli.display.summary.unwrap_or_default(),
+      icons: cli.display.icons.unwrap_or_default(),
       ..RenderConfig::default()
     },
   };
