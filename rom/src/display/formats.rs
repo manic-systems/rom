@@ -3,17 +3,18 @@
 use ratatui_core::text::Line;
 
 use super::{
+  MIN_TIMER_SECONDS,
   Renderer,
   aggregate_transfers,
   fit_line,
   format_duration,
-  format_secs,
+  format_timer,
   span,
   spans_width,
 };
 use crate::{
   display::Transfer,
-  state::{BuildInfo, elapsed, whole_seconds},
+  state::{BuildInfo, elapsed},
 };
 
 impl Renderer<'_> {
@@ -95,27 +96,19 @@ impl Renderer<'_> {
         spans.push(span(format!("  ({phase})"), self.config.theme.muted));
       }
 
-      if self.config.show_timers {
+      if self.config.show_timers
+        && elapsed(build.start, self.now) >= MIN_TIMER_SECONDS
+      {
         spans.push(span(
-          format!("  {}", format_duration(elapsed(build.start, self.now))),
+          format!(
+            "  {}",
+            format_timer(elapsed(build.start, self.now), build.estimate)
+          ),
           self.config.theme.timer,
         ));
       }
 
       spans.extend(build.cpu.map(|cpu| self.cpu(cpu)));
-
-      if let Some(estimate) = build.estimate {
-        let spent = whole_seconds(elapsed(build.start, self.now));
-        spans.push(span(
-          format!(
-            "  {}{}{}",
-            self.icons.estimate,
-            self.icons.gap,
-            format_secs(estimate.saturating_sub(spent))
-          ),
-          self.config.theme.timer,
-        ));
-      }
 
       let host = build.host.name();
       if host != "localhost" {

@@ -155,7 +155,7 @@ fn source_edges_survive_resolution_and_downloads_reveal_their_ancestors() {
   let text = frame(&engine, DisplayFormat::Tree, 1.2, 23);
   assert!(text.contains("root"), "{text}");
   assert!(text.contains("consumer"), "{text}");
-  assert!(text.contains("│     ╰─ source-tree"), "{text}");
+  assert!(text.contains("│     ╰─ ↓"), "{text}");
   assert!(text.contains("50%"), "{text}");
   assert!(!text.contains("Transfers"), "{text}");
   assert!(!text.contains("cached-source"), "{text}");
@@ -281,7 +281,7 @@ fn completed_sources_expire_from_the_graph_but_not_the_summary() {
   download(&mut engine, SOURCE, 10, 0);
   feed(&mut engine, &json!({"action":"stop", "id":10}), 2.0);
   let recent = frame(&engine, DisplayFormat::Tree, 2.1, 23);
-  assert!(recent.contains("source-tree"), "{recent}");
+  assert!(!recent.contains("source-tree"), "{recent}");
   let later = frame(&engine, DisplayFormat::Tree, 3.1, 23);
   assert!(!later.contains("source-tree"), "{later}");
   assert_eq!(engine.state().summary().completed_downloads.len(), 1);
@@ -308,7 +308,8 @@ fn unrelated_downloads_and_source_uploads_keep_the_transfer_branch() {
       );
     }
     let text = frame(&engine, DisplayFormat::Tree, 1.2, 23);
-    assert!(text.contains("Transfers"), "{text}");
+    let group = if upload { "transfers" } else { "fetching" };
+    assert!(text.contains(group), "{text}");
     assert!(!text.contains("consumer"), "{text}");
   }
 }
@@ -332,7 +333,7 @@ fn later_upload_does_not_inherit_a_completed_download_parent() {
   );
 
   let text = frame(&engine, DisplayFormat::Tree, 3.2, 23);
-  assert!(text.contains("Transfers"), "{text}");
+  assert!(text.contains("transfers"), "{text}");
   assert!(text.contains("source-tree"), "{text}");
 }
 
@@ -430,7 +431,8 @@ fn final_tree_filters_completed_transfers_in_every_placement() {
     let config = RenderConfig::default();
     let live =
       render_frame(engine.state(), &config, 2.1, 119, 40, false).text();
-    assert!(live.contains("100%"), "{placement}: {live}");
+    // Finished transfers count toward their group, not rows.
+    assert!(!live.contains("source-tree"), "{placement}: {live}");
     let final_frame =
       render_frame(engine.state(), &config, 2.1, 119, 40, true).text();
     assert!(!final_frame.contains('%'), "{placement}: {final_frame}");
@@ -560,7 +562,7 @@ fn source_details_share_spare_rows_with_unmatched_transfers() {
   let text = frame(&engine, DisplayFormat::Tree, 1.2, 12);
   assert!(text.contains("consumer"), "{text}");
   assert!(text.contains("source-00"), "{text}");
-  assert!(text.contains("Transfers"), "{text}");
+  assert!(text.contains("fetching"), "{text}");
   assert!(text.contains("unrelated"), "{text}");
   assert!(text.lines().count() <= 12, "{text}");
 }
@@ -584,6 +586,6 @@ fn active_source_details_take_priority_over_completion_grace() {
   assert!(text.contains("zzz-active"), "{text}");
   assert!(!text.contains("aaa-completed"), "{text}");
   assert!(!text.contains("bbb-completed"), "{text}");
-  assert!(text.contains("2 source downloads hidden"), "{text}");
+  assert!(!text.contains("source downloads hidden"), "{text}");
   assert!(text.lines().count() <= 9, "{text}");
 }

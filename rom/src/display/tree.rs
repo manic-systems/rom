@@ -4,6 +4,7 @@ use std::{
   cell::RefCell,
   cmp::Reverse,
   collections::{BinaryHeap, VecDeque},
+  path::Path,
 };
 
 use cognos::Host;
@@ -16,18 +17,19 @@ use unicode_width::UnicodeWidthStr;
 
 use super::{
   Direction,
+  MIN_TIMER_SECONDS,
   Renderer,
   Transfer,
   aggregate_transfers,
   fit_line,
   format_bytes,
   format_duration,
-  format_secs,
-  model::{RenderSnapshot, TransferPlacement, UnitCounts},
+  format_timer,
+  model::{RenderSnapshot, TransferPlacement},
   progress_bar,
   span,
   spans_width,
-  truncate_text,
+  truncate_middle,
 };
 use crate::state::{
   Blocker,
@@ -36,6 +38,7 @@ use crate::state::{
   DerivationId,
   DerivationInfo,
   Membership,
+  SourceFetch,
   elapsed,
 };
 
@@ -45,6 +48,43 @@ enum RowId {
   Transfer(usize),
   SourceFetch(usize),
   TransferGroup,
+  /// Unmatched downloads of unknown size, shown together.
+  Unsized,
+}
+
+/// Seconds without progress before a transfer counts as stalled.
+const STALL_AFTER: f64 = 3.0;
+/// Widest a bar gets.
+const BAR_WIDTH: usize = 28;
+/// Narrowest bar worth drawing; narrower terminals drop the bar column.
+const MIN_BAR_WIDTH: usize = 8;
+/// Widest the name column gets, connectors included.
+const NAME_WIDTH: usize = 44;
+/// Columns kept for status text right of the bars.
+const STATUS_WIDTH: usize = 24;
+
+/// How far a row's work has come, drawn in the bar column.
+#[derive(Clone, Copy)]
+enum Bar {
+  /// `done` of `total`, in one color.
+  Progress {
+    done:  u64,
+    total: u64,
+    color: Color,
+  },
+  /// Work of unknown size, drawn as a moving segment.
+  Busy(Color),
+}
+
+/// A tree row before its columns are laid out.
+struct Row {
+  /// Connectors and the status icon.
+  lead:   Vec<Span<'static>>,
+  name:   String,
+  color:  Color,
+  bar:    Option<Bar>,
+  /// Details right of the bar, each starting with its own gap.
+  status: Vec<Span<'static>>,
 }
 
 struct PlannedRow {
@@ -74,9 +114,11 @@ impl PlannedRow {
 
 #[derive(Default)]
 pub(super) struct TreePlan {
-  rows:   HashMap<RowId, PlannedRow>,
-  roots:  Vec<RowId>,
-  hidden: usize,
+  rows:         HashMap<RowId, PlannedRow>,
+  roots:        Vec<RowId>,
+  hidden:       usize,
+  /// Unmatched downloads drawn together as [`RowId::Unsized`].
+  unknown_size: Vec<usize>,
 }
 
 impl TreePlan {
@@ -219,18 +261,13 @@ impl Renderer<'_> {
 
     for (&id, info) in self.snapshot.derivations {
       let priority = match info.build_status {
-        BuildStatus::Failed { .. } => 4,
+        BuildStatus::Failed { .. } | BuildStatus::DependencyFailed => 4,
         BuildStatus::Building(_) => 3,
-        BuildStatus::Planned if self.snapshot.unconfirmed.contains(&id) => 0,
         BuildStatus::Planned => 2,
         BuildStatus::Available => 1,
-        BuildStatus::Unknown
-        | BuildStatus::Built { .. }
-        | BuildStatus::DependencyFailed => 0,
+        BuildStatus::Unknown | BuildStatus::Built { .. } => 0,
       };
       let units = self.snapshot.packages.get(&id);
-      let moved = units
-        .is_some_and(|counts| counts.done + counts.running + counts.failed > 0);
       relevance[id] = match info.membership {
         Membership::Unit(_) if priority < 3 => 0,
         Membership::Package
@@ -239,23 +276,21 @@ impl Renderer<'_> {
           priority.max(3)
         },
         Membership::Package
-          if !self.snapshot.finished
-            && (moved
-              || matches!(info.build_status, BuildStatus::Planned)
-                && !self.snapshot.unconfirmed.contains(&id))
-            && units.is_some_and(UnitCounts::unfinished) =>
+          if units.is_some_and(|counts| counts.failed > 0) =>
         {
-          priority.max(2)
+          priority.max(4)
         },
         Membership::Outside | Membership::Package | Membership::Unit(_) => {
           priority
         },
       };
     }
+    // Finished transfers count toward their group's bar, not rows.
     for item in &self.snapshot.placed_transfers {
-      if let Some(id) = item.placement.derivation() {
-        let priority = if item.transfer.completed { 1 } else { 3 };
-        relevance[id] = relevance[id].max(priority);
+      if let Some(id) = item.placement.derivation()
+        && !item.transfer.completed
+      {
+        relevance[id] = relevance[id].max(3);
       }
     }
     pending.extend(
@@ -397,8 +432,12 @@ impl Renderer<'_> {
       }
     }
 
+    let shown = self.shown_unmatched();
     for (index, item) in self.snapshot.placed_transfers.iter().enumerate() {
-      let priority = if item.transfer.completed { 1 } else { 3 };
+      let priority = 3;
+      if item.transfer.completed {
+        continue;
+      }
       match item.placement {
         TransferPlacement::Inline(id) => {
           if let Some(row) = plan.rows.get_mut(&RowId::Build(id)) {
@@ -420,17 +459,37 @@ impl Renderer<'_> {
           plan.row_mut(RowId::Build(consumer)).children.push(id);
         },
         TransferPlacement::Unmatched => {
-          let id = RowId::Transfer(index);
-          plan.rows.insert(id, PlannedRow::new(priority));
-          let group = plan
+          plan
             .rows
             .entry(RowId::TransferGroup)
             .or_insert_with(|| PlannedRow::new(priority));
-          group.priority = group.priority.max(priority);
-          group.active |= priority >= 3;
-          group.children.push(id);
+          let id = if shown.contains(&index) {
+            RowId::Transfer(index)
+          } else if item.transfer.total.is_none() {
+            plan.unknown_size.push(index);
+            RowId::Unsized
+          } else {
+            continue;
+          };
+          if plan.rows.contains_key(&id) {
+            continue;
+          }
+          plan.rows.insert(id, PlannedRow::new(priority));
+          plan.row_mut(RowId::TransferGroup).children.push(id);
         },
       }
+    }
+    // Keep a group for planned transfers even before the first one starts.
+    if !plan.rows.contains_key(&RowId::TransferGroup)
+      && (self
+        .snapshot
+        .placed_transfers
+        .iter()
+        .any(|item| matches!(item.placement, TransferPlacement::Unmatched))
+        || !self.snapshot.summary.planned_downloads.is_empty())
+      && !self.snapshot.finished
+    {
+      plan.rows.insert(RowId::TransferGroup, PlannedRow::new(1));
     }
 
     for index in 0..self.snapshot.source_fetches.len() {
@@ -502,6 +561,35 @@ impl Renderer<'_> {
       plan.roots.push(RowId::TransferGroup);
     }
     plan
+  }
+
+  /// Picks the unmatched downloads that get rows of their own: every stalled
+  /// one and the largest that is moving. The group's bar covers the rest.
+  fn shown_unmatched(&self) -> HashSet<usize> {
+    let active =
+      self
+        .snapshot
+        .placed_transfers
+        .iter()
+        .enumerate()
+        .filter(|(_, item)| {
+          !item.transfer.completed
+            && matches!(item.placement, TransferPlacement::Unmatched)
+        });
+    let mut shown = active
+      .clone()
+      .filter(|(_, item)| item.transfer.idle >= STALL_AFTER)
+      .map(|(index, _)| index)
+      .collect::<HashSet<usize>>();
+    shown.extend(
+      active
+        .filter(|(index, item)| {
+          !shown.contains(index) && item.transfer.total.is_some()
+        })
+        .max_by_key(|(index, item)| (item.transfer.total, Reverse(*index)))
+        .map(|(index, _)| index),
+    );
+    shown
   }
 
   /// Returns the derivations whose rows a derivation's row hangs from.
@@ -588,10 +676,13 @@ impl Renderer<'_> {
       }
     }
     // The status box below continues the tree's line, so no row closes it.
-    let mut lines = vec![Line::from(vec![
-      span("╭─ ", self.config.theme.connector),
-      span("Builds", self.config.theme.text),
-    ])];
+    let mut lines = vec![Row {
+      lead:   vec![span("╭─ ", self.config.theme.connector)],
+      name:   "Builds".to_owned(),
+      color:  self.config.theme.text,
+      bar:    None,
+      status: Vec::new(),
+    }];
     for &root in &selection.roots {
       self.push_row(&mut lines, root, &[], false, &selection);
       if lines.len() >= content_limit {
@@ -611,12 +702,91 @@ impl Renderer<'_> {
         (running, 0) => format!("… {running} active"),
         (running, rest) => format!("… {running} active, {rest} more"),
       };
-      lines.push(Line::from(vec![
-        span("├─ ", self.config.theme.connector),
-        span(label, self.config.theme.muted),
-      ]));
+      lines.push(Row {
+        lead:   vec![span("├─ ", self.config.theme.connector)],
+        name:   label,
+        color:  self.config.theme.muted,
+        bar:    None,
+        status: Vec::new(),
+      });
     }
-    lines
+    self.lay_out(lines)
+  }
+
+  /// Lines rows up in columns: names, then bars, then status.
+  ///
+  /// Every bar starts in the same column, after the longest name that fits.
+  /// Terminals too narrow for a useful bar keep the status after the name.
+  fn lay_out(&self, rows: Vec<Row>) -> Vec<Line<'static>> {
+    let width = usize::from(self.width);
+    // A fixed column keeps bars still while rows come and go.
+    let column = (width * 2 / 5).min(NAME_WIDTH);
+    let bar_width = width
+      .saturating_sub(column + 1 + STATUS_WIDTH)
+      .min(BAR_WIDTH);
+    let bars =
+      rows.iter().any(|row| row.bar.is_some()) && bar_width >= MIN_BAR_WIDTH;
+
+    rows
+      .into_iter()
+      .map(|row| {
+        let mut spans = row.lead;
+        let detailed = row.bar.is_some() || !row.status.is_empty();
+        if !bars || !detailed || row.bar.is_none() {
+          // Rows without bars use the reclaimed column for their status when
+          // the bar column exists; narrow terminals still protect the name.
+          let status = if bars {
+            spans_width(&row.status)
+          } else {
+            spans_width(&row.status).min(STATUS_WIDTH / 2)
+          };
+          let room = width.saturating_sub(spans_width(&spans) + status);
+          spans.push(span(truncate_middle(&row.name, room), row.color));
+          spans.extend(row.status);
+          return fit_line(spans, self.width);
+        }
+        let room = column.saturating_sub(spans_width(&spans));
+        let name = truncate_middle(&row.name, room);
+        let gap = room - name.width() + 1;
+        spans.push(span(name, row.color));
+        spans.push(Span::raw(" ".repeat(gap)));
+        match row.bar {
+          Some(bar) => spans.extend(self.bar(bar, bar_width)),
+          None => spans.push(Span::raw(" ".repeat(bar_width))),
+        }
+        spans.extend(row.status);
+        fit_line(spans, self.width)
+      })
+      .collect()
+  }
+
+  fn bar(&self, bar: Bar, width: usize) -> Vec<Span<'static>> {
+    let theme = &self.config.theme;
+    match bar {
+      Bar::Progress { done, total, color } => {
+        progress_bar(done, total.max(1), width, color, theme.progress_track)
+      },
+      Bar::Busy(color) => {
+        let segment = (width / 5).max(2);
+        let travel = width - segment;
+        #[expect(
+          clippy::cast_possible_truncation,
+          clippy::cast_sign_loss,
+          reason = "the frame index is clamped to zero"
+        )]
+        let step = (self.now.max(0.0) * 8.0) as usize % (travel * 2).max(1);
+        let start = if step > travel {
+          travel * 2 - step
+        } else {
+          step
+        };
+        vec![
+          span("─".repeat(start), theme.progress_track),
+          span("━".repeat(segment), color),
+          span("─".repeat(travel - start), theme.progress_track),
+        ]
+      },
+    }
   }
 
   /// Selects active build and group rows first, then shares the remaining rows
@@ -670,8 +840,10 @@ impl Renderer<'_> {
             ));
             sequence += 1;
           },
-          RowId::Transfer(_) | RowId::SourceFetch(_) | RowId::TransferGroup => {
-          },
+          RowId::Transfer(_)
+          | RowId::SourceFetch(_)
+          | RowId::TransferGroup
+          | RowId::Unsized => {},
         }
       }
       if candidates >= maximum - 1 {
@@ -734,7 +906,7 @@ impl Renderer<'_> {
                   self.snapshot.placed_transfers[*index].transfer.completed
                     == completed
                 },
-                RowId::SourceFetch(_) => !completed,
+                RowId::SourceFetch(_) | RowId::Unsized => !completed,
                 RowId::Build(_) | RowId::TransferGroup => false,
               }
             })
@@ -803,7 +975,9 @@ impl Renderer<'_> {
         && selection.parents[id]
           .is_none_or(|parent| !selection.rows.contains(&parent))
     }));
-    selection.roots.sort_by_key(|root| !anchored.contains(root));
+    selection.roots.sort_by_key(|root| {
+      (*root == RowId::TransferGroup, !anchored.contains(root))
+    });
     selection
   }
 
@@ -825,45 +999,59 @@ impl Renderer<'_> {
 
   fn push_row(
     &mut self,
-    lines: &mut Vec<Line<'static>>,
+    rows: &mut Vec<Row>,
     id: RowId,
     ancestors: &[bool],
     last: bool,
     selection: &TreeSelection<'_>,
   ) {
-    if lines.len() >= selection.maximum || !selection.rows.contains(&id) {
+    if rows.len() >= selection.maximum || !selection.rows.contains(&id) {
       return;
     }
 
+    let prefix = self.prefix(ancestors, last);
     match id {
       RowId::Build(derivation) => {
-        self.push_build(lines, derivation, ancestors, last, selection);
+        self.push_build(rows, derivation, ancestors, last, selection);
       },
       RowId::Transfer(index) => {
         let row = selection.plan.row(id);
-        self.push_transfer_row(
-          lines,
-          ancestors,
-          last,
+        rows.push(self.transfer_row(
+          prefix,
           &self.snapshot.placed_transfers[index].transfer,
           row.consumers,
-        );
+        ));
+      },
+      RowId::Unsized => {
+        let transfers = selection
+          .plan
+          .unknown_size
+          .iter()
+          .map(|&index| &self.snapshot.placed_transfers[index].transfer)
+          .collect::<Vec<&Transfer>>();
+        let mut aggregate = aggregate_transfers(transfers.iter().copied());
+        aggregate.name = transfers
+          .iter()
+          .map(|transfer| transfer.name.as_str())
+          .collect::<Vec<&str>>()
+          .join(", ");
+        aggregate.total = None;
+        rows.push(self.transfer_row(prefix, &aggregate, 0));
       },
       RowId::SourceFetch(index) => {
-        let prefix = self.prefix(ancestors, last);
-        lines.push(
-          self.source_fetch_line(prefix, self.snapshot.source_fetches[index]),
+        rows.push(
+          self.source_fetch_row(prefix, self.snapshot.source_fetches[index]),
         );
       },
       RowId::TransferGroup => {
-        self.push_transfer_group(lines, ancestors, last, selection);
+        self.push_transfer_group(rows, ancestors, last, selection);
       },
     }
   }
 
   fn push_build(
     &mut self,
-    lines: &mut Vec<Line<'static>>,
+    rows: &mut Vec<Row>,
     id: DerivationId,
     ancestors: &[bool],
     last: bool,
@@ -879,51 +1067,45 @@ impl Renderer<'_> {
 
     let row = selection.plan.row(RowId::Build(id));
 
-    let mut spans = self.prefix(ancestors, last);
+    let mut lead = self.prefix(ancestors, last);
     if selection.parents[&RowId::Build(id)]
       .is_some_and(|parent| !selection.rows.contains(&parent))
     {
-      spans.push(span("… ", self.config.theme.muted));
+      lead.push(span("… ", self.config.theme.muted));
     }
 
-    let (icon, color, suffix) = self.build_status(id, info, row, selection);
-    spans.push(span(format!("{icon}{}", self.icons.gap), color));
+    let (icon, color, mut bar, mut status) =
+      self.build_status(id, info, row, selection);
+    lead.push(span(format!("{icon}{}", self.icons.gap), color));
 
-    let transfer = (!row.inline.is_empty()).then(|| {
-      aggregate_transfers(
+    // Copies of the row's own outputs stand in for its build progress.
+    if !row.inline.is_empty() {
+      let aggregate = aggregate_transfers(
         row
           .inline
           .iter()
           .map(|&index| &self.snapshot.placed_transfers[index].transfer),
-      )
-    });
-
-    let reserve = transfer.as_ref().map_or_else(
-      || spans_width(&suffix),
-      |item| if item.total.is_some() { 12 } else { 8 },
-    );
-    let name_width =
-      usize::from(self.width).saturating_sub(spans_width(&spans) + reserve);
-    let name = self.row_name(info);
-    spans.push(span(truncate_text(name, name_width), color));
-
-    match transfer {
-      Some(aggregate) => {
-        spans.extend(self.transfer_suffix(&aggregate, spans_width(&spans)));
-      },
-      None => spans.extend(suffix),
+      );
+      bar = Some(self.transfer_bar(&aggregate));
+      status = self.transfer_status(&aggregate);
     }
 
     let children = self.visible_children(id, row, selection);
-    spans.extend(self.hidden_sources(row, &children));
-    lines.push(fit_line(spans, self.width));
-    self.push_children(lines, children, ancestors, last, selection);
+    status.extend(self.hidden_sources(row, &children));
+    rows.push(Row {
+      lead,
+      name: self.row_name(info).to_owned(),
+      color,
+      bar,
+      status,
+    });
+    self.push_children(rows, children, ancestors, last, selection);
   }
 
   /// Draws `children` one level below a row, stopping at the line limit.
   fn push_children(
     &mut self,
-    lines: &mut Vec<Line<'static>>,
+    rows: &mut Vec<Row>,
     children: Vec<RowId>,
     ancestors: &[bool],
     last: bool,
@@ -934,13 +1116,13 @@ impl Renderer<'_> {
     let count = children.len();
     for (position, child) in children.into_iter().enumerate() {
       self.push_row(
-        lines,
+        rows,
         child,
         &descendants,
         position + 1 == count,
         selection,
       );
-      if lines.len() >= selection.maximum {
+      if rows.len() >= selection.maximum {
         break;
       }
     }
@@ -972,7 +1154,7 @@ impl Renderer<'_> {
     ))
   }
 
-  /// Returns the icon, color and status suffix for a build row.
+  /// Returns the icon, color, bar and status for a build row.
   ///
   /// A running or failed producer stands in for the derivation it writes.
   fn build_status(
@@ -981,12 +1163,9 @@ impl Renderer<'_> {
     info: &DerivationInfo,
     row: &PlannedRow,
     selection: &TreeSelection<'_>,
-  ) -> (&'static str, Color, Vec<Span<'static>>) {
-    let units = self
-      .snapshot
-      .packages
-      .get(&id)
-      .filter(|counts| counts.unfinished() || counts.failed > 0);
+  ) -> (&'static str, Color, Option<Bar>, Vec<Span<'static>>) {
+    let theme = &self.config.theme;
+    let units = self.snapshot.packages.get(&id);
     let unit_start = units
       .filter(|counts| counts.running > 0)
       .and_then(|counts| counts.start);
@@ -1002,60 +1181,63 @@ impl Renderer<'_> {
       })
       .unwrap_or(&info.build_status);
 
-    let (icon, color, mut suffix) = match status {
-      BuildStatus::Unknown | BuildStatus::Planned
-        if let Some(start) = unit_start =>
-      {
-        let suffix = self.clock(start).into_iter().collect();
-        (self.icons.running, self.config.theme.running, suffix)
+    let (icon, color, bar, mut suffix) = match status {
+      BuildStatus::Unknown | BuildStatus::Planned if unit_start.is_some() => {
+        (self.icons.running, theme.running, None, Vec::new())
       },
       BuildStatus::Unknown
         if units.is_some()
           || row.active_below > 0
           || matches!(info.membership, Membership::Unit(_)) =>
       {
-        (self.icons.planned, self.config.theme.planned, Vec::new())
+        (self.icons.planned, theme.planned, None, Vec::new())
       },
       BuildStatus::Unknown => {
-        (self.icons.planned, self.config.theme.muted, Vec::new())
+        (self.icons.planned, theme.muted, None, Vec::new())
       },
       BuildStatus::Planned => {
         let suffix = info.blocked.map(|blocker| {
           let label = match blocker {
-            Blocker::Lock => "  (locked by another build)",
-            Blocker::Machine => "  (waiting for a machine)",
+            Blocker::Lock => "  locked by another build",
+            Blocker::Machine => "  waiting for a machine",
           };
-          span(label, self.config.theme.muted)
+          span(label, theme.muted)
         });
-        (
-          self.icons.planned,
-          self.config.theme.planned,
-          suffix.into_iter().collect(),
-        )
+        let suffix = suffix.into_iter().collect();
+        (self.icons.planned, theme.planned, None, suffix)
       },
       BuildStatus::Building(build) => {
         let suffix = self.running_suffix(id, info, build, selection);
-        (self.icons.running, self.config.theme.running, suffix)
+        let bar = self.build_bar(info, build);
+        (self.icons.running, theme.running, Some(bar), suffix)
       },
-      BuildStatus::Built { .. } | BuildStatus::Available => {
-        (self.icons.done, self.config.theme.completed, Vec::new())
+      BuildStatus::Built {
+        info: build, end, ..
+      } => {
+        let took = (self.config.show_timers
+          && end - build.start >= MIN_TIMER_SECONDS)
+          .then(|| {
+            span(
+              format!("  {}", format_duration(end - build.start)),
+              theme.muted,
+            )
+          })
+          .into_iter()
+          .collect();
+        (self.icons.done, theme.completed, None, took)
+      },
+      BuildStatus::Available => {
+        (self.icons.done, theme.completed, None, Vec::new())
       },
       BuildStatus::Failed { .. } => {
-        (self.icons.failed, self.config.theme.failed, Vec::new())
+        let label = span("  failed", theme.failed);
+        (self.icons.failed, theme.failed, None, vec![label])
       },
       BuildStatus::DependencyFailed => {
-        (self.icons.failed, self.config.theme.muted, Vec::new())
+        let label = span("  dependency failed", theme.muted);
+        (self.icons.failed, theme.muted, None, vec![label])
       },
     };
-
-    if let Some(counts) = units
-      && !matches!(
-        info.build_status,
-        BuildStatus::Built { .. } | BuildStatus::Available
-      )
-    {
-      suffix.insert(0, self.unit_summary(counts));
-    }
 
     if let Some(progress) = self.unit_progress(id) {
       suffix.insert(0, progress);
@@ -1064,10 +1246,33 @@ impl Renderer<'_> {
     if info.name.name.strip_suffix(".drv").is_some()
       && matches!(info.membership, Membership::Unit(_))
     {
-      suffix.insert(0, span("  (scan)", self.config.theme.muted));
+      suffix.insert(0, span("  (scan)", theme.muted));
     }
 
-    (icon, color, suffix)
+    (icon, color, bar, suffix)
+  }
+
+  /// A running build's time against its estimate, or a moving segment
+  /// without one.
+  #[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "elapsed time is clamped to zero and far below u64::MAX"
+  )]
+  fn build_bar(&self, info: &DerivationInfo, build: &BuildInfo) -> Bar {
+    let color = self.config.theme.running;
+    build
+      .estimate
+      .filter(|&estimate| {
+        estimate > 0 && !self.snapshot.state.name_is_shared(&info.name.name)
+      })
+      .map_or(Bar::Busy(color), |estimate| {
+        Bar::Progress {
+          done: (elapsed(build.start, self.now).max(0.0) * 1000.0) as u64,
+          total: estimate.saturating_mul(1000),
+          color,
+        }
+      })
   }
 
   fn running_suffix(
@@ -1083,26 +1288,15 @@ impl Renderer<'_> {
       suffix.push(span(format!("  ({phase})"), self.config.theme.muted));
     }
 
-    suffix.extend(self.clock(build.start));
+    let average = build
+      .estimate
+      .filter(|_| !self.snapshot.state.name_is_shared(&info.name.name));
+    suffix.extend(self.clock(build.start, average));
 
     suffix.extend(build.cpu.map(|cpu| self.cpu(cpu)));
 
     if let Host::Remote(machine) = &build.host {
       suffix.push(span(format!(" @{machine}"), self.config.theme.host));
-    }
-
-    if let Some(estimate) = build.estimate
-      && !self.snapshot.state.name_is_shared(&info.name.name)
-    {
-      suffix.push(span(
-        format!(
-          "  ({}{}{})",
-          self.icons.estimate,
-          self.icons.gap,
-          format_secs(estimate)
-        ),
-        self.config.theme.timer,
-      ));
     }
 
     let waiting = self.hidden_waiting(id, selection);
@@ -1148,18 +1342,24 @@ impl Renderer<'_> {
     hidden
   }
 
-  fn clock(&self, start: f64) -> Option<Span<'static>> {
-    self.config.show_timers.then(|| {
-      span(
-        format!(
-          "  {}{}{}",
-          self.icons.clock,
-          self.icons.gap,
-          format_duration(elapsed(start, self.now))
-        ),
-        self.config.theme.timer,
-      )
-    })
+  fn clock(&self, start: f64, average: Option<u64>) -> Option<Span<'static>> {
+    let elapsed = elapsed(start, self.now);
+    self
+      .config
+      .show_timers
+      .then_some(())
+      .filter(|()| elapsed >= MIN_TIMER_SECONDS)
+      .map(|()| {
+        span(
+          format!(
+            "  {}{}{}",
+            self.icons.clock,
+            self.icons.gap,
+            format_timer(elapsed, average)
+          ),
+          self.config.theme.timer,
+        )
+      })
   }
 
   /// Drops a unit's package name from its own, which the row above shows.
@@ -1244,38 +1444,16 @@ impl Renderer<'_> {
     ))
   }
 
-  fn unit_summary(&self, counts: &UnitCounts<'_>) -> Span<'static> {
-    let mut parts = vec![format!("units {}/{}", counts.done, counts.total)];
-    if counts.running > 0 {
-      let mut remote = counts
-        .remote
-        .iter()
-        .map(|(&machine, &count)| (machine, count))
-        .collect::<Vec<(&str, usize)>>();
-      remote.sort_by_key(|&(machine, count)| (Reverse(count), machine));
-      let machines = remote
-        .iter()
-        .map(|(machine, count)| format!("{count} @{machine}"))
-        .collect::<Vec<String>>();
-      parts.push(if machines.is_empty() {
-        format!("{} running", counts.running)
-      } else {
-        format!("{} running ({})", counts.running, machines.join(", "))
-      });
-    }
-    if counts.failed > 0 {
-      parts.push(format!("{} failed", counts.failed));
-    }
-    span(format!("  ({})", parts.join(", ")), self.config.theme.muted)
-  }
-
+  /// Draws the downloads no build row shows as one row, with a bar for all of
+  /// them, above the few that need attention.
   fn push_transfer_group(
     &mut self,
-    lines: &mut Vec<Line<'static>>,
+    rows: &mut Vec<Row>,
     ancestors: &[bool],
     last: bool,
     selection: &TreeSelection<'_>,
   ) {
+    let theme = &self.config.theme;
     let row = selection.plan.row(RowId::TransferGroup);
     let shown = row
       .children
@@ -1283,17 +1461,63 @@ impl Renderer<'_> {
       .copied()
       .filter(|child| selection.rows.contains(child))
       .collect::<Vec<RowId>>();
-    let hidden = row.children.len() - shown.len();
-    let label = if hidden == 0 {
-      "Transfers".to_owned()
-    } else {
-      format!("Transfers ({hidden} hidden)")
-    };
-    let mut spans = self.prefix(ancestors, last);
-    spans.push(span(label, self.config.theme.text));
-    lines.push(Line::from(spans));
 
-    self.push_children(lines, shown, ancestors, last, selection);
+    let settled = self.snapshot.settled;
+    let (mut active, mut finished) = (0, settled.count);
+    let (mut done, mut total) = (settled.bytes, settled.bytes);
+    let (mut downloads, mut uploads) = (false, false);
+    for item in &self.snapshot.placed_transfers {
+      if !matches!(item.placement, TransferPlacement::Unmatched) {
+        continue;
+      }
+      downloads |= item.transfer.direction == Direction::Download;
+      uploads |= item.transfer.direction == Direction::Upload;
+      if item.transfer.completed {
+        finished += 1;
+      } else {
+        active += 1;
+      }
+      if let Some(size) = item.transfer.total {
+        done += item.transfer.done.min(size);
+        total += size;
+      }
+    }
+    active += self.snapshot.source_fetches.len();
+    let waiting = self.snapshot.counts.downloads.waiting;
+    let count = active + finished + waiting;
+
+    let (icon, color, name) = if active == 0 && waiting > 0 {
+      (self.icons.planned, theme.planned, "fetching")
+    } else if active == 0 {
+      (self.icons.done, theme.completed, "transfers")
+    } else if uploads && !downloads && waiting == 0 {
+      (self.icons.upload, theme.upload, "transfers")
+    } else {
+      (self.icons.download, theme.download, "fetching")
+    };
+    let mut lead = self.prefix(ancestors, last);
+    lead.push(span(format!("{icon}{}", self.icons.gap), color));
+    let bar = if total > 0 {
+      Some(Bar::Progress { done, total, color })
+    } else {
+      (active > 0).then_some(Bar::Busy(color))
+    };
+    let mut status = vec![span(format!("  {active} of {count}"), theme.muted)];
+    if total > 0 {
+      status.push(span(
+        format!("  {}/{}", format_bytes(done), format_bytes(total)),
+        theme.muted,
+      ));
+    }
+    rows.push(Row {
+      lead,
+      name: name.to_owned(),
+      color: theme.text,
+      bar,
+      status,
+    });
+
+    self.push_children(rows, shown, ancestors, last, selection);
   }
 
   fn prefix(&self, ancestors: &[bool], last: bool) -> Vec<Span<'static>> {
@@ -1311,35 +1535,124 @@ impl Renderer<'_> {
     spans
   }
 
-  fn push_transfer_row(
+  fn transfer_row(
     &self,
-    lines: &mut Vec<Line<'static>>,
-    ancestors: &[bool],
-    last: bool,
+    mut lead: Vec<Span<'static>>,
     transfer: &Transfer,
     consumers: usize,
-  ) {
-    let mut spans = self.prefix(ancestors, last);
-    let available =
-      usize::from(self.width).saturating_sub(spans_width(&spans) + 12);
-    let shared = if consumers > 1 {
-      let label = format!(" (used by {consumers} builds)");
-      if label.width() + 8 <= available {
-        label
-      } else {
-        String::new()
-      }
-    } else {
-      String::new()
+  ) -> Row {
+    let color = self.transfer_color(transfer);
+    let arrow = match transfer.direction {
+      Direction::Download => self.icons.download,
+      Direction::Upload => self.icons.upload,
     };
-    let name =
-      truncate_text(&transfer.name, available.saturating_sub(shared.width()));
-    spans.push(span(
-      format!("{name}{shared}"),
-      self.transfer_color(transfer),
+    lead.push(span(format!("{arrow}{}", self.icons.gap), color));
+    let mut status = self.transfer_status(transfer);
+    if consumers > 1 {
+      // Ahead of the host, which matters least.
+      let at = status.len() - usize::from(Self::shows_host(transfer));
+      status.insert(
+        at,
+        span(
+          format!("  used by {consumers} builds"),
+          self.config.theme.muted,
+        ),
+      );
+    }
+    Row {
+      lead,
+      name: transfer.name.clone(),
+      color,
+      bar: Some(self.transfer_bar(transfer)),
+      status,
+    }
+  }
+
+  fn source_fetch_row(
+    &self,
+    mut lead: Vec<Span<'static>>,
+    fetch: &SourceFetch,
+  ) -> Row {
+    let color = self.config.theme.running;
+    lead.push(span(
+      format!("{}{}", self.icons.download, self.icons.gap),
+      color,
     ));
-    spans.extend(self.transfer_suffix(transfer, spans_width(&spans)));
-    lines.push(fit_line(spans, self.width));
+    let name = Path::new(&fetch.source)
+      .file_name()
+      .and_then(|name| name.to_str())
+      .unwrap_or(&fetch.source);
+    Row {
+      lead,
+      name: name.to_owned(),
+      color,
+      bar: Some(Bar::Busy(color)),
+      status: vec![span(
+        format!(
+          "  copying  {}",
+          format_duration(elapsed(fetch.start, self.now))
+        ),
+        self.config.theme.muted,
+      )],
+    }
+  }
+
+  fn shows_host(transfer: &Transfer) -> bool {
+    !transfer.host.is_empty() && transfer.host != "localhost"
+  }
+
+  fn stalled(transfer: &Transfer) -> bool {
+    !transfer.completed && transfer.idle >= STALL_AFTER
+  }
+
+  fn transfer_bar(&self, transfer: &Transfer) -> Bar {
+    let color = if Self::stalled(transfer) {
+      self.config.theme.failed
+    } else {
+      self.transfer_color(transfer)
+    };
+    transfer.total.filter(|total| *total > 0).map_or(
+      Bar::Busy(color),
+      |total| {
+        Bar::Progress {
+          done: transfer.done,
+          total,
+          color,
+        }
+      },
+    )
+  }
+
+  /// Percentage, stall, bytes and host, most important first so a narrow
+  /// terminal cuts the rest.
+  fn transfer_status(&self, transfer: &Transfer) -> Vec<Span<'static>> {
+    let theme = &self.config.theme;
+    let mut status = Vec::new();
+    let total = transfer.total.filter(|total| *total > 0);
+    if let Some(total) = total {
+      let percent = (transfer.done.saturating_mul(100) / total).min(100);
+      status.push(span(
+        format!("  {percent:>3}%"),
+        self.transfer_color(transfer),
+      ));
+    }
+    if Self::stalled(transfer) {
+      status.push(span(
+        format!("  stalled {}", format_duration(transfer.idle)),
+        theme.failed,
+      ));
+    }
+    let bytes = total.map_or_else(
+      || format_bytes(transfer.done),
+      |total| {
+        format!("{}/{}", format_bytes(transfer.done), format_bytes(total))
+      },
+    );
+    status.push(span(format!("  {bytes}"), theme.muted));
+    if Self::shows_host(transfer) {
+      status.push(span(format!("  {}", transfer.host), theme.host));
+    }
+    status
   }
 
   pub(super) fn transfer_suffix(

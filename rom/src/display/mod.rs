@@ -38,10 +38,25 @@ use crate::{
   types::{DisplayFormat, RenderConfig},
 };
 
+/// Content width required by the tree's fixed name, bar, and status columns.
+pub(crate) const MIN_TREE_WIDTH: u16 = 55;
+/// Per-build timers stay hidden until they carry useful elapsed time.
+pub(crate) const MIN_TIMER_SECONDS: f64 = 1.0;
+
 /// Formats a duration without introducing sub-second redraw noise.
 #[must_use]
 pub fn format_duration(secs: f64) -> String {
   format_secs(whole_seconds(secs))
+}
+
+/// Formats elapsed time alongside a historical average when one is known.
+#[must_use]
+pub fn format_timer(elapsed_secs: f64, average_secs: Option<u64>) -> String {
+  let elapsed = format_duration(elapsed_secs);
+  match average_secs.filter(|&average| average > 0) {
+    Some(average) => format!("{elapsed} / {}", format_secs(average)),
+    None => elapsed,
+  }
 }
 
 /// Formats whole seconds, such as `1m5s`.
@@ -343,6 +358,30 @@ fn truncate_text(value: &str, width: usize) -> String {
   result
 }
 
+/// Shortens `value` to `width` by cutting its middle, which keeps the version
+/// at the end of a store name readable.
+fn truncate_middle(value: &str, width: usize) -> String {
+  if value.width() <= width {
+    return value.to_owned();
+  }
+  if width < 8 {
+    return truncate_text(value, width);
+  }
+  let tail_width = (width / 3).min(12);
+  let head = truncate_text(value, width - tail_width - 1);
+  let mut tail = Vec::new();
+  let mut remaining = tail_width;
+  for character in value.chars().rev() {
+    let character_width = character.width().unwrap_or(0);
+    if character_width > remaining {
+      break;
+    }
+    tail.push(character);
+    remaining -= character_width;
+  }
+  format!("{head}…{}", tail.into_iter().rev().collect::<String>())
+}
+
 fn fit_line(spans: Vec<Span<'static>>, width: u16) -> Line<'static> {
   let mut remaining = usize::from(width);
   let mut result = Vec::new();
@@ -442,6 +481,7 @@ mod tests {
         parent:            None,
         bytes_transferred: 50,
         total_bytes:       Some(100),
+        last_progress:     0.0,
       },
     );
     let config = RenderConfig {
