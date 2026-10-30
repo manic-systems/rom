@@ -979,7 +979,7 @@ impl Engine {
       producers:  &mut self.producers,
       next_retry: &mut self.next_retry,
     };
-    tree.register(path, Vec::new());
+    tree.resolve(path.to_path_buf());
     let Some(id) = tree.state.derivation_id(path) else {
       return;
     };
@@ -1363,7 +1363,8 @@ impl DerivationTree<'_> {
         parsed
           .input_drvs
           .iter()
-          .map(|(dependency, _)| PathBuf::from(dependency)),
+          .map(|(dependency, _)| PathBuf::from(dependency))
+          .chain(parsed.dynamic_drvs.iter().map(PathBuf::from)),
       );
       // Nix only lets a derivation named `x.drv` write a derivation.
       if self.state.get_derivation_info(id).is_some_and(|info| {
