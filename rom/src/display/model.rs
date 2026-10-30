@@ -39,6 +39,8 @@ pub(super) struct Transfer {
   pub start:     f64,
   pub host:      String,
   pub completed: bool,
+  /// Seconds since the byte count last moved.
+  pub idle:      f64,
 }
 
 pub(super) struct PresentedTransfer {
@@ -103,12 +105,6 @@ pub(super) struct UnitCounts<'a> {
   pub start:   Option<f64>,
 }
 
-impl UnitCounts<'_> {
-  pub const fn unfinished(&self) -> bool {
-    self.done + self.failed < self.total
-  }
-}
-
 #[derive(Default)]
 pub(super) struct Builds<'a> {
   pub planned:   Vec<DerivationId>,
@@ -122,6 +118,8 @@ pub(super) struct Builds<'a> {
 /// Evaluation copies many already-cached sources in milliseconds; showing each
 /// would flash rows in and out of the graph.
 const SOURCE_FETCH_DELAY: f64 = 1.0;
+/// Unmatched transfers must last this long before entering the tree.
+pub(super) const TRANSFER_DISPLAY_DELAY: f64 = 1.0;
 
 /// Immutable presentation input derived once for a complete frame.
 pub(super) struct RenderSnapshot<'a> {
@@ -327,10 +325,10 @@ impl<'a> RenderSnapshot<'a> {
     now: f64,
   ) {
     for (&path, transfer) in &self.summary.running_downloads {
-      self.add_transfer(store_paths, path, transfer, Direction::Download);
+      self.add_transfer(store_paths, path, transfer, Direction::Download, now);
     }
     for (&path, transfer) in &self.summary.running_uploads {
-      self.add_transfer(store_paths, path, transfer, Direction::Upload);
+      self.add_transfer(store_paths, path, transfer, Direction::Upload, now);
     }
     for (&path, transfer) in &self.summary.completed_downloads {
       if elapsed(transfer.end, now) <= 1.0 {
@@ -373,6 +371,7 @@ impl<'a> RenderSnapshot<'a> {
     path: StorePathId,
     transfer: &TransferInfo,
     direction: Direction,
+    now: f64,
   ) {
     let Some(info) = store_paths.get(&path) else {
       return;
@@ -385,6 +384,7 @@ impl<'a> RenderSnapshot<'a> {
       start: transfer.start,
       host: transfer.host.name().to_owned(),
       completed: false,
+      idle: elapsed(transfer.last_progress, now),
     });
   }
 
@@ -406,6 +406,7 @@ impl<'a> RenderSnapshot<'a> {
       start: transfer.start,
       host: transfer.host.name().to_owned(),
       completed: true,
+      idle: 0.0,
     });
   }
 
@@ -441,6 +442,15 @@ impl<'a> RenderSnapshot<'a> {
       }
     } else if let Some(parent) = parent {
       TransferPlacement::Inline(parent)
+    } else if transfer.direction == Direction::Upload
+      && let Some(build) = self.remote_build(&transfer.host)
+    {
+      // Nix does not say which build an upload is for, but it copies inputs
+      // to a builder right before building there.
+      TransferPlacement::Source {
+        consumer:       build,
+        consumer_count: 1,
+      }
     } else {
       TransferPlacement::Unmatched
     };
@@ -448,6 +458,21 @@ impl<'a> RenderSnapshot<'a> {
       transfer,
       placement,
     });
+  }
+}
+
+impl RenderSnapshot<'_> {
+  /// The only running build on `host`, which an unparented upload may be for.
+  fn remote_build(&self, host: &str) -> Option<DerivationId> {
+    let mut builds = self
+      .builds
+      .running
+      .iter()
+      .filter(|(_, build)| {
+        matches!(&build.host, Host::Remote(machine) if machine == host)
+      });
+    let &(id, _) = builds.next()?;
+    builds.next().is_none().then_some(id)
   }
 }
 
@@ -489,6 +514,10 @@ pub(super) fn aggregate_transfers<'a>(
       .map(|item| item.host.clone())
       .unwrap_or_default(),
     completed: selected.iter().all(|item| item.completed),
+    idle: selected
+      .iter()
+      .map(|item| item.idle)
+      .fold(f64::INFINITY, f64::min),
   }
 }
 
@@ -505,6 +534,7 @@ mod tests {
       start: 0.0,
       host: "cache".to_owned(),
       completed,
+      idle: 0.0,
     }
   }
 
