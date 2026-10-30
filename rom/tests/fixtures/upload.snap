@@ -1,7 +1,5 @@
 === uploading @ 200ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;35m↑ \e[0mtransfers                  \e[0;35m━━━━━╸\e[0;90m─────────────────  1 of 1  5.0 MiB/20 MiB\e[0m
-\e[0;90m│  ╰─ \e[0;35m↑ app-1.0\e[0m                 \e[0;35m━━━━━╸\e[0;90m─────────────────\e[0;35m   25%\e[0;90m  5.0 MiB/20 MiB\e[0;35m  \e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
 \e[0;90m┃  \e[0mUploads     \e[0;33m↑ 1       \e[0;32m↑ 0         \e[0;34m          \e[0m∑ 1
