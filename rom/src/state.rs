@@ -1442,7 +1442,7 @@ impl State {
         .any(|info| matches!(info.build_status, BuildStatus::Failed { .. }))
   }
 
-  /// Returns whether any build or transfer is still running.
+  /// Returns whether any build or transfer activity is still running.
   #[must_use]
   pub fn has_unfinished(&self) -> bool {
     self
@@ -1451,6 +1451,7 @@ impl State {
       .any(|info| matches!(info.build_status, BuildStatus::Building(_)))
       || !self.full_summary.running_downloads.is_empty()
       || !self.full_summary.running_uploads.is_empty()
+      || !self.source_fetches.is_empty()
   }
 
   /// Returns the number of derivations with a known status.
