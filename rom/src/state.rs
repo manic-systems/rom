@@ -91,6 +91,8 @@ pub struct TransferInfo {
   pub bytes_transferred: u64,
   /// Total size, once known.
   pub total_bytes:       Option<u64>,
+  /// When the byte count last moved, or the start before it has.
+  pub last_progress:     f64,
 }
 
 /// Completed transfer information.
@@ -929,8 +931,42 @@ impl State {
         info.derivation_parents.insert(parent);
       }
       self.forest_roots.retain(|id| *id != child);
+      self.release_shared(parent, child);
     }
     inserted
+  }
+
+  /// Takes `child` and the units below it out of their package once `parent`,
+  /// from outside that package, turns out to depend on it too.
+  ///
+  /// [`Self::adopt_inputs`] only adopts what the package alone uses, but a
+  /// parent outside it can be read after the adoption.
+  fn release_shared(&mut self, parent: DerivationId, child: DerivationId) {
+    let Some(Membership::Unit(package)) = self
+      .derivation_infos
+      .get(&child)
+      .map(|info| info.membership)
+    else {
+      return;
+    };
+    let outside = self
+      .derivation_infos
+      .get(&parent)
+      .is_some_and(|info| info.package(parent) != Some(package));
+    if !outside {
+      return;
+    }
+    let mut pending = vec![child];
+    while let Some(current) = pending.pop() {
+      let Some(info) = self.derivation_infos.get_mut(&current) else {
+        continue;
+      };
+      if info.membership != Membership::Unit(package) || info.writes.is_some() {
+        continue;
+      }
+      info.membership = Membership::Outside;
+      pending.extend(info.input_derivations.iter().copied());
+    }
   }
 
   /// Returns the ID of the derivation at `path`, if it is known.
@@ -1100,7 +1136,17 @@ impl State {
     true
   }
 
-  pub(crate) fn fail_dependency(&mut self, id: DerivationId) {
+  pub(crate) fn fail_dependency(&mut self, id: DerivationId, now: f64) {
+    let Some(info) = self.derivation_infos.get(&id) else {
+      return;
+    };
+    if matches!(info.build_status, BuildStatus::Building(_)) {
+      self.fail_build(id, BuildFail {
+        at:        now,
+        fail_type: FailType::Unknown,
+      });
+      return;
+    }
     let Some(info) = self.derivation_infos.get_mut(&id) else {
       return;
     };
@@ -1320,6 +1366,7 @@ impl State {
     &mut self,
     id: ActivityId,
     progress: Progress,
+    now: f64,
   ) -> bool {
     let Some(status) = self.activities.get(&id) else {
       return false;
@@ -1337,6 +1384,9 @@ impl State {
       .chain(self.full_summary.running_uploads.values_mut())
       .filter(|transfer| transfer.activity_id == id)
     {
+      if transfer.bytes_transferred != done {
+        transfer.last_progress = now;
+      }
       transfer.bytes_transferred = done;
       transfer.total_bytes = (expected > 0).then_some(expected);
     }

@@ -24,7 +24,7 @@ use crate::state::{
   elapsed,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(super) enum Direction {
   Download,
   Upload,
@@ -39,6 +39,8 @@ pub(super) struct Transfer {
   pub start:     f64,
   pub host:      String,
   pub completed: bool,
+  /// Seconds since the byte count last moved.
+  pub idle:      f64,
 }
 
 pub(super) struct PresentedTransfer {
@@ -63,6 +65,13 @@ impl TransferPlacement {
       Self::Unmatched => None,
     }
   }
+}
+
+/// Downloads no build row shows that are already done.
+#[derive(Debug, Clone, Copy, Default)]
+pub(super) struct Settled {
+  pub count: usize,
+  pub bytes: u64,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -103,12 +112,6 @@ pub(super) struct UnitCounts<'a> {
   pub start:   Option<f64>,
 }
 
-impl UnitCounts<'_> {
-  pub const fn unfinished(&self) -> bool {
-    self.done + self.failed < self.total
-  }
-}
-
 #[derive(Default)]
 pub(super) struct Builds<'a> {
   pub planned:   Vec<DerivationId>,
@@ -134,6 +137,8 @@ pub(super) struct RenderSnapshot<'a> {
   pub error_count:      usize,
   pub counts:           SummaryCounts,
   pub placed_transfers: Vec<PresentedTransfer>,
+  /// Unmatched downloads that finished before the grace period ended.
+  pub settled:          Settled,
   pub source_fetches:   Vec<&'a SourceFetch>,
   pub packages:         HashMap<DerivationId, UnitCounts<'a>>,
   pub finished:         bool,
@@ -301,6 +306,7 @@ impl<'a> RenderSnapshot<'a> {
       error_count: state.error_count(),
       counts,
       placed_transfers: Vec::new(),
+      settled: Settled::default(),
       source_fetches: state
         .source_fetches()
         .filter(|fetch| elapsed(fetch.start, now) >= SOURCE_FETCH_DELAY)
@@ -327,13 +333,21 @@ impl<'a> RenderSnapshot<'a> {
     now: f64,
   ) {
     for (&path, transfer) in &self.summary.running_downloads {
-      self.add_transfer(store_paths, path, transfer, Direction::Download);
+      self.add_transfer(store_paths, path, transfer, Direction::Download, now);
     }
     for (&path, transfer) in &self.summary.running_uploads {
-      self.add_transfer(store_paths, path, transfer, Direction::Upload);
+      self.add_transfer(store_paths, path, transfer, Direction::Upload, now);
     }
     for (&path, transfer) in &self.summary.completed_downloads {
-      if elapsed(transfer.end, now) <= 1.0 {
+      if elapsed(transfer.end, now) > 1.0 {
+        let unmatched = store_paths.get(&path).is_some_and(|info| {
+          info.producer.is_none() && info.input_for.is_empty()
+        }) && transfer.parent.is_none();
+        if unmatched {
+          self.settled.count += 1;
+          self.settled.bytes += transfer.total_bytes;
+        }
+      } else {
         self.add_completed_transfer(
           store_paths,
           path,
@@ -373,6 +387,7 @@ impl<'a> RenderSnapshot<'a> {
     path: StorePathId,
     transfer: &TransferInfo,
     direction: Direction,
+    now: f64,
   ) {
     let Some(info) = store_paths.get(&path) else {
       return;
@@ -385,6 +400,7 @@ impl<'a> RenderSnapshot<'a> {
       start: transfer.start,
       host: transfer.host.name().to_owned(),
       completed: false,
+      idle: elapsed(transfer.last_progress, now),
     });
   }
 
@@ -406,6 +422,7 @@ impl<'a> RenderSnapshot<'a> {
       start: transfer.start,
       host: transfer.host.name().to_owned(),
       completed: true,
+      idle: 0.0,
     });
   }
 
@@ -441,6 +458,15 @@ impl<'a> RenderSnapshot<'a> {
       }
     } else if let Some(parent) = parent {
       TransferPlacement::Inline(parent)
+    } else if transfer.direction == Direction::Upload
+      && let Some(build) = self.remote_build(&transfer.host)
+    {
+      // Nix does not say which build an upload is for, but it copies inputs
+      // to a builder right before building there.
+      TransferPlacement::Source {
+        consumer:       build,
+        consumer_count: 1,
+      }
     } else {
       TransferPlacement::Unmatched
     };
@@ -448,6 +474,21 @@ impl<'a> RenderSnapshot<'a> {
       transfer,
       placement,
     });
+  }
+}
+
+impl RenderSnapshot<'_> {
+  /// The only running build on `host`, which an unparented upload may be for.
+  fn remote_build(&self, host: &str) -> Option<DerivationId> {
+    let mut builds = self
+      .builds
+      .running
+      .iter()
+      .filter(|(_, build)| {
+        matches!(&build.host, Host::Remote(machine) if machine == host)
+      });
+    let &(id, _) = builds.next()?;
+    builds.next().is_none().then_some(id)
   }
 }
 
@@ -489,6 +530,10 @@ pub(super) fn aggregate_transfers<'a>(
       .map(|item| item.host.clone())
       .unwrap_or_default(),
     completed: selected.iter().all(|item| item.completed),
+    idle: selected
+      .iter()
+      .map(|item| item.idle)
+      .fold(f64::INFINITY, f64::min),
   }
 }
 
@@ -505,6 +550,7 @@ mod tests {
       start: 0.0,
       host: "cache".to_owned(),
       completed,
+      idle: 0.0,
     }
   }
 
