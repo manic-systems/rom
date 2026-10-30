@@ -117,16 +117,15 @@ pub struct Theme {
 }
 
 /// Icon selection.
-///
-/// `Auto` also honors the existing `NERD_FONTS` override.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
+#[cfg_attr(feature = "cli", derive(serde::Deserialize))]
+#[cfg_attr(feature = "cli", serde(rename_all = "kebab-case"))]
 pub enum IconMode {
-  /// Nerd Fonts if `NERD_FONTS` asks for them, otherwise Unicode.
-  #[default]
-  Auto,
   /// Plain Unicode symbols.
   Unicode,
   /// Nerd Fonts glyphs.
+  #[default]
   Nerd,
 }
 
@@ -221,7 +220,7 @@ impl Default for RenderConfig {
       legend_style:  LegendStyle::Table,
       summary_style: SummaryStyle::Concise,
       theme:         Theme::default(),
-      icons:         IconMode::Auto,
+      icons:         IconMode::Nerd,
     }
   }
 }

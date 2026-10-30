@@ -48,9 +48,8 @@ byte-exact, so producer-supplied escape bytes in passthrough remain untouched.
 
 The existing tree, plain, and dashboard formats remain available, along with
 compact/table/verbose legends, concise/table/full summaries, log-prefix modes,
-timers, and the `NERD_FONTS=0` or `NERD_FONTS=1` override. Nerd Font icons are
-selected automatically for Ghostty, WezTerm, Kitty, and Superset. For other
-terminals with a patched font, set `NERD_FONTS=1`.
+and timers. Icons use Nerd Fonts by default; for a terminal without a patched
+font, use `--icons=unicode` or set `icons = "unicode"` in the config file.
 
 Downloads and uploads are first-class activities. Known-size transfers use a
 line bar, heavy `━╸` for the finished part and a light `─` track, with half-cell
