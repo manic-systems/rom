@@ -91,7 +91,7 @@ pub fn apply_event_at(state: &mut State, event: Event, now: f64) -> Effects {
           effects.changed |= state.set_activity_phase(id, phase);
         },
         ActivityResult::Progress(progress) => {
-          effects.changed |= state.update_activity_progress(id, progress);
+          effects.changed |= state.update_activity_progress(id, progress, now);
         },
         ActivityResult::UntrustedPath(path) => {
           state.record_error(format!("Untrusted path: {path}"));
@@ -167,6 +167,7 @@ fn apply_start(
         parent,
         bytes_transferred: 0,
         total_bytes: None,
+        last_progress: now,
       });
       store_path = Some(id);
       effects.changed = true;
@@ -192,6 +193,7 @@ fn apply_start(
         parent,
         bytes_transferred: 0,
         total_bytes: None,
+        last_progress: now,
       };
       let id = if download {
         state.start_download(path, transfer)
@@ -307,10 +309,13 @@ fn apply_message(
     changed = true;
     if let Some(derivation) = &message.derivation {
       let id = state.get_or_create_derivation_id(derivation.clone());
+      // Nix says `N dependencies of derivation '…' failed to build`, and
+      // newer versions `Reason: N dependencies failed`.
       if message.plain.contains("dependency failed")
         || message.plain.contains("dependencies failed")
+        || message.plain.contains("dependencies of derivation")
       {
-        state.fail_dependency(id);
+        state.fail_dependency(id, now);
       } else {
         state.fail_build(id, BuildFail {
           at:        now,
