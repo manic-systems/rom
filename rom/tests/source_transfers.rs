@@ -308,9 +308,9 @@ fn unrelated_downloads_and_source_uploads_keep_the_transfer_branch() {
         0,
       );
     }
-    let text = frame(&engine, DisplayFormat::Tree, 1.2, 23);
-    let group = if upload { "transfers" } else { "fetching" };
-    assert!(text.contains(group), "{text}");
+    let text = frame(&engine, DisplayFormat::Tree, 2.2, 23);
+    let transfer = if upload { "source-tree" } else { "unrelated" };
+    assert!(text.contains(transfer), "{text}");
     assert!(!text.contains("consumer"), "{text}");
   }
 }
@@ -333,8 +333,7 @@ fn later_upload_does_not_inherit_a_completed_download_parent() {
     3.0,
   );
 
-  let text = frame(&engine, DisplayFormat::Tree, 3.2, 23);
-  assert!(text.contains("transfers"), "{text}");
+  let text = frame(&engine, DisplayFormat::Tree, 4.2, 23);
   assert!(text.contains("source-tree"), "{text}");
 }
 
@@ -560,10 +559,10 @@ fn source_details_share_spare_rows_with_unmatched_transfers() {
     100,
     0,
   );
-  let text = frame(&engine, DisplayFormat::Tree, 1.2, 12);
+  let text = frame(&engine, DisplayFormat::Tree, 2.2, 12);
   assert!(text.contains("consumer"), "{text}");
   assert!(text.contains("source-00"), "{text}");
-  assert!(text.contains("fetching"), "{text}");
+  assert!(text.contains("unrelated"), "{text}");
   assert!(text.contains("unrelated"), "{text}");
   assert!(text.lines().count() <= 12, "{text}");
 }

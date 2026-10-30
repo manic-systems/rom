@@ -25,7 +25,7 @@ use super::{
   format_bytes,
   format_duration,
   format_timer,
-  model::{RenderSnapshot, TransferPlacement},
+  model::{RenderSnapshot, TRANSFER_DISPLAY_DELAY, TransferPlacement},
   progress_bar,
   span,
   spans_width,
@@ -466,6 +466,9 @@ impl Renderer<'_> {
           plan.row_mut(RowId::Build(consumer)).children.push(id);
         },
         TransferPlacement::Unmatched => {
+          if elapsed(item.transfer.start, self.now) < TRANSFER_DISPLAY_DELAY {
+            continue;
+          }
           plan
             .rows
             .entry(RowId::TransferGroup)
@@ -488,12 +491,11 @@ impl Renderer<'_> {
     }
     // Keep a group for planned transfers even before the first one starts.
     if !plan.rows.contains_key(&RowId::TransferGroup)
-      && (self
-        .snapshot
-        .placed_transfers
-        .iter()
-        .any(|item| matches!(item.placement, TransferPlacement::Unmatched))
-        || !self.snapshot.summary.planned_downloads.is_empty())
+      && (self.snapshot.placed_transfers.iter().any(|item| {
+        !item.transfer.completed
+          && matches!(item.placement, TransferPlacement::Unmatched)
+          && elapsed(item.transfer.start, self.now) >= TRANSFER_DISPLAY_DELAY
+      }) || !self.snapshot.summary.planned_downloads.is_empty())
       && !self.snapshot.finished
     {
       plan.rows.insert(RowId::TransferGroup, PlannedRow::new(1));
@@ -582,6 +584,7 @@ impl Renderer<'_> {
         .filter(|(_, item)| {
           !item.transfer.completed
             && matches!(item.placement, TransferPlacement::Unmatched)
+            && elapsed(item.transfer.start, self.now) >= TRANSFER_DISPLAY_DELAY
         });
     let mut shown = active
       .clone()
@@ -1452,8 +1455,7 @@ impl Renderer<'_> {
     ))
   }
 
-  /// Draws the downloads no build row shows as one row, with a bar for all of
-  /// them, above the few that need attention.
+  /// Draws unmatched transfers as one quiet parent above selected details.
   fn push_transfer_group(
     &mut self,
     rows: &mut Vec<Row>,
@@ -1470,34 +1472,22 @@ impl Renderer<'_> {
       .filter(|child| selection.rows.contains(child))
       .collect::<Vec<RowId>>();
 
-    let settled = self.snapshot.settled;
-    let (mut active, mut finished) = (0, settled.count);
-    let (mut done, mut total) = (settled.bytes, settled.bytes);
     let (mut downloads, mut uploads) = (false, false);
+    let mut active = self.snapshot.source_fetches.len();
     for item in &self.snapshot.placed_transfers {
       if !matches!(item.placement, TransferPlacement::Unmatched) {
         continue;
       }
       downloads |= item.transfer.direction == Direction::Download;
       uploads |= item.transfer.direction == Direction::Upload;
-      if item.transfer.completed {
-        finished += 1;
-      } else {
+      if !item.transfer.completed {
         active += 1;
       }
-      if let Some(size) = item.transfer.total {
-        done += item.transfer.done.min(size);
-        total += size;
-      }
     }
-    active += self.snapshot.source_fetches.len();
     let waiting = self.snapshot.counts.downloads.waiting;
-    let count = active + finished + waiting;
 
     let (icon, color, name) = if active == 0 && waiting > 0 {
       (self.icons.planned, theme.planned, "fetching")
-    } else if active == 0 {
-      (self.icons.done, theme.completed, "transfers")
     } else if uploads && !downloads && waiting == 0 {
       (self.icons.upload, theme.upload, "transfers")
     } else {
@@ -1505,24 +1495,12 @@ impl Renderer<'_> {
     };
     let mut lead = self.prefix(ancestors, last);
     lead.push(span(format!("{icon}{}", self.icons.gap), color));
-    let bar = if total > 0 {
-      Some(Bar::Progress { done, total, color })
-    } else {
-      (active > 0).then_some(Bar::Busy(color))
-    };
-    let mut status = vec![span(format!("  {active} of {count}"), theme.muted)];
-    if total > 0 {
-      status.push(span(
-        format!("  {}/{}", format_bytes(done), format_bytes(total)),
-        theme.muted,
-      ));
-    }
     rows.push(Row {
       lead,
       name: name.to_owned(),
       color: theme.text,
-      bar,
-      status,
+      bar: None,
+      status: Vec::new(),
     });
 
     self.push_children(rows, shown, ancestors, last, selection);
