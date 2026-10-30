@@ -1213,6 +1213,7 @@ impl State {
     &mut self,
     id: ActivityId,
   ) -> Option<ActivityStatus> {
+    self.builds.remove(&id);
     self.activities.remove(&id)
   }
 
