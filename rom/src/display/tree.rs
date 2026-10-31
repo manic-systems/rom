@@ -25,7 +25,12 @@ use super::{
   format_bytes,
   format_duration,
   format_timer,
-  model::{RenderSnapshot, TRANSFER_DISPLAY_DELAY, TransferPlacement},
+  model::{
+    RenderSnapshot,
+    SOURCE_FETCH_DELAY,
+    TRANSFER_DISPLAY_DELAY,
+    TransferPlacement,
+  },
   progress_bar,
   span,
   spans_width,
@@ -72,8 +77,9 @@ enum Bar {
     total: u64,
     color: Color,
   },
-  /// Work of unknown size, drawn as a moving segment.
-  Busy(Color),
+  /// Work of unknown size, drawn as a segment that bounces from the left edge
+  /// once its row is `shown`.
+  Busy { color: Color, shown: f64 },
 }
 
 /// A tree row before its columns are laid out.
@@ -782,16 +788,17 @@ impl Renderer<'_> {
       Bar::Progress { done, total, color } => {
         progress_bar(done, total.max(1), width, color, theme.progress_track)
       },
-      Bar::Busy(color) => {
+      Bar::Busy { color, shown } => {
         let segment = (width / 5).max(2);
         let travel = width - segment;
         #[expect(
           clippy::cast_possible_truncation,
           clippy::cast_sign_loss,
-          reason = "the frame index is clamped to zero"
+          reason = "elapsed time is clamped to zero"
         )]
-        let step = (self.now.max(0.0) * 8.0) as usize % (travel * 2).max(1);
-        let start = if step > travel {
+        let step = (elapsed(shown, self.now).max(0.0) * 8.0) as usize
+          % (travel * 2).max(1);
+        let offset = if step > travel {
           travel * 2 - step
         } else {
           step
@@ -799,9 +806,9 @@ impl Renderer<'_> {
         // Half-cell edges on both sides, like a determinate bar's leading one.
         let solid = "━".repeat(segment - 2);
         vec![
-          span("─".repeat(start), theme.progress_track),
+          span("─".repeat(offset), theme.progress_track),
           span(format!("╺{solid}╸"), color),
-          span("─".repeat(travel - start), theme.progress_track),
+          span("─".repeat(travel - offset), theme.progress_track),
         ]
       },
     }
@@ -1285,13 +1292,19 @@ impl Renderer<'_> {
       .filter(|&estimate| {
         estimate > 0 && !self.snapshot.state.name_is_shared(&info.name.name)
       })
-      .map_or(Bar::Busy(color), |estimate| {
-        Bar::Progress {
-          done: (elapsed(build.start, self.now).max(0.0) * 1000.0) as u64,
-          total: estimate.saturating_mul(1000),
+      .map_or(
+        Bar::Busy {
           color,
-        }
-      })
+          shown: build.start + MIN_TIMER_SECONDS,
+        },
+        |estimate| {
+          Bar::Progress {
+            done: (elapsed(build.start, self.now).max(0.0) * 1000.0) as u64,
+            total: estimate.saturating_mul(1000),
+            color,
+          }
+        },
+      )
   }
 
   fn running_suffix(
@@ -1580,7 +1593,10 @@ impl Renderer<'_> {
       lead,
       name: name.to_owned(),
       color,
-      bar: Some(Bar::Busy(color)),
+      bar: Some(Bar::Busy {
+        color,
+        shown: fetch.start + SOURCE_FETCH_DELAY,
+      }),
       status: vec![span(
         format!(
           "  copying  {}",
@@ -1606,7 +1622,10 @@ impl Renderer<'_> {
       self.transfer_color(transfer)
     };
     transfer.total.filter(|total| *total > 0).map_or(
-      Bar::Busy(color),
+      Bar::Busy {
+        color,
+        shown: transfer.start + TRANSFER_DISPLAY_DELAY,
+      },
       |total| {
         Bar::Progress {
           done: transfer.done,
