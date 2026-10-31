@@ -342,11 +342,6 @@ fn build(
   nix_flags: Vec<String>,
   config: &WrapperConfig,
 ) -> misstep::Result<ExitCode> {
-  misstep::ensure!(
-    !packages.is_empty(),
-    "No package or flake specified for build"
-  );
-
   let rest = packages.into_iter().chain(nix_flags);
 
   Ok(exit_code(monitored(
@@ -364,11 +359,6 @@ fn enter(
   nix_flags: Vec<String>,
   config: &WrapperConfig,
 ) -> misstep::Result<ExitCode> {
-  misstep::ensure!(
-    !packages.is_empty(),
-    "No package or flake specified for {subcommand}"
-  );
-
   let binary = config.platform.binary();
 
   let arguments = packages
