@@ -141,28 +141,61 @@ def "main comment" [
     $"<img src=\"($url)/($file)\" alt=\"($name) ($side)\">"
   }
 
-  let changed_blocks = $changed | each {|name|
-    let before = do $gif $name base
-    let after = do $gif $name head
-    $"<details><summary><code>($name)</code></summary>\n\n**Before**\n\n($before)\n\n**After**\n\n($after)\n\n</details>"
-  }
-  let added_blocks = $added | each {|name|
-    $"<details><summary><code>($name)</code></summary>\n\n(do $gif $name head)\n\n</details>"
-  }
+  # Variants are listed under their fixture, `default` first.
+  let fixture = {|name| $name | split row "." | first }
+  let variant = {|name| $name | split row "." | get --optional 1 | default "default" }
+  let group = {|key, names| $names | where {|name| (do $fixture $name) == $key } }
+  let shown = $changed ++ $added | each {|name| do $fixture $name } | uniq | sort
   let codes = {|names| $names | each { $"`($in)`" } | str join ", " }
+  let blocks = $shown | each {|name|
+    let changed = do $group $name $changed
+    let added = do $group $name $added
+    let unchanged = do $group $name $unchanged
+    let removed = do $group $name $removed
+    let total = [$changed $added $unchanged] | flatten | length
+    let counts = [
+      (if ($changed | is-not-empty) { $"($changed | length) of ($total) changed" })
+      (if ($added | is-not-empty) { $"($added | length) added" })
+      (if ($removed | is-not-empty) { $"($removed | length) removed" })
+    ] | compact | str join ", "
+    # A before column only when something has a before.
+    let before = $changed | is-not-empty
+    let header = if $before { "<th>variant</th><th>before</th><th>after</th>" } else { "<th>variant</th><th>preview</th>" }
+    let rows = $changed ++ $added | sort-by {|full| do $variant $full | if $in == "default" { "" } else { $in } } | each {|full|
+      let cells = if $full in $changed {
+        [(do $gif $full base) (do $gif $full head)]
+      } else if $before {
+        ["" (do $gif $full head)]
+      } else {
+        [(do $gif $full head)]
+      }
+      $"<tr><td><code>(do $variant $full)</code></td>($cells | each { $"<td>($in)</td>" } | str join)</tr>"
+    }
+    let rest = [
+      (if ($unchanged | is-not-empty) { $"Unchanged: (do $codes ($unchanged | each {|full| do $variant $full }))" })
+      (if ($removed | is-not-empty) { $"Removed: (do $codes ($removed | each {|full| do $variant $full }))" })
+    ] | compact
+    [
+      $"<details><summary><code>($name)</code>: ($counts)</summary>"
+      $"<table><tr>($header)</tr>($rows | str join)</table>"
+      ...$rest
+      "</details>"
+    ] | str join "\n\n"
+  }
+  # Fixtures without anything to show are only named, once each.
+  let quiet = {|names| $names | each {|name| do $fixture $name } | where $it not-in $shown | uniq | sort }
 
   [
     $marker
     "## Fixture previews"
     (if $base_failed { "> [!WARNING]\n> The base failed to build or record, so HEAD can be shown." })
     (if not $base_failed and ($changed | is-empty) and ($added | is-empty) and ($removed | is-empty) { "No visual changes." })
-    (if ($changed | is-not-empty) { $"### Changed \(($changed | length)\)\n\n($changed_blocks | str join "\n\n")" })
-    (if ($added | is-not-empty) {
-      let title = if $base_failed { "Head" } else { "Added" }
-      $"### ($title) \(($added | length)\)\n\n($added_blocks | str join "\n\n")"
+    (if ($blocks | is-not-empty) {
+      let title = if $base_failed { "Head" } else { "Changed" }
+      $"### ($title) \(($shown | length)\)\n\n($blocks | str join "\n\n")"
     })
-    (if ($removed | is-not-empty) { $"### Removed \(($removed | length)\)\n\n(do $codes $removed)" })
-    (if ($unchanged | is-not-empty) { $"Unchanged, skipped \(($unchanged | length)\): (do $codes $unchanged)" })
+    (if (do $quiet $removed | is-not-empty) { $"### Removed \((do $quiet $removed | length)\)\n\n(do $codes (do $quiet $removed))" })
+    (if (do $quiet $unchanged | is-not-empty) { $"Unchanged, skipped \((do $quiet $unchanged | length)\): (do $codes (do $quiet $unchanged))" })
   ] | compact | str join "\n\n"
 }
 
