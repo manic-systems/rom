@@ -9,3 +9,6 @@ summary = "table"
 
 [summary-full]
 summary = "full"
+
+[upward]
+tree-direction = "up"
