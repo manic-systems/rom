@@ -1,0 +1,45 @@
+name: Fixture Previews Cleanup
+
+# Deletes a closed pull request's GIFs from the `pr-previews` branch. Fork
+# pull requests only get a write token under `pull_request_target`; this job
+# never checks out their code.
+
+on:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] never checks out or runs pull request code
+    types: [closed]
+
+permissions: {}
+
+concurrency:
+  group: fixture-previews-branch
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Remove previews
+        run: |
+          gh auth setup-git
+          # Exit code 2 means the branch is missing, so there is nothing to remove.
+          status=0
+          git ls-remote --exit-code --heads "https://github.com/$REPO.git" pr-previews || status=$?
+          [[ $status == 2 ]] && exit 0
+          [[ $status == 0 ]] || exit "$status"
+          git clone --depth 1 --branch pr-previews "https://github.com/$REPO.git" previews
+          cd previews
+          [[ -d "pr-$PR" ]] || exit 0
+          git rm -r --quiet "pr-$PR"
+          git checkout --orphan squashed
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit --allow-empty --quiet -m "previews: remove #$PR"
+          git push --force origin squashed:pr-previews

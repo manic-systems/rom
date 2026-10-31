@@ -1,0 +1,84 @@
+name: Fixture Previews
+
+# Records before/after GIFs of every fixture. This runs untrusted pull request
+# code, so it only uploads an artifact. We have another workflow caleld
+# `fixture-previews-post.yml` which actually posts the comment afterwards.
+# _Kinda_ sketchy, but I want nice previews for this.
+
+on:
+  pull_request:
+    paths:
+      - rom/**
+      - crates/**
+      - Cargo.toml
+      - Cargo.lock
+      - flake.nix
+      - flake.lock
+      - nix/**
+      - scripts/**
+      - .github/workflows/fixture-previews.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  record:
+    name: Record
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: Build head
+        run: nix build -L --out-link head-rom
+
+      - name: Build base
+        id: base
+        continue-on-error: true
+        run: |
+          git worktree add --detach base-src HEAD^1
+          nix build -L ./base-src --out-link base-rom
+
+      - name: Record head
+        run: >-
+          nix develop .#previews -c nu scripts/fixture-previews.nu record
+          --rom head-rom/bin/rom --replay scripts/replay-fixture.nu
+          --fixtures rom/tests/fixtures --out recordings/head
+
+      # A partial base would read as one or more removed fixtures, so we
+      # need to drop it on failure.
+      - name: Record base
+        if: steps.base.outcome == 'success'
+        continue-on-error: true
+        run: >-
+          nix develop .#previews -c nu scripts/fixture-previews.nu record
+          --rom base-rom/bin/rom --replay base-src/scripts/replay-fixture.nu
+          --fixtures base-src/rom/tests/fixtures --out recordings/base
+          || { rm -rf recordings/base; exit 1; }
+
+      - name: Compare
+        env:
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          nix develop .#previews -c nu scripts/fixture-previews.nu compare \
+            --base recordings/base --head recordings/head --out preview
+          echo "$PR" > preview/pr.txt
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fixture-previews
+          path: preview
+          retention-days: 7
