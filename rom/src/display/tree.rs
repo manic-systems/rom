@@ -796,11 +796,11 @@ impl Renderer<'_> {
         } else {
           step
         };
-        // Match determinate bars with a half-cell edge at the color boundary.
-        let solid = "━".repeat(segment - 1);
+        // Half-cell edges on both sides, like a determinate bar's leading one.
+        let solid = "━".repeat(segment - 2);
         vec![
           span("─".repeat(start), theme.progress_track),
-          span(format!("{solid}╸"), color),
+          span(format!("╺{solid}╸"), color),
           span("─".repeat(travel - start), theme.progress_track),
         ]
       },
