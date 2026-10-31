@@ -9,3 +9,6 @@ format = "dashboard"
 
 [plain]
 format = "plain"
+
+[upward]
+tree-direction = "up"

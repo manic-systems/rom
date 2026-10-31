@@ -35,7 +35,7 @@ use crate::{
     elapsed,
     whole_seconds,
   },
-  types::{DisplayFormat, RenderConfig},
+  types::{DisplayFormat, RenderConfig, TreeDirection},
 };
 
 /// Content width required by the tree's fixed name, bar, and status columns.
@@ -138,14 +138,39 @@ impl<'a> Renderer<'a> {
       self.legend()
     };
     let plan = self.tree_plan();
-    let (tail, graph_budget) =
-      self.tree_layout(tail, plan.line_count(), final_render);
+    let (mut tail, graph_budget) = self.tree_layout(
+      tail,
+      plan.row_count() + self.tree_header(),
+      final_render,
+    );
     let mut lines = self.render_tree(&plan, graph_budget);
     let short = usize::from(self.min_height.min(self.max_height))
       .saturating_sub(lines.len() + tail.len());
     if !final_render && !lines.is_empty() {
-      let trunk = Line::from(span("│", self.config.theme.connector));
-      lines.extend(std::iter::repeat_n(trunk, short));
+      match self.config.tree_direction {
+        TreeDirection::Down => {
+          let trunk = Line::from(span("│", self.config.theme.connector));
+          lines.extend(std::iter::repeat_n(trunk, short));
+        },
+        // An upward tree stays on the legend, with the room above it.
+        TreeDirection::Up => {
+          lines.splice(0..0, std::iter::repeat_n(Line::default(), short));
+        },
+      }
+    }
+    if lines.is_empty() {
+      // With no tree above it, the box closes off its own top.
+      if let Some(corner) =
+        tail.first_mut().and_then(|line| line.spans.first_mut())
+      {
+        corner.content = match corner.content.as_ref() {
+          "┢━ " => "┏━ ",
+          "┕━ " | "┗━ " => "╺━ ",
+          other => other,
+        }
+        .to_owned()
+        .into();
+      }
     }
     lines.extend(tail);
     lines
@@ -432,6 +457,7 @@ pub fn render_frame(
 /// Renders a complete frame of `min_height` to `max_height` rows.
 ///
 /// A live tree shorter than `min_height` extends its line down to the legend,
+/// or rises off it when it grows upward,
 /// so a shrinking graph keeps its rows until logs take them over.
 #[must_use]
 pub fn render_live_frame(

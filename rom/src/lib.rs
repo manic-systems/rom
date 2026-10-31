@@ -41,6 +41,7 @@ pub use types::{
   RenderConfig,
   SummaryStyle,
   Theme,
+  TreeDirection,
 };
 
 /// Runs the CLI with the process's command-line arguments and returns the
