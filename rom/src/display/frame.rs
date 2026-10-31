@@ -130,7 +130,11 @@ fn ansi_foreground(color: Color) -> String {
 #[must_use]
 pub fn format_log(log: &LogLine, config: &RenderConfig) -> String {
   if !config.ansi {
-    return format!("{}{}", strip_ansi(&log.prefix), strip_ansi(&log.plain));
+    return format!(
+      "{}{}",
+      strip_controls(&log.prefix, false),
+      strip_controls(&log.plain, false)
+    );
   }
   let mut output = String::new();
   if !log.prefix.is_empty() {
@@ -139,25 +143,37 @@ pub fn format_log(log: &LogLine, config: &RenderConfig) -> String {
     output.push_str("\x1b[0m");
   }
   if log.styled.is_empty() {
-    output.push_str(&log.plain);
+    output.push_str(&strip_controls(&log.plain, true));
   } else {
-    output.push_str(&log.styled);
+    output.push_str(&strip_controls(&log.styled, true));
   }
   output.push_str("\x1b[0m");
   output
 }
 
-fn strip_ansi(value: &str) -> String {
+/// Removes controls a log line could use to move the cursor, keeping SGR
+/// styling when `keep_sgr` is set.
+///
+/// Build output is printed above the live graph, which is erased by moving up
+/// a counted number of rows. A cursor movement, scroll, or vertical control in
+/// a log line would shift that count and leave the graph's top behind.
+fn strip_controls(value: &str, keep_sgr: bool) -> String {
   let bytes = value.as_bytes();
   let mut output = String::with_capacity(value.len());
   let mut index = 0;
   let mut plain_start = 0;
   while index < bytes.len() {
-    if bytes[index] != 0x1B {
+    let byte = bytes[index];
+    if byte != 0x1B {
+      if (byte < 0x20 && !matches!(byte, b'\t' | b'\r')) || byte == 0x7F {
+        output.push_str(&value[plain_start..index]);
+        plain_start = index + 1;
+      }
       index += 1;
       continue;
     }
     output.push_str(&value[plain_start..index]);
+    let start = index;
     index += 1;
     match bytes.get(index) {
       Some(b'[') => {
@@ -165,6 +181,9 @@ fn strip_ansi(value: &str) -> String {
         while let Some(byte) = bytes.get(index) {
           index += 1;
           if (0x40..=0x7E).contains(byte) {
+            if keep_sgr && *byte == b'm' {
+              output.push_str(&value[start..index]);
+            }
             break;
           }
         }
