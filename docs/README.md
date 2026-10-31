@@ -23,7 +23,7 @@
   <br/>
   <a href="#what-does-it-do">Synopsis</a><br/>
   <a href="#features">Features</a> | <a href="#usage">Usage</a><br/>
-  <a href="#hacking">Contributing</a>
+  <a href="#hacking">Contributing</a> | <a href="#faq">FAQ</a>
   <br/>
 </div>
 
@@ -204,6 +204,14 @@ changes.
 This might seem daunting, but it isn't. Even if you _don't_ meet those
 requirements, you'll be gently nudged to make your changes. Friendly
 contributions are always welcome.
+
+## FAQ
+
+**Q**: If "NOM" is nix-output-monitor, what does "ROM stand for"?
+
+**A**: It doesn't stand for anything, I named it _rom_ because it sounds like
+_rum_. I like rum. However you may choose to name it "rusty output monitor" or
+"raf's output monitor" at your convenience. I don't know, be creative.
 
 ## Attributions
 
