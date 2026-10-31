@@ -6,6 +6,7 @@ pub mod cache;
 pub mod display;
 pub mod error;
 mod event;
+pub mod fixture;
 pub mod icons;
 pub mod monitor;
 pub mod state;

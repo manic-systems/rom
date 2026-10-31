@@ -6,7 +6,7 @@ use std::{
   fs,
   io::{self, IsTerminal, Read, Write},
   iter,
-  path::PathBuf,
+  path::{Path, PathBuf},
   process::{Child, Command, ExitCode, Stdio},
   sync::{
     Arc,
@@ -34,6 +34,7 @@ use crate::{
   cache::BuildReportCache,
   display::{format_log, render_frame, write_final},
   error::RomError,
+  fixture::{FIXTURE_DERIVATIONS_ENV, FixtureResolver},
   monitor::{FilesystemResolver, Output, Processed, StreamEngine},
   state::{BuildStatus, DerivationId, State, current_time},
   terminal::{Admission, LiveTerminal},
@@ -893,9 +894,16 @@ fn drive(
   );
 
   let mut stream = StreamEngine::new(engine);
-  stream
-    .engine_mut()
-    .set_resolver(FilesystemResolver::default());
+  // Replayed fixtures name derivations that are not in the store.
+  if let Some(path) = std::env::var_os(FIXTURE_DERIVATIONS_ENV) {
+    let resolver = FixtureResolver::load(Path::new(&path))
+      .context("loading fixture derivations")?;
+    stream.engine_mut().set_resolver(resolver);
+  } else {
+    stream
+      .engine_mut()
+      .set_resolver(FilesystemResolver::default());
+  }
   stream.engine_mut().load_history(&history);
 
   if let Some(usage) = CgroupUsage::detect() {
