@@ -1,2 +1,5 @@
 [nerd-icons]
 icons = "nerd"
+
+[upward]
+tree-direction = "up"

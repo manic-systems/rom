@@ -1,0 +1,32 @@
+=== both-directions @ 1500ms ===
+\e[0;90m   ╭─ \e[0;36m↓ rustc-1.89.0\e[0m            \e[0;36m━━━━━━╸\e[0;90m────────────────\e[0;36m   30%\e[0;90m  9.0 MiB/30 MiB\e[0;35m  \e[0m
+\e[0;90m╭─ \e[0;36m↓ \e[0mfetching
+\e[0;90m├─ \e[0;34m⏸ app-1.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 1       \e[0m∑ 1
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 2       \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0m∑ 2
+\e[0;90m┃  \e[0mUploads     \e[0;33m↑ 2       \e[0;32m↑ 0         \e[0;34m          \e[0m∑ 2
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== remote-build @ 4500ms ===
+\e[0;90m   ╭─ \e[0;35m↑ vendor-deps\e[0m             \e[0;35m━━━━━━━━━━━━━━━╸\e[0;90m───────\e[0;35m   69%\e[0;90m  17 MiB/25 MiB\e[0;35m  c\e[0m
+\e[0;90m╭─ \e[0;33m⏵ app-1.0\e[0m                    \e[0;33m╺━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0;35m @ch\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 1
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 0       \e[0;32m↓ 2         \e[0;34m⏸ 0       \e[0m∑ 2
+\e[0;90m┃  \e[0mUploads     \e[0;33m↑ 1       \e[0;32m↑ 1         \e[0;34m          \e[0m∑ 2
+\e[0;90m┗━ \e[0mElapsed ⏱ 4s
+=== result-and-push @ 7200ms ===
+\e[0;90m╭─ \e[0;32m✔ app-1.0\e[0m                    \e[0;36m━━━━━━╸\e[0;90m────────────────\e[0;36m   30%\e[0;90m  3.3 MiB/11 MiB\e[0;35m  \e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 1         \e[0;34m⏸ 0       \e[0m∑ 1
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 1       \e[0;32m↓ 2         \e[0;34m⏸ 0       \e[0m∑ 3
+\e[0;90m┃  \e[0mUploads     \e[0;33m↑ 1       \e[0;32m↑ 2         \e[0;34m          \e[0m∑ 3
+\e[0;90m┗━ \e[0mElapsed ⏱ 7s
+=== finished @ 9000ms ===
+\e[0;90m╺━ \e[0;32mFinished after 9s\e[0m
+=== log ===
+this derivation will be built:\e[0m
+  /nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv\e[0m
+these 2 paths will be fetched (40.0 MiB download, 160.0 MiB unpacked):\e[0m
+  /nix/store/6g1bc260b665898a5a5ca24737c7361c-cargo-1.89.0\e[0m
+  /nix/store/b612gc2b785c3b6b56864b340a2a33b6-rustc-1.89.0\e[0m
