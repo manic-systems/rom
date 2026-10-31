@@ -48,6 +48,7 @@ use crate::{
     LogPrefixStyle,
     RenderConfig,
     SummaryStyle,
+    TreeDirection,
   },
   usage::CgroupUsage,
 };
@@ -90,6 +91,10 @@ pub struct DisplayOptions {
   #[pound(long, global)]
   pub format: Option<DisplayFormat>,
 
+  /// Which way the tree grows from its roots. Defaults to down.
+  #[pound(long, global)]
+  pub tree_direction: Option<TreeDirection>,
+
   /// Legend style. Defaults to table.
   #[pound(long, global)]
   pub legend: Option<LegendStyle>,
@@ -116,6 +121,7 @@ impl DisplayOptions {
   pub fn apply(self, config: &mut Config) {
     let Self {
       format,
+      tree_direction,
       legend,
       summary,
       icons,
@@ -124,6 +130,7 @@ impl DisplayOptions {
     } = self;
     let (engine, render) = (&mut config.engine, &mut config.render);
     render.format = format.unwrap_or(render.format);
+    render.tree_direction = tree_direction.unwrap_or(render.tree_direction);
     render.legend_style = legend.unwrap_or(render.legend_style);
     render.summary_style = summary.unwrap_or(render.summary_style);
     render.icons = icons.unwrap_or(render.icons);
@@ -134,12 +141,13 @@ impl DisplayOptions {
   /// Fills the flags left unset from `file`.
   fn or(self, file: Self) -> Self {
     Self {
-      format:     self.format.or(file.format),
-      legend:     self.legend.or(file.legend),
-      summary:    self.summary.or(file.summary),
-      icons:      self.icons.or(file.icons),
-      log_prefix: self.log_prefix.or(file.log_prefix),
-      log_lines:  self.log_lines.or(file.log_lines),
+      format:         self.format.or(file.format),
+      tree_direction: self.tree_direction.or(file.tree_direction),
+      legend:         self.legend.or(file.legend),
+      summary:        self.summary.or(file.summary),
+      icons:          self.icons.or(file.icons),
+      log_prefix:     self.log_prefix.or(file.log_prefix),
+      log_lines:      self.log_lines.or(file.log_lines),
     }
   }
 }

@@ -36,15 +36,18 @@ use super::{
   spans_width,
   truncate_middle,
 };
-use crate::state::{
-  Blocker,
-  BuildInfo,
-  BuildStatus,
-  DerivationId,
-  DerivationInfo,
-  Membership,
-  SourceFetch,
-  elapsed,
+use crate::{
+  state::{
+    Blocker,
+    BuildInfo,
+    BuildStatus,
+    DerivationId,
+    DerivationInfo,
+    Membership,
+    SourceFetch,
+    elapsed,
+  },
+  types::TreeDirection,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -84,9 +87,18 @@ enum Bar {
   Busy { color: Color, shown: f64 },
 }
 
+/// Where a row hangs in the tree, whichever way the tree is drawn.
+struct Branch {
+  /// Whether each ancestor, outermost first, has siblings after it.
+  ancestors: Vec<bool>,
+  /// Whether the row is its parent's last child.
+  last:      bool,
+}
+
 /// A tree row before its columns are laid out.
 struct Row {
-  /// Connectors and the status icon.
+  branch: Branch,
+  /// The status icon, after the connectors.
   lead:   Vec<Span<'static>>,
   name:   String,
   color:  Color,
@@ -130,13 +142,8 @@ pub(super) struct TreePlan {
 }
 
 impl TreePlan {
-  pub(super) fn line_count(&self) -> usize {
-    // The Builds header is not represented by a row.
-    self
-      .rows
-      .len()
-      .saturating_add(self.hidden)
-      .saturating_add(1)
+  pub(super) fn row_count(&self) -> usize {
+    self.rows.len().saturating_add(self.hidden)
   }
 
   fn focus_active(&self) -> bool {
@@ -675,6 +682,11 @@ impl Renderer<'_> {
     }
   }
 
+  /// Lines the tree takes beyond its rows.
+  pub(super) fn tree_header(&self) -> usize {
+    usize::from(self.config.tree_direction == TreeDirection::Down)
+  }
+
   pub(super) fn render_tree(
     &mut self,
     plan: &TreePlan,
@@ -683,38 +695,33 @@ impl Renderer<'_> {
     if maximum == 0 {
       return Vec::new();
     }
+    let budget = maximum - self.tree_header();
 
     self.seen.clear();
-    let mut truncated = plan.line_count() > maximum || plan.hidden > 0;
-    let mut content_limit = if truncated && maximum > 1 {
-      maximum - 1
+    let mut truncated = plan.row_count() > budget || plan.hidden > 0;
+    let mut limit = if truncated {
+      budget.saturating_sub(1)
     } else {
-      maximum
+      budget
     };
-    let mut selection = self.select_rows(plan, content_limit);
-    if !truncated && selection.rows.len() + 1 < plan.line_count() {
+    let mut selection = self.select_rows(plan, limit);
+    if !truncated && selection.rows.len() < plan.row_count() {
       truncated = true;
-      if maximum > 1 {
-        content_limit = maximum - 1;
-        selection = self.select_rows(plan, content_limit);
-      }
+      limit = budget.saturating_sub(1);
+      selection = self.select_rows(plan, limit);
     }
-    // The status box below continues the tree's line, so no row closes it.
-    let mut lines = vec![Row {
-      lead:   vec![span("╭─ ", self.config.theme.connector)],
-      name:   "Builds".to_owned(),
-      color:  self.config.theme.text,
-      bar:    None,
-      status: Vec::new(),
-    }];
-    for &root in &selection.roots {
-      self.push_row(&mut lines, root, &[], false, &selection);
-      if lines.len() >= content_limit {
+    let mut rows = Vec::new();
+    let mut roots = selection.roots.iter().peekable();
+    while let Some(&root) = roots.next() {
+      // Roots are the trunk's children, and a summary row comes after them.
+      let last = !truncated && roots.peek().is_none();
+      self.push_row(&mut rows, root, &[], last, &selection);
+      if rows.len() >= limit {
         break;
       }
     }
-    if truncated && maximum > 1 {
-      let hidden = plan.line_count().saturating_sub(lines.len());
+    if truncated && budget > 0 {
+      let hidden = plan.row_count().saturating_sub(rows.len());
       let active = plan
         .rows
         .iter()
@@ -726,15 +733,32 @@ impl Renderer<'_> {
         (running, 0) => format!("… {running} active"),
         (running, rest) => format!("… {running} active, {rest} more"),
       };
-      lines.push(Row {
-        lead:   vec![span("├─ ", self.config.theme.connector)],
+      rows.push(Row {
+        branch: Branch {
+          ancestors: Vec::new(),
+          last:      true,
+        },
+        lead:   Vec::new(),
         name:   label,
         color:  self.config.theme.muted,
         bar:    None,
         status: Vec::new(),
       });
     }
-    self.lay_out(lines)
+
+    let mut lines = self.lay_out(rows);
+    match self.config.tree_direction {
+      // The header starts the trunk that the legend below continues.
+      TreeDirection::Down => {
+        let header = vec![
+          span("╭─ ", self.config.theme.connector),
+          span("Builds", self.config.theme.text),
+        ];
+        lines.insert(0, fit_line(header, self.width));
+      },
+      TreeDirection::Up => lines.reverse(),
+    }
+    lines
   }
 
   /// Lines rows up in columns: names, then bars, then status.
@@ -752,7 +776,8 @@ impl Renderer<'_> {
       .iter()
       .filter(|row| row.bar.is_some())
       .map(|row| {
-        let lead = spans_width(&row.lead);
+        let lead =
+          spans_width(&self.connectors(&row.branch)) + spans_width(&row.lead);
         let name = row.name.width();
         (
           lead + name,
@@ -781,7 +806,8 @@ impl Renderer<'_> {
     rows
       .into_iter()
       .map(|row| {
-        let mut spans = row.lead;
+        let mut spans = self.connectors(&row.branch);
+        spans.extend(row.lead);
         let detailed = row.bar.is_some() || !row.status.is_empty();
         if !bars || !detailed || row.bar.is_none() {
           // Rows without bars use the reclaimed column for their status when
@@ -859,7 +885,7 @@ impl Renderer<'_> {
       parents: HashMap::new(),
       maximum,
     };
-    if maximum <= 1 {
+    if maximum == 0 {
       return selection;
     }
     let focus_active = plan.focus_active();
@@ -900,12 +926,12 @@ impl Renderer<'_> {
           | RowId::Unsized(_) => {},
         }
       }
-      if candidates >= maximum - 1 {
+      if candidates >= maximum {
         break;
       }
     }
 
-    let mut remaining = maximum.saturating_sub(1); // Builds header
+    let mut remaining = maximum;
     // A row without its parent draws at the top level.
     for &id in order
       .iter()
@@ -1063,7 +1089,10 @@ impl Renderer<'_> {
       return;
     }
 
-    let prefix = self.prefix(ancestors, last);
+    let branch = Branch {
+      ancestors: ancestors.to_vec(),
+      last,
+    };
     match id {
       RowId::Build(derivation) => {
         self.push_build(rows, derivation, ancestors, last, selection);
@@ -1071,7 +1100,7 @@ impl Renderer<'_> {
       RowId::Transfer(index) => {
         let row = selection.plan.row(id);
         rows.push(self.transfer_row(
-          prefix,
+          branch,
           &self.snapshot.placed_transfers[index].transfer,
           row.consumers,
         ));
@@ -1091,11 +1120,11 @@ impl Renderer<'_> {
           .collect::<Vec<&str>>()
           .join(", ");
         aggregate.total = None;
-        rows.push(self.transfer_row(prefix, &aggregate, 0));
+        rows.push(self.transfer_row(branch, &aggregate, 0));
       },
       RowId::SourceFetch(index) => {
         rows.push(
-          self.source_fetch_row(prefix, self.snapshot.source_fetches[index]),
+          self.source_fetch_row(branch, self.snapshot.source_fetches[index]),
         );
       },
       RowId::TransferGroup => {
@@ -1122,7 +1151,7 @@ impl Renderer<'_> {
 
     let row = selection.plan.row(RowId::Build(id));
 
-    let mut lead = self.prefix(ancestors, last);
+    let mut lead = Vec::new();
     if selection.parents[&RowId::Build(id)]
       .is_some_and(|parent| !selection.rows.contains(&parent))
     {
@@ -1148,6 +1177,10 @@ impl Renderer<'_> {
     let children = self.visible_children(id, row, selection);
     status.extend(self.hidden_sources(row, &children));
     rows.push(Row {
+      branch: Branch {
+        ancestors: ancestors.to_vec(),
+        last,
+      },
       lead,
       name: self.row_name(info).to_owned(),
       color,
@@ -1543,37 +1576,50 @@ impl Renderer<'_> {
     } else {
       (self.icons.download, theme.download, "fetching")
     };
-    let mut lead = self.prefix(ancestors, last);
-    lead.push(span(format!("{icon}{}", self.icons.gap), color));
     rows.push(Row {
-      lead,
-      name: name.to_owned(),
-      color: theme.text,
-      bar: None,
+      branch: Branch {
+        ancestors: ancestors.to_vec(),
+        last,
+      },
+      lead:   vec![span(format!("{icon}{}", self.icons.gap), color)],
+      name:   name.to_owned(),
+      color:  theme.text,
+      bar:    None,
       status: Vec::new(),
     });
 
     self.push_children(rows, shown, ancestors, last, selection);
   }
 
-  fn prefix(&self, ancestors: &[bool], last: bool) -> Vec<Span<'static>> {
-    let mut spans = Vec::new();
-    for &continues in ancestors {
-      spans.push(span(
-        if continues { "│  " } else { "   " },
-        self.config.theme.connector,
-      ));
-    }
-    spans.push(span(
-      if last { "╰─ " } else { "├─ " },
-      self.config.theme.connector,
-    ));
+  /// Draws a row's connectors for the direction the tree grows in.
+  fn connectors(&self, branch: &Branch) -> Vec<Span<'static>> {
+    let down = self.config.tree_direction == TreeDirection::Down;
+    // Below a downward tree the legend continues the trunk, so no root ends
+    // it; an upward tree starts at the legend and ends at its topmost root.
+    let open = |depth: usize, more: bool| more || (down && depth == 0);
+    let mut spans = branch
+      .ancestors
+      .iter()
+      .enumerate()
+      .map(|(depth, &more)| {
+        span(
+          if open(depth, more) { "│  " } else { "   " },
+          self.config.theme.connector,
+        )
+      })
+      .collect::<Vec<_>>();
+    let corner = match (open(branch.ancestors.len(), !branch.last), down) {
+      (true, _) => "├─ ",
+      (false, true) => "╰─ ",
+      (false, false) => "╭─ ",
+    };
+    spans.push(span(corner, self.config.theme.connector));
     spans
   }
 
   fn transfer_row(
     &self,
-    mut lead: Vec<Span<'static>>,
+    branch: Branch,
     transfer: &Transfer,
     consumers: usize,
   ) -> Row {
@@ -1582,7 +1628,7 @@ impl Renderer<'_> {
       Direction::Download => self.icons.download,
       Direction::Upload => self.icons.upload,
     };
-    lead.push(span(format!("{arrow}{}", self.icons.gap), color));
+    let lead = vec![span(format!("{arrow}{}", self.icons.gap), color)];
     let mut status = self.transfer_status(transfer);
     if consumers > 1 {
       // Ahead of the host, which matters least.
@@ -1596,6 +1642,7 @@ impl Renderer<'_> {
       );
     }
     Row {
+      branch,
       lead,
       name: transfer.name.clone(),
       color,
@@ -1604,21 +1651,18 @@ impl Renderer<'_> {
     }
   }
 
-  fn source_fetch_row(
-    &self,
-    mut lead: Vec<Span<'static>>,
-    fetch: &SourceFetch,
-  ) -> Row {
+  fn source_fetch_row(&self, branch: Branch, fetch: &SourceFetch) -> Row {
     let color = self.config.theme.running;
-    lead.push(span(
+    let lead = vec![span(
       format!("{}{}", self.icons.download, self.icons.gap),
       color,
-    ));
+    )];
     let name = Path::new(&fetch.source)
       .file_name()
       .and_then(|name| name.to_str())
       .unwrap_or(&fetch.source);
     Row {
+      branch,
       lead,
       name: name.to_owned(),
       color,
