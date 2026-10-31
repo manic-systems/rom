@@ -35,6 +35,22 @@ def main [
   let saved = if $step { ^sh -c 'stty -g < /dev/tty' | str trim } else { null }
   if $step { ^sh -c 'stty -icanon -echo min 1 < /dev/tty' }
 
+  # Fixture derivations are not in the store, so their edges come from a
+  # sidecar. A scratch state directory keeps the replay's build times out of
+  # the real history and supplies the fixture's own.
+  let stem = $log | path parse | update extension "" | path join
+  let derivations = $"($stem).drvs.json"
+  let state = mktemp --directory
+  let history = $"($stem).history.csv"
+  if ($history | path exists) {
+    mkdir ($state | path join rom)
+    cp $history ($state | path join rom build-reports-v1.csv)
+  }
+  let fixture_env = {
+    XDG_STATE_HOME: $state
+    ROM_FIXTURE_DERIVATIONS: (if ($derivations | path exists) { $derivations | path expand } else { null })
+  } | compact
+
   let started = date now
   let restore = {|| if $step { ^sh -c $"stty ($saved) < /dev/tty" } }
   try {
@@ -53,10 +69,12 @@ def main [
       }
     | compact
     | to text
-    | ^$rom ...$rom_args
+    | with-env $fixture_env { ^$rom ...$rom_args }
   } catch {
     do $restore
+    rm --recursive $state
     exit 1
   }
   do $restore
+  rm --recursive $state
 }
