@@ -1,0 +1,22 @@
+0 @nix {"action":"msg","level":3,"msg":"these 5 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/052g9b2g7cb2c6f0c6607b847c9g3f10-ca-cached-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/579785g6d9g636559c53c40d4d43b585-uses-gen-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/5db445472d52b02a3574c1b94d48b063-ca-lib-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/6889701gccb8ff5cfd7cca304f45g678-ca-tool-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9cgdb33bg5f9796c34ac4ad2b26970c4-ca-app-1.0.drv"}
+50 @nix {"action":"msg","level":1,"msg":"warning: Ignoring dynamic derivation /nix/store/2f240b8ddc2404780431154a57490163-gen.drv.drv^out while planning, because it is already built"}
+200 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/5db445472d52b02a3574c1b94d48b063-ca-lib-1.0.drv'","type":105,"fields":["/nix/store/5db445472d52b02a3574c1b94d48b063-ca-lib-1.0.drv","",1,1]}
+1000 = planned
+2200 @nix {"action":"stop","id":10}
+2300 @nix {"action":"start","id":20,"level":3,"parent":0,"text":"resolved derivation: '/nix/store/9cgdb33bg5f9796c34ac4ad2b26970c4-ca-app-1.0.drv' -> '/nix/store/82111976872910c9398631065708017a-ca-app-1.0.drv'","type":111,"fields":["/nix/store/9cgdb33bg5f9796c34ac4ad2b26970c4-ca-app-1.0.drv","/nix/store/82111976872910c9398631065708017a-ca-app-1.0.drv"]}
+2400 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/82111976872910c9398631065708017a-ca-app-1.0.drv'","type":105,"fields":["/nix/store/82111976872910c9398631065708017a-ca-app-1.0.drv","",1,1]}
+2500 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/6889701gccb8ff5cfd7cca304f45g678-ca-tool-1.0.drv'","type":105,"fields":["/nix/store/6889701gccb8ff5cfd7cca304f45g678-ca-tool-1.0.drv","",1,1]}
+3500 = resolved
+4000 @nix {"action":"stop","id":12}
+4200 @nix {"action":"stop","id":11}
+4200 @nix {"action":"stop","id":20}
+4400 @nix {"action":"start","id":13,"level":3,"parent":0,"text":"building '/nix/store/3b6a765fdf676559f0g261b5b9f339c9-gen.drv'","type":105,"fields":["/nix/store/3b6a765fdf676559f0g261b5b9f339c9-gen.drv","",1,1]}
+5600 @nix {"action":"stop","id":13}
+5700 @nix {"action":"start","id":14,"level":3,"parent":0,"text":"building '/nix/store/579785g6d9g636559c53c40d4d43b585-uses-gen-1.0.drv'","type":105,"fields":["/nix/store/579785g6d9g636559c53c40d4d43b585-uses-gen-1.0.drv","",1,1]}
+6800 = dynamic
+6900 @nix {"action":"stop","id":14}

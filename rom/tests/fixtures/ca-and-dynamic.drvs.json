@@ -1,0 +1,59 @@
+{
+  "derivations": {
+    "/nix/store/5db445472d52b02a3574c1b94d48b063-ca-lib-1.0.drv": {
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/9cgdb33bg5f9796c34ac4ad2b26970c4-ca-app-1.0.drv": {
+      "inputs": [
+        "/nix/store/5db445472d52b02a3574c1b94d48b063-ca-lib-1.0.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/82111976872910c9398631065708017a-ca-app-1.0.drv": {
+      "sources": [
+        "/nix/store/5db445472d52b02a3574c1b94d48b063-ca-lib-1.0"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/052g9b2g7cb2c6f0c6607b847c9g3f10-ca-cached-1.0.drv": {
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/6889701gccb8ff5cfd7cca304f45g678-ca-tool-1.0.drv": {
+      "inputs": [
+        "/nix/store/052g9b2g7cb2c6f0c6607b847c9g3f10-ca-cached-1.0.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/2f240b8ddc2404780431154a57490163-gen.drv.drv": {
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/3b6a765fdf676559f0g261b5b9f339c9-gen.drv": {
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/579785g6d9g636559c53c40d4d43b585-uses-gen-1.0.drv": {
+      "dynamic": [
+        "/nix/store/2f240b8ddc2404780431154a57490163-gen.drv.drv"
+      ]
+    }
+  },
+  "produced": {
+    "/nix/store/2f240b8ddc2404780431154a57490163-gen.drv.drv": "/nix/store/3b6a765fdf676559f0g261b5b9f339c9-gen.drv"
+  },
+  "realised": [
+    "/nix/store/052g9b2g7cb2c6f0c6607b847c9g3f10-ca-cached-1.0.drv"
+  ]
+}

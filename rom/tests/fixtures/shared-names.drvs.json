@@ -1,0 +1,54 @@
+{
+  "derivations": {
+    "/nix/store/gga6a744d78d28386438b4a8f8ff32g5-source.drv": {
+      "inputs": []
+    },
+    "/nix/store/ada987408d4654f36gc691a5d4383ag8-source.drv": {
+      "inputs": []
+    },
+    "/nix/store/agd7b38a6bd8d468c6a16c11a8d23bb8-source.drv": {
+      "inputs": []
+    },
+    "/nix/store/48973630fc8562483241b67835398d5a-source.drv": {
+      "inputs": []
+    },
+    "/nix/store/2c4b303cdbag0dd7dfg127756797668b-source.drv": {
+      "inputs": []
+    },
+    "/nix/store/5fb595adc35a67431461abb85130aa7a-source.drv": {
+      "inputs": []
+    },
+    "/nix/store/d2a37b56b4g7407096cfa661113ab09a-hook.drv": {
+      "inputs": []
+    },
+    "/nix/store/c4g04fa6g5dg90609c290a62f254ad2b-hook.drv": {
+      "inputs": []
+    },
+    "/nix/store/g29fad2bgaa70a500g5f100871085a74-hook.drv": {
+      "inputs": []
+    },
+    "/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv": {
+      "inputs": [
+        "/nix/store/gga6a744d78d28386438b4a8f8ff32g5-source.drv",
+        "/nix/store/ada987408d4654f36gc691a5d4383ag8-source.drv",
+        "/nix/store/agd7b38a6bd8d468c6a16c11a8d23bb8-source.drv",
+        "/nix/store/d2a37b56b4g7407096cfa661113ab09a-hook.drv"
+      ]
+    },
+    "/nix/store/158673a4854c39c2b5cd8d2c52bfc4gd-lib-2.0.drv": {
+      "inputs": [
+        "/nix/store/48973630fc8562483241b67835398d5a-source.drv",
+        "/nix/store/2c4b303cdbag0dd7dfg127756797668b-source.drv",
+        "/nix/store/5fb595adc35a67431461abb85130aa7a-source.drv",
+        "/nix/store/c4g04fa6g5dg90609c290a62f254ad2b-hook.drv",
+        "/nix/store/g29fad2bgaa70a500g5f100871085a74-hook.drv"
+      ]
+    },
+    "/nix/store/1f6fd65d77d6364ffafd5a745ba5c498-bundle.drv": {
+      "inputs": [
+        "/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv",
+        "/nix/store/158673a4854c39c2b5cd8d2c52bfc4gd-lib-2.0.drv"
+      ]
+    }
+  }
+}

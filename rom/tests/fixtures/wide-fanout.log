@@ -1,0 +1,157 @@
+0 @nix {"action":"msg","level":3,"msg":"these 51 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/045aada26056bg21aaa064f7gc988agc-linux-pam-tool-49.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/04fgb15505d352c3cg3ffd951880dfaf-coreutils-tool-31.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/05611cc17d35129c577d3g02c27726b6-zlib-tool-35.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/14743cd5f722gcf57ggg7c9a62g3cf03-openssl-tool-4.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/171f97c3f085ggbcg81923ggc941adgd-perl-tool-38.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/17gg8g17af5591f8b567a51ffg67a32f-xz-tool-14.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/18ga548f0g8181461140997202d8g88b-kmod-tool-20.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/1a55837g4a70498d5b3d8ag5d4c39270-libffi-tool-13.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/257d8f9aa473g56b390agg617d3g5991-less-tool-27.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/44c29d07c53038a7964d8d5ab486dg74-gcc-tool-32.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/44d6cfdg3bddb6g3324fc6560438d67d-glibc-tool-3.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/4caa18983896fd43b8c05da693c2f3d0-systemd-tool-46.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/5170d8808795b8gf5583c0451166b904-iproute2-tool-23.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/53gg765d3d9g4a9c6751603b6aaf3d06-libffi-tool-43.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/603ga7b075592a7f44fb8cdadf68g69d-nftables-tool-22.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/6989gba69b70f72720d3f988604d2a77-ncurses-tool-40.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/72adc747d7d8648gda0a01gg35243748-sudo-tool-26.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/75197d22490fg6g63903961f8f013dc7-dbus-tool-47.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7b7884fcb5f61c914c074357c7cc5ga5-systemd-tool-16.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/836742c75543a61b03db8a3fc531bd52-dbus-tool-17.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/84acfa9c1c391857c9fc7bgb543db13g-pipewire-tool-29.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8b75a0gdb5d429a1101ba51649g3b126-openssh-tool-24.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8fc2c1a664353c002af3g19a93bd5c0f-sqlite-tool-12.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/96g326a2dc8252aad42dd0b57796144d-shadow-tool-25.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/994647c9a1g7c512f5f17c42ad4d1gf8-glibc-tool-33.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9g30ab934c726gc8a642fccf53dg8203-man-db-tool-28.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9g54d977c88bc5a4bd912fb0gf7d9d2d-util-linux-tool-18.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a0a5410844295f9gf984f3ff7d72fga5-sqlite-tool-42.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a4a1ggbagdfac7f9d2373a796gcg5g65-xz-tool-44.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/acd3g26825d0baf70ac7af94f635c641-ncurses-tool-10.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/afc6aaca1f885b68840cga1bc81739gc-python3-tool-37.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b05206f320dfbad504fc93db31gbc122-gettext-tool-45.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b5851g2f5b2ggd5894616811cf61a9a6-linux-pam-tool-19.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b8bc5b9023f2g27c527420ff561g446g-gcc-tool-2.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b951dgbg4a0ff32108d8072fc5c13148-coreutils-tool-1.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b976f9f65b401460aa0fcb6802464g0d-readline-tool-11.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/bg240acc420ad45490ga249aa0815ccb-readline-tool-41.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c1554g5gb3407db35gadgc78g9a4g6ad-bash-tool-0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c34b9d6a082db384a2f09ad09508cb39-perl-tool-8.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/cf56gad36gbf48gfa43136c406c7865g-zlib-tool-5.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d6b3ggf61396946gbcb5gda150ggaf38-openssl-tool-34.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/da119ff89g837ba5a84926966d0g47d0-gettext-tool-15.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f023a302757c0g8bb406c64a752a3c34-git-tool-9.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f21bgbcdagfc7f1bg4g913f086d658d5-util-linux-tool-48.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f3g124c15c4gcab66fgg7fc4fdg0b911-curl-tool-6.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f439b34g36c9c04af72fa939528ggd1d-kbd-tool-21.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f5cccda204f54864d469af832663a22a-git-tool-39.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f757c711a32368d0ff40868068ffdb16-bash-tool-30.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/ff89205476a26b96f87d6537b103823d-devshell-env.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g1c9g1c9bf2a91dac5654cgd9100802a-curl-tool-36.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g7f61b057943956b56c8ggbdcf0g15ga-python3-tool-7.drv"}
+100 @nix {"action":"start","id":100,"level":3,"parent":0,"text":"building '/nix/store/c1554g5gb3407db35gadgc78g9a4g6ad-bash-tool-0.drv'","type":105,"fields":["/nix/store/c1554g5gb3407db35gadgc78g9a4g6ad-bash-tool-0.drv","",1,1]}
+115 @nix {"action":"start","id":101,"level":3,"parent":0,"text":"building '/nix/store/b951dgbg4a0ff32108d8072fc5c13148-coreutils-tool-1.drv'","type":105,"fields":["/nix/store/b951dgbg4a0ff32108d8072fc5c13148-coreutils-tool-1.drv","",1,1]}
+130 @nix {"action":"start","id":102,"level":3,"parent":0,"text":"building '/nix/store/b8bc5b9023f2g27c527420ff561g446g-gcc-tool-2.drv'","type":105,"fields":["/nix/store/b8bc5b9023f2g27c527420ff561g446g-gcc-tool-2.drv","",1,1]}
+145 @nix {"action":"start","id":103,"level":3,"parent":0,"text":"building '/nix/store/44d6cfdg3bddb6g3324fc6560438d67d-glibc-tool-3.drv'","type":105,"fields":["/nix/store/44d6cfdg3bddb6g3324fc6560438d67d-glibc-tool-3.drv","",1,1]}
+160 @nix {"action":"start","id":104,"level":3,"parent":0,"text":"building '/nix/store/14743cd5f722gcf57ggg7c9a62g3cf03-openssl-tool-4.drv'","type":105,"fields":["/nix/store/14743cd5f722gcf57ggg7c9a62g3cf03-openssl-tool-4.drv","",1,1]}
+175 @nix {"action":"start","id":105,"level":3,"parent":0,"text":"building '/nix/store/cf56gad36gbf48gfa43136c406c7865g-zlib-tool-5.drv'","type":105,"fields":["/nix/store/cf56gad36gbf48gfa43136c406c7865g-zlib-tool-5.drv","",1,1]}
+190 @nix {"action":"start","id":106,"level":3,"parent":0,"text":"building '/nix/store/f3g124c15c4gcab66fgg7fc4fdg0b911-curl-tool-6.drv'","type":105,"fields":["/nix/store/f3g124c15c4gcab66fgg7fc4fdg0b911-curl-tool-6.drv","",1,1]}
+205 @nix {"action":"start","id":107,"level":3,"parent":0,"text":"building '/nix/store/g7f61b057943956b56c8ggbdcf0g15ga-python3-tool-7.drv'","type":105,"fields":["/nix/store/g7f61b057943956b56c8ggbdcf0g15ga-python3-tool-7.drv","",1,1]}
+220 @nix {"action":"start","id":108,"level":3,"parent":0,"text":"building '/nix/store/c34b9d6a082db384a2f09ad09508cb39-perl-tool-8.drv'","type":105,"fields":["/nix/store/c34b9d6a082db384a2f09ad09508cb39-perl-tool-8.drv","",1,1]}
+235 @nix {"action":"start","id":109,"level":3,"parent":0,"text":"building '/nix/store/f023a302757c0g8bb406c64a752a3c34-git-tool-9.drv'","type":105,"fields":["/nix/store/f023a302757c0g8bb406c64a752a3c34-git-tool-9.drv","",1,1]}
+250 @nix {"action":"start","id":110,"level":3,"parent":0,"text":"building '/nix/store/acd3g26825d0baf70ac7af94f635c641-ncurses-tool-10.drv'","type":105,"fields":["/nix/store/acd3g26825d0baf70ac7af94f635c641-ncurses-tool-10.drv","",1,1]}
+265 @nix {"action":"start","id":111,"level":3,"parent":0,"text":"building '/nix/store/b976f9f65b401460aa0fcb6802464g0d-readline-tool-11.drv'","type":105,"fields":["/nix/store/b976f9f65b401460aa0fcb6802464g0d-readline-tool-11.drv","",1,1]}
+280 @nix {"action":"start","id":112,"level":3,"parent":0,"text":"building '/nix/store/8fc2c1a664353c002af3g19a93bd5c0f-sqlite-tool-12.drv'","type":105,"fields":["/nix/store/8fc2c1a664353c002af3g19a93bd5c0f-sqlite-tool-12.drv","",1,1]}
+295 @nix {"action":"start","id":113,"level":3,"parent":0,"text":"building '/nix/store/1a55837g4a70498d5b3d8ag5d4c39270-libffi-tool-13.drv'","type":105,"fields":["/nix/store/1a55837g4a70498d5b3d8ag5d4c39270-libffi-tool-13.drv","",1,1]}
+310 @nix {"action":"start","id":114,"level":3,"parent":0,"text":"building '/nix/store/17gg8g17af5591f8b567a51ffg67a32f-xz-tool-14.drv'","type":105,"fields":["/nix/store/17gg8g17af5591f8b567a51ffg67a32f-xz-tool-14.drv","",1,1]}
+325 @nix {"action":"start","id":115,"level":3,"parent":0,"text":"building '/nix/store/da119ff89g837ba5a84926966d0g47d0-gettext-tool-15.drv'","type":105,"fields":["/nix/store/da119ff89g837ba5a84926966d0g47d0-gettext-tool-15.drv","",1,1]}
+340 @nix {"action":"start","id":116,"level":3,"parent":0,"text":"building '/nix/store/7b7884fcb5f61c914c074357c7cc5ga5-systemd-tool-16.drv'","type":105,"fields":["/nix/store/7b7884fcb5f61c914c074357c7cc5ga5-systemd-tool-16.drv","",1,1]}
+355 @nix {"action":"start","id":117,"level":3,"parent":0,"text":"building '/nix/store/836742c75543a61b03db8a3fc531bd52-dbus-tool-17.drv'","type":105,"fields":["/nix/store/836742c75543a61b03db8a3fc531bd52-dbus-tool-17.drv","",1,1]}
+370 @nix {"action":"start","id":118,"level":3,"parent":0,"text":"building '/nix/store/9g54d977c88bc5a4bd912fb0gf7d9d2d-util-linux-tool-18.drv'","type":105,"fields":["/nix/store/9g54d977c88bc5a4bd912fb0gf7d9d2d-util-linux-tool-18.drv","",1,1]}
+385 @nix {"action":"start","id":119,"level":3,"parent":0,"text":"building '/nix/store/b5851g2f5b2ggd5894616811cf61a9a6-linux-pam-tool-19.drv'","type":105,"fields":["/nix/store/b5851g2f5b2ggd5894616811cf61a9a6-linux-pam-tool-19.drv","",1,1]}
+400 @nix {"action":"start","id":120,"level":3,"parent":0,"text":"building '/nix/store/18ga548f0g8181461140997202d8g88b-kmod-tool-20.drv'","type":105,"fields":["/nix/store/18ga548f0g8181461140997202d8g88b-kmod-tool-20.drv","",1,1]}
+415 @nix {"action":"start","id":121,"level":3,"parent":0,"text":"building '/nix/store/f439b34g36c9c04af72fa939528ggd1d-kbd-tool-21.drv'","type":105,"fields":["/nix/store/f439b34g36c9c04af72fa939528ggd1d-kbd-tool-21.drv","",1,1]}
+430 @nix {"action":"start","id":122,"level":3,"parent":0,"text":"building '/nix/store/603ga7b075592a7f44fb8cdadf68g69d-nftables-tool-22.drv'","type":105,"fields":["/nix/store/603ga7b075592a7f44fb8cdadf68g69d-nftables-tool-22.drv","",1,1]}
+445 @nix {"action":"start","id":123,"level":3,"parent":0,"text":"building '/nix/store/5170d8808795b8gf5583c0451166b904-iproute2-tool-23.drv'","type":105,"fields":["/nix/store/5170d8808795b8gf5583c0451166b904-iproute2-tool-23.drv","",1,1]}
+460 @nix {"action":"start","id":124,"level":3,"parent":0,"text":"building '/nix/store/8b75a0gdb5d429a1101ba51649g3b126-openssh-tool-24.drv'","type":105,"fields":["/nix/store/8b75a0gdb5d429a1101ba51649g3b126-openssh-tool-24.drv","",1,1]}
+475 @nix {"action":"start","id":125,"level":3,"parent":0,"text":"building '/nix/store/96g326a2dc8252aad42dd0b57796144d-shadow-tool-25.drv'","type":105,"fields":["/nix/store/96g326a2dc8252aad42dd0b57796144d-shadow-tool-25.drv","",1,1]}
+490 @nix {"action":"start","id":126,"level":3,"parent":0,"text":"building '/nix/store/72adc747d7d8648gda0a01gg35243748-sudo-tool-26.drv'","type":105,"fields":["/nix/store/72adc747d7d8648gda0a01gg35243748-sudo-tool-26.drv","",1,1]}
+505 @nix {"action":"start","id":127,"level":3,"parent":0,"text":"building '/nix/store/257d8f9aa473g56b390agg617d3g5991-less-tool-27.drv'","type":105,"fields":["/nix/store/257d8f9aa473g56b390agg617d3g5991-less-tool-27.drv","",1,1]}
+520 @nix {"action":"start","id":128,"level":3,"parent":0,"text":"building '/nix/store/9g30ab934c726gc8a642fccf53dg8203-man-db-tool-28.drv'","type":105,"fields":["/nix/store/9g30ab934c726gc8a642fccf53dg8203-man-db-tool-28.drv","",1,1]}
+535 @nix {"action":"start","id":129,"level":3,"parent":0,"text":"building '/nix/store/84acfa9c1c391857c9fc7bgb543db13g-pipewire-tool-29.drv'","type":105,"fields":["/nix/store/84acfa9c1c391857c9fc7bgb543db13g-pipewire-tool-29.drv","",1,1]}
+550 @nix {"action":"start","id":130,"level":3,"parent":0,"text":"building '/nix/store/f757c711a32368d0ff40868068ffdb16-bash-tool-30.drv'","type":105,"fields":["/nix/store/f757c711a32368d0ff40868068ffdb16-bash-tool-30.drv","",1,1]}
+565 @nix {"action":"start","id":131,"level":3,"parent":0,"text":"building '/nix/store/04fgb15505d352c3cg3ffd951880dfaf-coreutils-tool-31.drv'","type":105,"fields":["/nix/store/04fgb15505d352c3cg3ffd951880dfaf-coreutils-tool-31.drv","",1,1]}
+580 @nix {"action":"start","id":132,"level":3,"parent":0,"text":"building '/nix/store/44c29d07c53038a7964d8d5ab486dg74-gcc-tool-32.drv'","type":105,"fields":["/nix/store/44c29d07c53038a7964d8d5ab486dg74-gcc-tool-32.drv","",1,1]}
+595 @nix {"action":"start","id":133,"level":3,"parent":0,"text":"building '/nix/store/994647c9a1g7c512f5f17c42ad4d1gf8-glibc-tool-33.drv'","type":105,"fields":["/nix/store/994647c9a1g7c512f5f17c42ad4d1gf8-glibc-tool-33.drv","",1,1]}
+610 @nix {"action":"start","id":134,"level":3,"parent":0,"text":"building '/nix/store/d6b3ggf61396946gbcb5gda150ggaf38-openssl-tool-34.drv'","type":105,"fields":["/nix/store/d6b3ggf61396946gbcb5gda150ggaf38-openssl-tool-34.drv","",1,1]}
+625 @nix {"action":"start","id":135,"level":3,"parent":0,"text":"building '/nix/store/05611cc17d35129c577d3g02c27726b6-zlib-tool-35.drv'","type":105,"fields":["/nix/store/05611cc17d35129c577d3g02c27726b6-zlib-tool-35.drv","",1,1]}
+640 @nix {"action":"start","id":136,"level":3,"parent":0,"text":"building '/nix/store/g1c9g1c9bf2a91dac5654cgd9100802a-curl-tool-36.drv'","type":105,"fields":["/nix/store/g1c9g1c9bf2a91dac5654cgd9100802a-curl-tool-36.drv","",1,1]}
+655 @nix {"action":"start","id":137,"level":3,"parent":0,"text":"building '/nix/store/afc6aaca1f885b68840cga1bc81739gc-python3-tool-37.drv'","type":105,"fields":["/nix/store/afc6aaca1f885b68840cga1bc81739gc-python3-tool-37.drv","",1,1]}
+670 @nix {"action":"start","id":138,"level":3,"parent":0,"text":"building '/nix/store/171f97c3f085ggbcg81923ggc941adgd-perl-tool-38.drv'","type":105,"fields":["/nix/store/171f97c3f085ggbcg81923ggc941adgd-perl-tool-38.drv","",1,1]}
+685 @nix {"action":"start","id":139,"level":3,"parent":0,"text":"building '/nix/store/f5cccda204f54864d469af832663a22a-git-tool-39.drv'","type":105,"fields":["/nix/store/f5cccda204f54864d469af832663a22a-git-tool-39.drv","",1,1]}
+700 @nix {"action":"start","id":140,"level":3,"parent":0,"text":"building '/nix/store/6989gba69b70f72720d3f988604d2a77-ncurses-tool-40.drv'","type":105,"fields":["/nix/store/6989gba69b70f72720d3f988604d2a77-ncurses-tool-40.drv","",1,1]}
+715 @nix {"action":"start","id":141,"level":3,"parent":0,"text":"building '/nix/store/bg240acc420ad45490ga249aa0815ccb-readline-tool-41.drv'","type":105,"fields":["/nix/store/bg240acc420ad45490ga249aa0815ccb-readline-tool-41.drv","",1,1]}
+730 @nix {"action":"start","id":142,"level":3,"parent":0,"text":"building '/nix/store/a0a5410844295f9gf984f3ff7d72fga5-sqlite-tool-42.drv'","type":105,"fields":["/nix/store/a0a5410844295f9gf984f3ff7d72fga5-sqlite-tool-42.drv","",1,1]}
+745 @nix {"action":"start","id":143,"level":3,"parent":0,"text":"building '/nix/store/53gg765d3d9g4a9c6751603b6aaf3d06-libffi-tool-43.drv'","type":105,"fields":["/nix/store/53gg765d3d9g4a9c6751603b6aaf3d06-libffi-tool-43.drv","",1,1]}
+760 @nix {"action":"start","id":144,"level":3,"parent":0,"text":"building '/nix/store/a4a1ggbagdfac7f9d2373a796gcg5g65-xz-tool-44.drv'","type":105,"fields":["/nix/store/a4a1ggbagdfac7f9d2373a796gcg5g65-xz-tool-44.drv","",1,1]}
+775 @nix {"action":"start","id":145,"level":3,"parent":0,"text":"building '/nix/store/b05206f320dfbad504fc93db31gbc122-gettext-tool-45.drv'","type":105,"fields":["/nix/store/b05206f320dfbad504fc93db31gbc122-gettext-tool-45.drv","",1,1]}
+790 @nix {"action":"start","id":146,"level":3,"parent":0,"text":"building '/nix/store/4caa18983896fd43b8c05da693c2f3d0-systemd-tool-46.drv'","type":105,"fields":["/nix/store/4caa18983896fd43b8c05da693c2f3d0-systemd-tool-46.drv","",1,1]}
+805 @nix {"action":"start","id":147,"level":3,"parent":0,"text":"building '/nix/store/75197d22490fg6g63903961f8f013dc7-dbus-tool-47.drv'","type":105,"fields":["/nix/store/75197d22490fg6g63903961f8f013dc7-dbus-tool-47.drv","",1,1]}
+820 @nix {"action":"start","id":148,"level":3,"parent":0,"text":"building '/nix/store/f21bgbcdagfc7f1bg4g913f086d658d5-util-linux-tool-48.drv'","type":105,"fields":["/nix/store/f21bgbcdagfc7f1bg4g913f086d658d5-util-linux-tool-48.drv","",1,1]}
+835 @nix {"action":"start","id":149,"level":3,"parent":0,"text":"building '/nix/store/045aada26056bg21aaa064f7gc988agc-linux-pam-tool-49.drv'","type":105,"fields":["/nix/store/045aada26056bg21aaa064f7gc988agc-linux-pam-tool-49.drv","",1,1]}
+1500 = all-running
+1845 @nix {"action":"stop","id":110}
+2093 @nix {"action":"stop","id":131}
+2373 @nix {"action":"stop","id":118}
+2621 @nix {"action":"stop","id":139}
+2653 @nix {"action":"stop","id":105}
+2901 @nix {"action":"stop","id":126}
+3149 @nix {"action":"stop","id":147}
+3181 @nix {"action":"stop","id":113}
+3429 @nix {"action":"stop","id":134}
+3461 @nix {"action":"stop","id":100}
+3709 @nix {"action":"stop","id":121}
+3957 @nix {"action":"stop","id":142}
+3989 @nix {"action":"stop","id":108}
+4000 = thinning
+4237 @nix {"action":"stop","id":129}
+4517 @nix {"action":"stop","id":116}
+4765 @nix {"action":"stop","id":137}
+4797 @nix {"action":"stop","id":103}
+5045 @nix {"action":"stop","id":124}
+5293 @nix {"action":"stop","id":145}
+5325 @nix {"action":"stop","id":111}
+5573 @nix {"action":"stop","id":132}
+5853 @nix {"action":"stop","id":119}
+6101 @nix {"action":"stop","id":140}
+6133 @nix {"action":"stop","id":106}
+6381 @nix {"action":"stop","id":127}
+6629 @nix {"action":"stop","id":148}
+6661 @nix {"action":"stop","id":114}
+6909 @nix {"action":"stop","id":135}
+6941 @nix {"action":"stop","id":101}
+7000 = stragglers
+7189 @nix {"action":"stop","id":122}
+7437 @nix {"action":"stop","id":143}
+7469 @nix {"action":"stop","id":109}
+7717 @nix {"action":"stop","id":130}
+7997 @nix {"action":"stop","id":117}
+8029 @nix {"action":"stop","id":120}
+8245 @nix {"action":"stop","id":138}
+8277 @nix {"action":"stop","id":104}
+8277 @nix {"action":"stop","id":141}
+8309 @nix {"action":"stop","id":107}
+8525 @nix {"action":"stop","id":125}
+8557 @nix {"action":"stop","id":128}
+8773 @nix {"action":"stop","id":146}
+8805 @nix {"action":"stop","id":112}
+8805 @nix {"action":"stop","id":149}
+8837 @nix {"action":"stop","id":115}
+9053 @nix {"action":"stop","id":133}
+9085 @nix {"action":"stop","id":136}
+9117 @nix {"action":"stop","id":102}
+9365 @nix {"action":"stop","id":123}
+9613 @nix {"action":"stop","id":144}
+9613 @nix {"action":"start","id":150,"level":3,"parent":0,"text":"building '/nix/store/ff89205476a26b96f87d6537b103823d-devshell-env.drv'","type":105,"fields":["/nix/store/ff89205476a26b96f87d6537b103823d-devshell-env.drv","",1,1]}
+11113 @nix {"action":"stop","id":150}

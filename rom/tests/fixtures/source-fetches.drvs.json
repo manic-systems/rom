@@ -1,0 +1,27 @@
+{
+  "derivations": {
+    "/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv": {
+      "sources": [
+        "/nix/store/g03453927b1b8496433f0g7a6b25f8c4-source",
+        "/nix/store/42fg841dc27gf0b5aa2d06bd31308bb6-patches"
+      ]
+    },
+    "/nix/store/6bgg7bfbgb264d6g51265dd323394b26-lib-1.0.drv": {
+      "sources": [
+        "/nix/store/12f8afcd5b05a5139654507g7bb2cg0c-shared-source"
+      ]
+    },
+    "/nix/store/gb68gbg6d92aa4g5b17786f3f296f664-tool-1.0.drv": {
+      "sources": [
+        "/nix/store/12f8afcd5b05a5139654507g7bb2cg0c-shared-source"
+      ]
+    },
+    "/nix/store/1f6fd65d77d6364ffafd5a745ba5c498-bundle.drv": {
+      "inputs": [
+        "/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv",
+        "/nix/store/6bgg7bfbgb264d6g51265dd323394b26-lib-1.0.drv",
+        "/nix/store/gb68gbg6d92aa4g5b17786f3f296f664-tool-1.0.drv"
+      ]
+    }
+  }
+}

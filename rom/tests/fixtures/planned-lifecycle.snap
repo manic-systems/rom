@@ -1,0 +1,42 @@
+=== planned @ 800ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ app-1.0\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ lib-1.0\e[0m
+\e[0;90m├─ \e[0;34m⏸ docs-1.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 3       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 0s
+=== first-running @ 1500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ app-1.0\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ lib-1.0\e[0m
+\e[0;90m│     ╰─ \e[0;33m⏵ dep-1.0\e[0m              \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;34m⏸ docs-1.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 3       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== second-running @ 3000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ app-1.0\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ lib-1.0\e[0m                 \e[0;90m──────────────\e[0;33m━━━╸\e[0;90m─────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;34m⏸ docs-1.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 1         \e[0;34m⏸ 2       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 3s
+=== last-running @ 4600ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ app-1.0\e[0m                    \e[0;90m──\e[0;33m━━━╸\e[0;90m─────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;34m⏸ docs-1.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 2         \e[0;34m⏸ 1       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 4s
+=== finished @ 5000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ docs-1.0\e[0m
+\e[0;90m┕━ \e[0;34mInput ended with 1 planned build after 5s\e[0m
+=== log ===
+these 4 derivations will be built:\e[0m
+  /nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv\e[0m
+  /nix/store/6bgg7bfbgb264d6g51265dd323394b26-lib-1.0.drv\e[0m
+  /nix/store/d811bdfd4b2aaa53ff3cc3fbf00dccb3-docs-1.0.drv\e[0m
+  /nix/store/fg749g921g906f775f8c99fdb6f589a3-dep-1.0.drv\e[0m

@@ -1,0 +1,76 @@
+0 @nix {"action":"msg","level":3,"msg":"this derivation will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"these 2 paths will be fetched (40.0 MiB download, 160.0 MiB unpacked):"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/6g1bc260b665898a5a5ca24737c7361c-cargo-1.89.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b612gc2b785c3b6b56864b340a2a33b6-rustc-1.89.0"}
+200 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"copying path '/nix/store/b612gc2b785c3b6b56864b340a2a33b6-rustc-1.89.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/b612gc2b785c3b6b56864b340a2a33b6-rustc-1.89.0","https://cache.nixos.org"]}
+200 @nix {"action":"start","id":11,"level":3,"parent":10,"text":"copying path '/nix/store/b612gc2b785c3b6b56864b340a2a33b6-rustc-1.89.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/b612gc2b785c3b6b56864b340a2a33b6-rustc-1.89.0","https://cache.nixos.org","local"]}
+220 @nix {"action":"start","id":12,"level":3,"parent":11,"text":"downloading 'https://cache.nixos.org/nar/b612gc2b785c3b6b56864b340a2a33b6-rustc-1.89.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/b612gc2b785c3b6b56864b340a2a33b6-rustc-1.89.0.nar.xz"]}
+300 @nix {"action":"start","id":20,"level":3,"parent":0,"text":"copying path '/nix/store/6g1bc260b665898a5a5ca24737c7361c-cargo-1.89.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/6g1bc260b665898a5a5ca24737c7361c-cargo-1.89.0","https://cache.nixos.org"]}
+300 @nix {"action":"start","id":21,"level":3,"parent":20,"text":"copying path '/nix/store/6g1bc260b665898a5a5ca24737c7361c-cargo-1.89.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/6g1bc260b665898a5a5ca24737c7361c-cargo-1.89.0","https://cache.nixos.org","local"]}
+320 @nix {"action":"start","id":22,"level":3,"parent":21,"text":"downloading 'https://cache.nixos.org/nar/6g1bc260b665898a5a5ca24737c7361c-cargo-1.89.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/6g1bc260b665898a5a5ca24737c7361c-cargo-1.89.0.nar.xz"]}
+400 @nix {"action":"start","id":30,"level":3,"parent":0,"text":"copying path '/nix/store/33df1718bb4648c94ga063f30cd1c454-app-src' to 'ssh-ng://chariot'","type":100,"fields":["/nix/store/33df1718bb4648c94ga063f30cd1c454-app-src","local","ssh-ng://chariot"]}
+500 @nix {"action":"start","id":31,"level":3,"parent":0,"text":"copying path '/nix/store/2gab02g31a3a84d6216g49g02135ga94-vendor-deps' to 'ssh-ng://chariot'","type":100,"fields":["/nix/store/2gab02g31a3a84d6216g49g02135ga94-vendor-deps","local","ssh-ng://chariot"]}
+600 @nix {"action":"result","id":11,"type":105,"fields":[3145728,31457280,1,0]}
+716 @nix {"action":"result","id":21,"type":105,"fields":[1744830,10485760,1,0]}
+828 @nix {"action":"result","id":30,"type":105,"fields":[748982,5242880,1,0]}
+923 @nix {"action":"result","id":31,"type":105,"fields":[2016492,26214400,1,0]}
+1000 @nix {"action":"result","id":11,"type":105,"fields":[6291456,31457280,1,0]}
+1133 @nix {"action":"result","id":21,"type":105,"fields":[3493855,10485760,1,0]}
+1257 @nix {"action":"result","id":30,"type":105,"fields":[1497965,5242880,1,0]}
+1346 @nix {"action":"result","id":31,"type":105,"fields":[4032984,26214400,1,0]}
+1400 @nix {"action":"result","id":11,"type":105,"fields":[9437184,31457280,1,0]}
+1500 = both-directions
+1550 @nix {"action":"result","id":21,"type":105,"fields":[5242880,10485760,1,0]}
+1685 @nix {"action":"result","id":30,"type":105,"fields":[2246948,5242880,1,0]}
+1769 @nix {"action":"result","id":31,"type":105,"fields":[6049476,26214400,1,0]}
+1800 @nix {"action":"result","id":11,"type":105,"fields":[12582912,31457280,1,0]}
+1966 @nix {"action":"result","id":21,"type":105,"fields":[6987710,10485760,1,0]}
+2114 @nix {"action":"result","id":30,"type":105,"fields":[2995931,5242880,1,0]}
+2192 @nix {"action":"result","id":31,"type":105,"fields":[8065969,26214400,1,0]}
+2200 @nix {"action":"result","id":11,"type":105,"fields":[15728640,31457280,1,0]}
+2383 @nix {"action":"result","id":21,"type":105,"fields":[8736735,10485760,1,0]}
+2542 @nix {"action":"result","id":30,"type":105,"fields":[3744914,5242880,1,0]}
+2600 @nix {"action":"result","id":11,"type":105,"fields":[18874368,31457280,1,0]}
+2615 @nix {"action":"result","id":31,"type":105,"fields":[10082461,26214400,1,0]}
+2800 @nix {"action":"result","id":21,"type":105,"fields":[10485760,10485760,1,0]}
+2800 @nix {"action":"stop","id":22}
+2800 @nix {"action":"stop","id":21}
+2800 @nix {"action":"stop","id":20}
+2971 @nix {"action":"result","id":30,"type":105,"fields":[4493897,5242880,1,0]}
+3000 @nix {"action":"result","id":11,"type":105,"fields":[22020096,31457280,1,0]}
+3038 @nix {"action":"result","id":31,"type":105,"fields":[12098953,26214400,1,0]}
+3400 @nix {"action":"result","id":11,"type":105,"fields":[25165824,31457280,1,0]}
+3400 @nix {"action":"result","id":30,"type":105,"fields":[5242880,5242880,1,0]}
+3400 @nix {"action":"stop","id":30}
+3461 @nix {"action":"result","id":31,"type":105,"fields":[14115446,26214400,1,0]}
+3500 @nix {"action":"start","id":40,"level":3,"parent":0,"text":"building '/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv' on 'ssh-ng://chariot'","type":105,"fields":["/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv","ssh-ng://chariot",1,1]}
+3550 @nix {"action":"result","id":40,"type":104,"fields":["buildPhase"]}
+3800 @nix {"action":"result","id":11,"type":105,"fields":[28311552,31457280,1,0]}
+3884 @nix {"action":"result","id":31,"type":105,"fields":[16131938,26214400,1,0]}
+4200 @nix {"action":"result","id":11,"type":105,"fields":[31457280,31457280,1,0]}
+4200 @nix {"action":"stop","id":12}
+4200 @nix {"action":"stop","id":11}
+4200 @nix {"action":"stop","id":10}
+4307 @nix {"action":"result","id":31,"type":105,"fields":[18148430,26214400,1,0]}
+4500 = remote-build
+4730 @nix {"action":"result","id":31,"type":105,"fields":[20164923,26214400,1,0]}
+5153 @nix {"action":"result","id":31,"type":105,"fields":[22181415,26214400,1,0]}
+5576 @nix {"action":"result","id":31,"type":105,"fields":[24197907,26214400,1,0]}
+6000 @nix {"action":"result","id":31,"type":105,"fields":[26214400,26214400,1,0]}
+6000 @nix {"action":"stop","id":31}
+6200 @nix {"action":"stop","id":40}
+6200 @nix {"action":"start","id":41,"level":3,"parent":0,"text":"copying path '/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0' from 'ssh-ng://chariot'","type":100,"fields":["/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0","ssh-ng://chariot","local"]}
+6500 @nix {"action":"start","id":42,"level":3,"parent":0,"text":"copying path '/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0' to 'ssh://cache-push'","type":100,"fields":["/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0","local","ssh://cache-push"]}
+6666 @nix {"action":"result","id":41,"type":105,"fields":[1048576,3145728,1,0]}
+6916 @nix {"action":"result","id":42,"type":105,"fields":[1398101,8388608,1,0]}
+7133 @nix {"action":"result","id":41,"type":105,"fields":[2097152,3145728,1,0]}
+7200 = result-and-push
+7333 @nix {"action":"result","id":42,"type":105,"fields":[2796202,8388608,1,0]}
+7600 @nix {"action":"result","id":41,"type":105,"fields":[3145728,3145728,1,0]}
+7600 @nix {"action":"stop","id":41}
+7750 @nix {"action":"result","id":42,"type":105,"fields":[4194304,8388608,1,0]}
+8166 @nix {"action":"result","id":42,"type":105,"fields":[5592405,8388608,1,0]}
+8583 @nix {"action":"result","id":42,"type":105,"fields":[6990506,8388608,1,0]}
+9000 @nix {"action":"result","id":42,"type":105,"fields":[8388608,8388608,1,0]}
+9000 @nix {"action":"stop","id":42}

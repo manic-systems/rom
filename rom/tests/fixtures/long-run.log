@@ -1,0 +1,8 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/1fgf4gbc1b9233f7f7g23cf92g41c3c5-chromium-140.0.7339.80.drv'","type":105,"fields":["/nix/store/1fgf4gbc1b9233f7f7g23cf92g41c3c5-chromium-140.0.7339.80.drv","",1,1]}
+100 @nix {"action":"result","id":10,"type":104,"fields":["configurePhase"]}
+1500 = starting
+600000 @nix {"action":"result","id":10,"type":104,"fields":["buildPhase"]}
+1800000 = half-hour
+3500000 @nix {"action":"result","id":10,"type":104,"fields":["installPhase"]}
+3700000 = overrun
+3900000 @nix {"action":"stop","id":10}

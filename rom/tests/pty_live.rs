@@ -25,7 +25,7 @@ const CLEAR_LINE: &[u8] = b"\x1b[2K";
 
 #[test]
 fn fixture_reaches_a_styled_first_live_frame_through_the_real_cli() {
-  let transcript = replay_fixture("download-progress", false, 80, 24);
+  let transcript = replay_fixture("unsized-download", false, 80, 24);
   assert_eq!(count(&transcript, BEGIN_SYNC), count(&transcript, END_SYNC));
   assert!(count(&transcript, BEGIN_SYNC) > 0);
   assert!(transcript.windows(7).any(|w| w == b"\x1b[1;35m"));
@@ -89,7 +89,7 @@ fn shrinking_graph_stays_anchored_to_the_bottom() {
 
 #[test]
 fn multiplexer_gets_a_safe_initial_graph_without_live_controls() {
-  let transcript = replay_fixture("download-progress", true, 80, 24);
+  let transcript = replay_fixture("unsized-download", true, 80, 24);
   assert_eq!(count(&transcript, BEGIN_SYNC), 0);
   assert_eq!(count(&transcript, END_SYNC), 0);
   assert!(!transcript.windows(4).any(|window| window == b"\x1b[2K"));
@@ -101,7 +101,7 @@ fn multiplexer_gets_a_safe_initial_graph_without_live_controls() {
 #[test]
 fn undersized_terminal_falls_back_without_live_control_artifacts() {
   for (columns, rows) in [(19, 8), (80, 7)] {
-    let transcript = replay_fixture("download-progress", false, columns, rows);
+    let transcript = replay_fixture("unsized-download", false, columns, rows);
     assert_eq!(count(&transcript, BEGIN_SYNC), 0);
     assert_eq!(count(&transcript, END_SYNC), 0);
     assert!(!transcript.windows(4).any(|window| window == b"\x1b[2K"));

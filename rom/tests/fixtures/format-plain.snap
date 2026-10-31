@@ -1,34 +1,237 @@
-=== all-running @ 300ms ===
-\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 0s\e[0;33m  ⏵ 17 building\e[0m
-  \e[0;33m⏵ bash\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ coreutils\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ curl\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ gcc\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ gettext\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ git\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ glibc\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ libffi\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ ncurses\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ openssl\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ perl\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ python3\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ readline\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ sqlite\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ system\e[0m
-  \e[0;33m⏵ xz\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ zlib\e[0;90m  (buildPhase)\e[0m
-=== half-done @ 500ms ===
-\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 0s\e[0;33m  ⏵ 9 building\e[0;32m  ✔ 8 completed\e[0m
-  \e[0;33m⏵ gettext\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ git\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ libffi\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ ncurses\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ perl\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ readline\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ sqlite\e[0;90m  (buildPhase)\e[0m
-  \e[0;33m⏵ system\e[0m
-  \e[0;33m⏵ xz\e[0;90m  (buildPhase)\e[0m
-=== finished @ 700ms ===
-\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 0s\e[0;32m  ✔ 17 completed\e[0m
-\e[0;32mFinished after 0s\e[0m
+=== filling @ 1500ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 1s\e[0;33m  ⏵ 32 building\e[0;34m  ⏸ 125 planned\e[0m
+  \e[0;33m⏵ bash-1.0.0\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ bash-2.2.0\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ coreutils-1.1.1\e[0;90m  (installPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ coreutils-2.3.1\e[0;90m  (configurePhase)\e[0m
+  \e[0;33m⏵ curl-1.6.1\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ dbus-1.3.2\e[0;90m  (unpackPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ gcc-1.2.2\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ gettext-1.1.0\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ git-1.2.4\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ glibc-1.3.3\e[0;90m  (buildPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ iproute2-1.2.3\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ kbd-1.0.1\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ kmod-1.6.0\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ less-1.6.2\e[0;90m  (buildPhase)\e[0m
+  \e[0;33m⏵ libffi-1.6.3\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ linux-pam-1.5.4\e[0;90m  (unpackPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ man-db-1.0.3\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ ncurses-1.3.0\e[0;90m  (unpackPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ nftables-1.1.2\e[0;90m  (configurePhase)\e[0m
+  \e[0;33m⏵ openssh-1.3.4\e[0;90m  (configurePhase)\e[0m
+  \e[0;33m⏵ openssl-1.4.4\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+\e[0;90m… 11 hidden\e[0m
+=== saturated @ 6000ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 6s\e[0;33m  ⏵ 32 building\e[0;34m  ⏸ 85 planned\e[0;32m  ✔ 40 completed\e[0m
+  \e[0;33m⏵ bash-3.4.0\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ coreutils-3.5.1\e[0;90m  (configurePhase)\e[0m
+  \e[0;33m⏵ curl-2.1.1\e[0;90m  (buildPhase)\e[0;37m  3s\e[0m
+  \e[0;33m⏵ curl-3.3.1\e[0;90m  (configurePhase)\e[0m
+  \e[0;33m⏵ dbus-2.5.2\e[0;90m  (configurePhase)\e[0;37m  2s\e[0m
+  \e[0;33m⏵ gcc-2.4.2\e[0;90m  (installPhase)\e[0;37m  4s\e[0m
+  \e[0;33m⏵ gcc-3.6.2\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ gettext-2.3.0\e[0;90m  (buildPhase)\e[0;37m  2s\e[0m
+  \e[0;33m⏵ git-2.4.4\e[0;90m  (installPhase)\e[0;37m  3s\e[0m
+  \e[0;33m⏵ git-3.6.4\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ glibc-3.0.3\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ iproute2-2.4.3\e[0;90m  (installPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ kmod-2.1.0\e[0;90m  (buildPhase)\e[0;37m  2s\e[0m
+  \e[0;33m⏵ less-2.1.2\e[0;90m  (buildPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ libffi-2.1.3\e[0;90m  (buildPhase)\e[0;37m  3s\e[0m
+  \e[0;33m⏵ linux-pam-2.0.4\e[0;90m  (configurePhase)\e[0;37m  2s\e[0m
+  \e[0;33m⏵ man-db-2.2.3\e[0;90m  (unpackPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ ncurses-3.0.0\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ nftables-2.3.2\e[0;90m  (buildPhase)\e[0;37m  2s\e[0m
+  \e[0;33m⏵ openssh-2.5.4\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ openssl-2.6.4\e[0;90m  (installPhase)\e[0;37m  4s\e[0m
+\e[0;90m… 11 hidden\e[0m
+=== draining @ 12000ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 12s\e[0;33m  ⏵ 32 building\e[0;34m  ⏸ 37 planned\e[0;32m  ✔ 88 completed\e[0m
+  \e[0;33m⏵ coreutils-4.0.1\e[0;90m  (installPhase)\e[0;37m  3s\e[0m
+  \e[0;33m⏵ curl-4.5.1\e[0;90m  (installPhase)\e[0;37m  2s\e[0m
+  \e[0;33m⏵ dbus-4.2.2\e[0;90m  (buildPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ gettext-3.5.0\e[0;90m  (installPhase)\e[0;37m  5s\e[0m
+  \e[0;33m⏵ gettext-4.0.0\e[0;90m  (installPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ git-4.1.4\e[0;90m  (configurePhase)\e[0;37m  2s\e[0m
+  \e[0;33m⏵ glibc-4.2.3\e[0;90m  (buildPhase)\e[0;37m  3s\e[0m
+  \e[0;33m⏵ iproute2-4.1.3\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ kbd-4.6.1\e[0;90m  (configurePhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ kmod-3.3.0\e[0;90m  (installPhase)\e[0;37m  4s\e[0m
+  \e[0;33m⏵ kmod-4.5.0\e[0;90m  (unpackPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ less-4.5.2\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ libffi-4.5.3\e[0;90m  (installPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ linux-pam-4.4.4\e[0;90m  (buildPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ man-db-4.6.3\e[0;90m  (unpackPhase)\e[0m
+  \e[0;33m⏵ ncurses-4.2.0\e[0;90m  (buildPhase)\e[0;37m  2s\e[0m
+  \e[0;33m⏵ nftables-3.5.2\e[0;90m  (installPhase)\e[0;37m  4s\e[0m
+  \e[0;33m⏵ nftables-4.0.2\e[0;90m  (unpackPhase)\e[0;37m  1s\e[0m
+  \e[0;33m⏵ openssh-3.0.4\e[0;90m  (installPhase)\e[0;37m  4s\e[0m
+  \e[0;33m⏵ openssh-4.2.4\e[0;90m  (configurePhase)\e[0m
+  \e[0;33m⏵ perl-4.0.3\e[0;90m  (buildPhase)\e[0;37m  2s\e[0m
+\e[0;90m… 11 hidden\e[0m
+=== system @ 22406ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 22s\e[0;33m  ⏵ 1 building\e[0;32m  ✔ 156 completed\e[0m
+  \e[0;33m⏵ nixos-system-rom-26.11.20261031.abcdef0\e[0;37m  1s\e[0m
+=== finished @ 23406ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 23s\e[0;32m  ✔ 157 completed\e[0m
+\e[0;32mFinished after 23s\e[0m
 === log ===
+these 157 derivations will be built:\e[0m
+  /nix/store/01431770392c09568g7ff91a9cf9a3a6-readline-2.6.1.drv\e[0m
+  /nix/store/02755gaaag1272dg13g6g32ac0bd1ff9-openssh-2.5.4.drv\e[0m
+  /nix/store/0403a37g411010bag28c6c758758cb6a-python3-5.1.2.drv\e[0m
+  /nix/store/09f6c018d2c8c4903308613dd1b72484-initrd.drv\e[0m
+  /nix/store/0c2b841ccb46b9fag384207ff657b26c-git-1.2.4.drv\e[0m
+  /nix/store/0f50abd1gd59g0b962b3g2g657912076-nftables-4.0.2.drv\e[0m
+  /nix/store/0f51fg766bd4048a6f78cd7c4035290a-coreutils-2.3.1.drv\e[0m
+  /nix/store/0g0ad6678722511df92f52fgac641d67-util-linux-5.5.3.drv\e[0m
+  /nix/store/11734441f03fdcfcfd0g1f9bc553bc29-openssl-4.3.4.drv\e[0m
+  /nix/store/146807d2d51b2a0c98fb98bg76777gdb-zlib-4.4.0.drv\e[0m
+  /nix/store/1b2c9ca411391dg0bf4cd1bg14gc0b30-sqlite-3.2.2.drv\e[0m
+  /nix/store/1bd9g89f9b5bc1a2dgg8d92d0361a348-readline-4.3.1.drv\e[0m
+  /nix/store/1c1654c20bb3a85b7gag10157a0c3cd7-ncurses-3.0.0.drv\e[0m
+  /nix/store/1ca032d0ag1332adg16583c2986bd581-pipewire-4.0.4.drv\e[0m
+  /nix/store/1d5731g12c62a43b3253d108df8g6cff-glibc-3.0.3.drv\e[0m
+  /nix/store/1dd37a66g3342ab7382ab0afa8gc9714-git-3.6.4.drv\e[0m
+  /nix/store/1dd72fbg8385492a8d68d0bc602547ga-util-linux-1.4.3.drv\e[0m
+  /nix/store/1gagb59c6d473aa520g4f768478bf1ac-zlib-3.2.0.drv\e[0m
+  /nix/store/203721ggg0b38bb5633c52ff0a5g0a5a-perl-5.2.3.drv\e[0m
+  /nix/store/21500bgf5agg84gad93961345004cc8f-gettext-4.0.0.drv\e[0m
+  /nix/store/249bgc903aabb880785fa8018f4829f3-sudo-3.2.1.drv\e[0m
+  /nix/store/26054fd8c78b1abf1145g679ab547a94-pipewire-1.1.4.drv\e[0m
+  /nix/store/2c0198812b610fcc976c134821697cgc-nftables-3.5.2.drv\e[0m
+  /nix/store/2cb41499cgggf24ca40d56bb6ba8cgg1-gcc-3.6.2.drv\e[0m
+  /nix/store/2gc8aafffb8922892fa562b36c76d890-ncurses-2.5.0.drv\e[0m
+  /nix/store/3124af8c8c62b01f3dg28g4bda535388-dbus-3.0.2.drv\e[0m
+  /nix/store/319c665fff22a9522f358bb752754gac-less-4.5.2.drv\e[0m
+  /nix/store/35a0a863f7cag618g87ac19951959295-python3-3.4.2.drv\e[0m
+  /nix/store/36903a5d904391c31a1b64a9257aff94-systemd-3.6.1.drv\e[0m
+  /nix/store/374a7cb7a56078f0a9cad375d9c6a848-kbd-3.4.1.drv\e[0m
+  /nix/store/38333fd6c94164fg8c8bd02ffdb11414-libffi-3.3.3.drv\e[0m
+  /nix/store/38b561438631g92f0daa3142a5066058-nftables-1.1.2.drv\e[0m
+  /nix/store/3fb8gg781b44g2b6fd0g2d160d3df3g9-zlib-1.5.0.drv\e[0m
+  /nix/store/402f3f3afd78c5aga4d4b7981c46102d-gettext-3.5.0.drv\e[0m
+  /nix/store/41ad77gc1b45c555ca5d173gb51c09f2-bash-3.4.0.drv\e[0m
+  /nix/store/429739b9f748fac2a52fd2080a94f956-kbd-1.0.1.drv\e[0m
+  /nix/store/42f3ab88f9776ga19gdccg1955c05800-nftables-5.2.2.drv\e[0m
+  /nix/store/44g0c759cba06a10a86gg1b79f044877-bash-2.2.0.drv\e[0m
+  /nix/store/462d772daca40cacdfgf73110bb4836g-perl-3.5.3.drv\e[0m
+  /nix/store/46c891676g86d9900543cg599fa05716-dbus-4.2.2.drv\e[0m
+  /nix/store/46dc9488f06094857133667c985c0c71-bash-5.1.0.drv\e[0m
+  /nix/store/47ba71c51c82a0af12bf4d65b53dc9f8-curl-3.3.1.drv\e[0m
+  /nix/store/48f2b396df6494gg810f949d644gf763-systemd-2.4.1.drv\e[0m
+  /nix/store/4a0505a6db8626ccgg45348b1db543ad-man-db-4.6.3.drv\e[0m
+  /nix/store/4a6g556a312g7ag9280274bg144b51g4-git-2.4.4.drv\e[0m
+  /nix/store/4d2cc9f2029b4a696c9592dga86c931c-iproute2-4.1.3.drv\e[0m
+  /nix/store/4f7b3c0a5756g9af8aa6a5457a627b8a-systemd-5.3.1.drv\e[0m
+  /nix/store/4ga7gadf03479f6gfb38c40ab2a8370f-openssh-1.3.4.drv\e[0m
+  /nix/store/510g6d88a314ca202388f33a617c1a8a-gettext-2.3.0.drv\e[0m
+  /nix/store/51g87845b69a5528ba0dg3dc549c6307-openssh-4.2.4.drv\e[0m
+  /nix/store/54bg7af3993gg440575a82gcac91922c-kmod-5.0.0.drv\e[0m
+  /nix/store/577c007735d166501gf45738288a3835-dbus-2.5.2.drv\e[0m
+  /nix/store/58a2f445cba022d5243a25f7d2b3bc77-nftables-2.3.2.drv\e[0m
+  /nix/store/5b4313da55g1886b4aa4c309450caf44-readline-3.1.1.drv\e[0m
+  /nix/store/5bb40d53a66ad0f75b7fb118gfg2a061-shadow-1.4.0.drv\e[0m
+  /nix/store/5bbda0gf4d5156c9c25abc8b12655b79-sqlite-1.5.2.drv\e[0m
+  /nix/store/5c575dd0498c4gd4602c0b463d38546a-less-1.6.2.drv\e[0m
+  /nix/store/5d5d0ccag70c45a658719g1fac9b0f0g-iproute2-3.6.3.drv\e[0m
+  /nix/store/5d808f3727g0a0f50f428dbdg7d2ad8c-xz-2.2.4.drv\e[0m
+  /nix/store/62f5906b027a56cc91b2b7dd40192315-gcc-4.1.2.drv\e[0m
+  /nix/store/630a3c4176541017a060c6d6b85cfg0c-user-units.drv\e[0m
+  /nix/store/635g1fabg84fd44a71b63a117a8fg5f6-gcc-1.2.2.drv\e[0m
+  /nix/store/63d60c1d920d9fcg7617661b468cbfc8-curl-5.0.1.drv\e[0m
+  /nix/store/66ddg5612ggb37c6379bg995f566a572-less-2.1.2.drv\e[0m
+  /nix/store/67c84ggfc296b1d1dga39c951d42cd04-readline-5.5.1.drv\e[0m
+  /nix/store/6aaf85448cdccg9a77gd14a3cg017ab5-libffi-2.1.3.drv\e[0m
+  /nix/store/6c3746gd7a1ab4653110f18b785795c1-curl-1.6.1.drv\e[0m
+  /nix/store/6d078g94c2g73621776a4cda539f91c0-nixos-system-rom-26.11.20261031.abcdef0.drv\e[0m
+  /nix/store/6f2b87bf533g64549f37cd3cg91a2d99-systemd-1.2.1.drv\e[0m
+  /nix/store/709247a57cf3235d117840g5dcbc56f9-util-linux-4.3.3.drv\e[0m
+  /nix/store/71c8388g01d371cb06b9b96d702308d6-coreutils-4.0.1.drv\e[0m
+  /nix/store/72657699421143f19b4b29097a45b01f-util-linux-3.1.3.drv\e[0m
+  /nix/store/726g0ca70987a49c9f6613bg644863aa-openssl-2.6.4.drv\e[0m
+  /nix/store/730gc6367f2456bg556a3c68bg077g65-kbd-2.2.1.drv\e[0m
+  /nix/store/75296050b363dbf7fcaac021881900fb-system-path.drv\e[0m
+  /nix/store/7558a5g84bc9g1f696cdda0bb7b53686-sudo-1.5.1.drv\e[0m
+  /nix/store/77d9bcf4a13df264gg0526f2g26923f2-locale.drv\e[0m
+  /nix/store/79321d982f650fc2625d3bf821cg159a-kmod-4.5.0.drv\e[0m
+  /nix/store/7c7161c5f122bb82897723f8375d60f0-pipewire-2.3.4.drv\e[0m
+  /nix/store/7cc185d09747c0f3b2fa0502ab76gg83-libffi-5.0.3.drv\e[0m
+  /nix/store/7d2a0cb3f5d0f9b0a7651b5785162a8f-perl-4.0.3.drv\e[0m
+  /nix/store/7dg72a81a3b3ca7a2f9bf975g138cca4-xz-4.6.4.drv\e[0m
+  /nix/store/812df6f718g869gfb16b45c6bbcgdb12-etc.drv\e[0m
+  /nix/store/8139c5537fg3d89a4031782b4125d2dg-util-linux-2.6.3.drv\e[0m
+  /nix/store/81b75ca0724a5567d48d5c4b053a619f-openssh-3.0.4.drv\e[0m
+  /nix/store/82g9824173c21d14c1g5dgd3d80bcdcg-shadow-3.1.0.drv\e[0m
+  /nix/store/832g4246d78f301aac5633dd91876c58-bash-4.6.0.drv\e[0m
+  /nix/store/842f2g22a474011dfbf69f9252g2f76c-linux-pam-2.0.4.drv\e[0m
+  /nix/store/84d0116a2f48d594c4aafa0gbb644652-dbus-5.4.2.drv\e[0m
+  /nix/store/861d75c6gd6d82abcadd81b715bg2073-openssl-5.5.4.drv\e[0m
+  /nix/store/86fgf113d1d3ab9870f926f06f2afg45-coreutils-5.2.1.drv\e[0m
+  /nix/store/8740d6d94f69f2729f8f62dcb5dd5g9a-python3-2.2.2.drv\e[0m
+  /nix/store/892dab3d5b9g7ab62d2d7a65629c21g4-curl-2.1.1.drv\e[0m
+  /nix/store/8b76ad40g32f181agac988714c58527d-openssl-1.4.4.drv\e[0m
+  /nix/store/8d50c2gfb7ab837497cb1244199c19af-fonts.drv\e[0m
+  /nix/store/8d7720c59d75171gcd3846g0c1ba45ga-python3-4.6.2.drv\e[0m
+  /nix/store/8gd836g9f9614a943439c617329f78b8-system-units.drv\e[0m
+  /nix/store/915bc73b4g52f718ga9ffab337g5199a-sudo-2.0.1.drv\e[0m
+  /nix/store/9388c5b74g2gcbffgcd996dc60c24g96-git-4.1.4.drv\e[0m
+  /nix/store/955bf22c37c67b0b36c708fg952c3fg6-zlib-2.0.0.drv\e[0m
+  /nix/store/95fbfd9093387a46136g725fg474c13a-pipewire-3.5.4.drv\e[0m
+  /nix/store/991g403fgg4588gac8184cd10f033537-ncurses-4.2.0.drv\e[0m
+  /nix/store/9a5bf21a859209c526g21f5f68c2273d-shadow-2.6.0.drv\e[0m
+  /nix/store/9ca010499f0663a25421c96g1gg3a05c-sqlite-2.0.2.drv\e[0m
+  /nix/store/9f0829d4506bb9913b328c1f5514d069-linux-pam-1.5.4.drv\e[0m
+  /nix/store/9f55c1f72129bgg8bf56b42971b0f604-udev-rules.drv\e[0m
+  /nix/store/9g4426958b985a3c938c7094gbdff499-perl-1.1.3.drv\e[0m
+  /nix/store/a085b32d3409d5c2644a70d4ag287c2b-linux-pam-4.4.4.drv\e[0m
+  /nix/store/a15f7b117d634cc61bf0214g6c016ab5-gettext-1.1.0.drv\e[0m
+  /nix/store/a194941c970d2d18379544458f15820a-ncurses-5.4.0.drv\e[0m
+  /nix/store/a235d48ca39d7g4956cg56b7d07bd8gf-perl-2.3.3.drv\e[0m
+  /nix/store/a31a30gcg1333b2g4963dd6101119g7a-xz-5.1.4.drv\e[0m
+  /nix/store/a937ab95fb845a68501d784ag73302b4-linux-pam-3.2.4.drv\e[0m
+  /nix/store/ac6cfb5c78gf433415a6d9g20bcdgf55-glibc-1.3.3.drv\e[0m
+  /nix/store/agc054fba65293c8fb0986cd27g52c70-libffi-1.6.3.drv\e[0m
+  /nix/store/b15526c9c0f75acfa3d1g8055df216c8-activation.drv\e[0m
+  /nix/store/b17837c13379af8acfbbc1ga4cd5136f-kbd-5.1.1.drv\e[0m
+  /nix/store/b76af02cab61a8a19207g1abdg9c1961-iproute2-2.4.3.drv\e[0m
+  /nix/store/b76g3f3d328570c68c77785d6a5b3649-gcc-2.4.2.drv\e[0m
+  /nix/store/b80438616g0ab3adf83b0b5315g30gd7-readline-1.4.1.drv\e[0m
+  /nix/store/ba2b2f623b9b2069a5193a1b6179575f-glibc-4.2.3.drv\e[0m
+  /nix/store/bc853a04105g82ca10bg2dg8gbad7722-kmod-2.1.0.drv\e[0m
+  /nix/store/bd4c740f69b792a3437627gd334g8799-python3-1.0.2.drv\e[0m
+  /nix/store/bf03fac249b9f902ga8d16879cc04333-sqlite-4.4.2.drv\e[0m
+  /nix/store/bf1778d5f52b014fb5972g1dabc87gab-zlib-5.6.0.drv\e[0m
+  /nix/store/bf724b6c341fcf1g24dd9ggg1f1f8928-dbus-1.3.2.drv\e[0m
+  /nix/store/bgc77a9a409b7df7fg21fc57c37ccgdc-man-pages.drv\e[0m
+  /nix/store/c0021ccb4474dd73d118f083ab0422g5-ncurses-1.3.0.drv\e[0m
+  /nix/store/c0g96a8317d422462faffa4ca07bb42g-openssl-3.1.4.drv\e[0m
+  /nix/store/c1476g64bg7da214fc35b2bac4a2fdb1-glibc-2.5.3.drv\e[0m
+  /nix/store/c3bg47fa1g4a4a605470313cacb3a44g-firmware.drv\e[0m
+  /nix/store/c50960c44dg1f5c86213g5f628c79g7g-coreutils-1.1.1.drv\e[0m
+  /nix/store/c6g1f5528dga48390294c80864a26590-bash-1.0.0.drv\e[0m
+  /nix/store/c8498ba69d9g7ag05d82g760adg3b54f-coreutils-3.5.1.drv\e[0m
+  /nix/store/cab7g42d5a3229a8dg631aad177fgcg5-linux-pam-5.6.4.drv\e[0m
+  /nix/store/cb5cf2bdfc534bc10g443bg3f4abbdb5-xz-3.4.4.drv\e[0m
+  /nix/store/cd2394fd87cca3fb16d92bb94d571bdc-gettext-5.2.0.drv\e[0m
+  /nix/store/cd857g8176b9ac56587a580f3591f8c9-sqlite-5.6.2.drv\e[0m
+  /nix/store/cf83c461cg4g11bb7gdg97f250447373-less-3.3.2.drv\e[0m
+  /nix/store/d240cb7g67fd537f112333cg438002a8-libffi-4.5.3.drv\e[0m
+  /nix/store/d2a217626g869bddb7c46f6cbbf62g1c-man-db-3.4.3.drv\e[0m
+  /nix/store/d5f5dc53fa727c84g57bfad2251c2fa4-sudo-4.4.1.drv\e[0m
+  /nix/store/d87a7c47af621f22ad6a728a4995g3bb-iproute2-1.2.3.drv\e[0m
+  /nix/store/d992bb11fg05560f2047f14gb549910g-git-5.3.4.drv\e[0m
+  /nix/store/da354909676022fc914g3fdb6d5594b1-kmod-3.3.0.drv\e[0m
+  /nix/store/db93f3d12g07g6562c1565bb84c31168-man-db-1.0.3.drv\e[0m
+  /nix/store/f4da937380b0693bfa3df392661dg90d-xz-1.0.4.drv\e[0m
+  /nix/store/f5d3g32f720b354da939053b0b78b958-systemd-4.1.1.drv\e[0m
+  /nix/store/f700f30d04835a393a5b6g3d5ac1569f-gcc-5.3.2.drv\e[0m
+  /nix/store/f815g9ff9cc04a5gg9095c5d24c77505-iproute2-5.3.3.drv\e[0m
+  /nix/store/f9c0590ad55647d49d22g1dg663092ca-kbd-4.6.1.drv\e[0m
+  /nix/store/faca7f1726b435412gb4c1gdb8085bdb-man-db-2.2.3.drv\e[0m
+  /nix/store/g057c8bf9935agfab9084871adc29g0b-glibc-5.4.3.drv\e[0m
+  /nix/store/g2ac268097a904gf4bb38c5a9ab2674a-kmod-1.6.0.drv\e[0m
+  /nix/store/gbcg379f5g53700f2848a99cdb9c26f8-shadow-4.3.0.drv\e[0m
+  /nix/store/gf4af9589d3g398b06c25502bfda3cfc-curl-4.5.1.drv\e[0m
+  /nix/store/gga1020b89g22f4dgfg06111dgc11c2a-dbus-1.drv\e[0m

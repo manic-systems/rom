@@ -1,0 +1,7 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/8d5197d2265gfca8d10ad1020dbcf70g-hello-2.12.3.drv'","type":105,"fields":["/nix/store/8d5197d2265gfca8d10ad1020dbcf70g-hello-2.12.3.drv","",1,1]}
+50 @nix {"action":"result","id":10,"type":104,"fields":["configurePhase"]}
+100 @nix {"action":"result","id":10,"type":101,"fields":["configuring"]}
+300 @nix {"action":"start","id":20,"level":3,"parent":0,"text":"copying path '/nix/store/8g908239315gf77c3ab60ga0d20a3b1d-glibc-2.40' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/8g908239315gf77c3ab60ga0d20a3b1d-glibc-2.40","https://cache.nixos.org"]}
+300 @nix {"action":"start","id":21,"level":3,"parent":20,"text":"copying path '/nix/store/8g908239315gf77c3ab60ga0d20a3b1d-glibc-2.40' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/8g908239315gf77c3ab60ga0d20a3b1d-glibc-2.40","https://cache.nixos.org","local"]}
+800 @nix {"action":"result","id":21,"type":105,"fields":[10485760,41943040,1,0]}
+1500 = building

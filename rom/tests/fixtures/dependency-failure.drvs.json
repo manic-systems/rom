@@ -1,0 +1,17 @@
+{
+  "derivations": {
+    "/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv": {
+      "inputs": [
+        "/nix/store/71268870493d094g735f8747f2dc1372-lib-a-1.0.drv",
+        "/nix/store/9fc165a2cda168gff944gaa5fd2gd9f5-lib-b-1.0.drv",
+        "/nix/store/72cff3dff61dbd4b5bfaf184d3dgd67g-lib-c-1.0.drv",
+        "/nix/store/gb68gbg6d92aa4g5b17786f3f296f664-tool-1.0.drv"
+      ]
+    },
+    "/nix/store/gb68gbg6d92aa4g5b17786f3f296f664-tool-1.0.drv": {
+      "inputs": [
+        "/nix/store/71268870493d094g735f8747f2dc1372-lib-a-1.0.drv"
+      ]
+    }
+  }
+}

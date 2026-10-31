@@ -1,0 +1,15 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/c080d7587588gcaff403f91d1a528684-hostile-1.0.drv'","type":105,"fields":["/nix/store/c080d7587588gcaff403f91d1a528684-hostile-1.0.drv","",1,1]}
+1100 @nix {"action":"result","id":10,"type":101,"fields":["cursor up and erase:\u001b[1A\u001b[2K"]}
+1150 @nix {"action":"result","id":10,"type":101,"fields":["progress 10%\rprogress 50%\rprogress 100%"]}
+1200 @nix {"action":"result","id":10,"type":101,"fields":["save\u001b7 and restore\u001b8 the cursor"]}
+1250 @nix {"action":"result","id":10,"type":101,"fields":["reverse index\u001bM up a line"]}
+1300 @nix {"action":"result","id":10,"type":101,"fields":["clear the screen\u001b[2J\u001b[H"]}
+1350 @nix {"action":"result","id":10,"type":101,"fields":["alternate screen\u001b[?1049h and back\u001b[?1049l"]}
+1400 @nix {"action":"result","id":10,"type":101,"fields":["form\ffeed and vertical\u000btab"]}
+1450 @nix {"action":"result","id":10,"type":101,"fields":["\u001b]8;;https://example.org\u0007a hyperlink\u001b]8;;\u0007"]}
+1500 @nix {"action":"result","id":10,"type":101,"fields":["tab\tseparated\tcolumns"]}
+1500 = after-logs
+1550 @nix {"action":"result","id":10,"type":101,"fields":["\u001b[1;31mred\u001b[0m and \u001b[38;5;208morange\u001b[0m"]}
+1600 @nix {"action":"result","id":10,"type":101,"fields":["wide: 构建成功 ✅ 🚀 ｗｉｄｅ"]}
+1650 @nix {"action":"result","id":10,"type":101,"fields":["long: 0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"]}
+2500 @nix {"action":"stop","id":10}
