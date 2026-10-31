@@ -1,21 +1,53 @@
-=== building @ 200ms ===
+=== building @ 1500ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ app-1.0\e[0m
+\e[0;90m│  ├─ \e[0;33m⏵ lib-a-1.0\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ├─ \e[0;33m⏵ lib-b-1.0\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ├─ \e[0;33m⏵ lib-c-1.0\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ tool-1.0\e[0m
 \e[0;90m┢━ \e[0mBuild Summary
-\e[0;90m┃  \e[0;33m⏵ app-1.0  0s\e[0m
-\e[0;90m┃  \e[0;33m⏵ lib-1.0  0s\e[0;90m  (buildPhase)\e[0m
-\e[0;90m┗━ \e[0;33m ⏵ 2 building\e[0;32m ✔ 0 completed\e[0;31m ✗ 0 failed\e[0;34m ⏸ 0 waiting\e[0m
-=== failed @ 400ms ===
+\e[0;90m┃  \e[0;33m⏵ lib-a-1.0  1s\e[0;90m  (buildPhase)\e[0m
+\e[0;90m┃  \e[0;33m⏵ lib-b-1.0  1s\e[0;90m  (buildPhase)\e[0m
+\e[0;90m┃  \e[0;33m⏵ lib-c-1.0  1s\e[0;90m  (buildPhase)\e[0m
+\e[0;90m┗━ \e[0;33m ⏵ 3 building\e[0;32m ✔ 0 completed\e[0;31m ✗ 0 failed\e[0;34m ⏸ 2 waiting\e[0m
+=== about-to-fail @ 2700ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;31m✗ app-1.0  failed\e[0m
-\e[0;90m│  ╰─ \e[0;31m✗ lib-1.0  failed\e[0m
+\e[0;90m├─ \e[0;34m⏸ app-1.0\e[0m
+\e[0;90m│  ├─ \e[0;33m⏵ lib-a-1.0\e[0m               \e[0;90m─────────────────\e[0;33m━━━╸\e[0;90m──  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  ├─ \e[0;33m⏵ lib-b-1.0\e[0m               \e[0;90m─────────────────\e[0;33m━━━╸\e[0;90m──  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ tool-1.0\e[0m
 \e[0;90m┢━ \e[0mBuild Summary
-\e[0;90m┗━ \e[0;33m ⏵ 0 building\e[0;32m ✔ 0 completed\e[0;31m ✗ 2 failed\e[0;34m ⏸ 0 waiting\e[0m
-=== finished @ 400ms ===
+\e[0;90m┃  \e[0;33m⏵ lib-a-1.0  2s\e[0;90m  (buildPhase)\e[0m
+\e[0;90m┃  \e[0;33m⏵ lib-b-1.0  2s\e[0;90m  (buildPhase)\e[0m
+\e[0;90m┗━ \e[0;33m ⏵ 2 building\e[0;32m ✔ 1 completed\e[0;31m ✗ 0 failed\e[0;34m ⏸ 2 waiting\e[0m
+=== failed @ 4000ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;31m✗ app-1.0  failed\e[0m
-\e[0;90m│  ╰─ \e[0;31m✗ lib-1.0  failed\e[0m
-\e[0;90m┕━ \e[0;31mExited with 2 failed build(s) after 0s\e[0m
+\e[0;90m├─ \e[0;34m⏸ app-1.0\e[0m
+\e[0;90m│  ├─ \e[0;31m✗ lib-a-1.0  failed\e[0m
+\e[0;90m│  ├─ ✗ tool-1.0  dependency failed\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ lib-b-1.0\e[0m               \e[0;90m──────\e[0;33m━━━╸\e[0;90m─────────────  (buildPhase)\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m┢━ \e[0mBuild Summary
+\e[0;90m┃  \e[0;33m⏵ lib-b-1.0  3s\e[0;90m  (buildPhase)\e[0m
+\e[0;90m┗━ \e[0;33m ⏵ 1 building\e[0;32m ✔ 1 completed\e[0;31m ✗ 2 failed\e[0;34m ⏸ 1 waiting\e[0m
+=== finished @ 7050ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ ✗ app-1.0  dependency failed\e[0m
+\e[0;90m│  ├─ \e[0;31m✗ lib-a-1.0  failed\e[0m
+\e[0;90m│  ╰─ ✗ tool-1.0  dependency failed\e[0m
+\e[0;90m┕━ \e[0;31mExited with 3 failed build(s) after 7s\e[0m
 === log ===
-\e[0;38;5;67mlib-1.0> \e[0mmake: *** [Makefile:12: lib.o] Error 1\e[0m
-error: builder for '/nix/store/00000000000000000000000000000002-lib-1.0.drv' failed with exit code 2\e[0m
-error: 1 dependencies of derivation '/nix/store/00000000000000000000000000000001-app-1.0.drv' failed to build\e[0m
+these 5 derivations will be built:\e[0m
+  /nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv\e[0m
+  /nix/store/71268870493d094g735f8747f2dc1372-lib-a-1.0.drv\e[0m
+  /nix/store/72cff3dff61dbd4b5bfaf184d3dgd67g-lib-c-1.0.drv\e[0m
+  /nix/store/9fc165a2cda168gff944gaa5fd2gd9f5-lib-b-1.0.drv\e[0m
+  /nix/store/gb68gbg6d92aa4g5b17786f3f296f664-tool-1.0.drv\e[0m
+\e[0;38;5;67mlib-a-1.0> \e[0msrc/parse.c: In function 'parse_header':\e[0m
+\e[0;38;5;67mlib-a-1.0> \e[0msrc/parse.c:118:9: error: implicit declaration of function 'strlcpy' [-Wimplicit-function-declaration]\e[0m
+\e[0;38;5;67mlib-a-1.0> \e[0m  118 |         strlcpy(header->name, line, sizeof header->name);\e[0m
+\e[0;38;5;67mlib-a-1.0> \e[0m      |         ^~~~~~~\e[0m
+\e[0;38;5;67mlib-a-1.0> \e[0mmake[1]: *** [Makefile:41: src/parse.o] Error 1\e[0m
+\e[0;38;5;67mlib-a-1.0> \e[0mmake: *** [Makefile:12: all] Error 2\e[0m
+error: builder for '/nix/store/71268870493d094g735f8747f2dc1372-lib-a-1.0.drv' failed with exit code 2\e[0m
+error: 1 dependencies of derivation '/nix/store/gb68gbg6d92aa4g5b17786f3f296f664-tool-1.0.drv' failed to build\e[0m
+error: 2 dependencies of derivation '/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv' failed to build\e[0m

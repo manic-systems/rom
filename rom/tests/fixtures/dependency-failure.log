@@ -1,0 +1,27 @@
+0 @nix {"action":"msg","level":3,"msg":"these 5 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/71268870493d094g735f8747f2dc1372-lib-a-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/72cff3dff61dbd4b5bfaf184d3dgd67g-lib-c-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9fc165a2cda168gff944gaa5fd2gd9f5-lib-b-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/gb68gbg6d92aa4g5b17786f3f296f664-tool-1.0.drv"}
+100 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/71268870493d094g735f8747f2dc1372-lib-a-1.0.drv'","type":105,"fields":["/nix/store/71268870493d094g735f8747f2dc1372-lib-a-1.0.drv","",1,1]}
+150 @nix {"action":"result","id":10,"type":104,"fields":["buildPhase"]}
+150 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/9fc165a2cda168gff944gaa5fd2gd9f5-lib-b-1.0.drv'","type":105,"fields":["/nix/store/9fc165a2cda168gff944gaa5fd2gd9f5-lib-b-1.0.drv","",1,1]}
+200 @nix {"action":"result","id":11,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/72cff3dff61dbd4b5bfaf184d3dgd67g-lib-c-1.0.drv'","type":105,"fields":["/nix/store/72cff3dff61dbd4b5bfaf184d3dgd67g-lib-c-1.0.drv","",1,1]}
+250 @nix {"action":"result","id":12,"type":104,"fields":["buildPhase"]}
+1500 = building
+2200 @nix {"action":"stop","id":12}
+2300 @nix {"action":"result","id":10,"type":101,"fields":["src/parse.c: In function 'parse_header':"]}
+2350 @nix {"action":"result","id":10,"type":101,"fields":["src/parse.c:118:9: error: implicit declaration of function 'strlcpy' [-Wimplicit-function-declaration]"]}
+2400 @nix {"action":"result","id":10,"type":101,"fields":["  118 |         strlcpy(header->name, line, sizeof header->name);"]}
+2450 @nix {"action":"result","id":10,"type":101,"fields":["      |         ^~~~~~~"]}
+2500 @nix {"action":"result","id":10,"type":101,"fields":["make[1]: *** [Makefile:41: src/parse.o] Error 1"]}
+2550 @nix {"action":"result","id":10,"type":101,"fields":["make: *** [Makefile:12: all] Error 2"]}
+2700 = about-to-fail
+2800 @nix {"action":"msg","level":0,"msg":"error: builder for '/nix/store/71268870493d094g735f8747f2dc1372-lib-a-1.0.drv' failed with exit code 2"}
+2800 @nix {"action":"stop","id":10}
+2850 @nix {"action":"msg","level":0,"msg":"error: 1 dependencies of derivation '/nix/store/gb68gbg6d92aa4g5b17786f3f296f664-tool-1.0.drv' failed to build"}
+4000 = failed
+7000 @nix {"action":"stop","id":11}
+7050 @nix {"action":"msg","level":0,"msg":"error: 2 dependencies of derivation '/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv' failed to build"}

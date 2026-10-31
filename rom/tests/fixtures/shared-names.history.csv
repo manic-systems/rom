@@ -1,0 +1,5 @@
+hostname,derivation_name,utc_time,build_seconds
+localhost,source,2026-10-01T12:00:00Z,5
+localhost,hook,2026-10-01T12:00:00Z,2
+localhost,app-1.0,2026-10-01T12:00:00Z,6
+localhost,lib-2.0,2026-10-01T12:00:00Z,3

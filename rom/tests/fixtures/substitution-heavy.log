@@ -1,0 +1,1086 @@
+0 @nix {"action":"msg","level":3,"msg":"these 100 paths will be fetched (1.2 GiB download, 4.8 GiB unpacked):"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/0143b75d0ggfd17b14d901gdg4b32f1d-readline-lib-2.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/0291acd998167fc1d09b26b1c8ac9987-zlib-lib-1.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/037g7fg81a73a7b8c83g9d5g637gg0a0-curl-lib-0.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/0a4b503f597c61b89c576fbdg78b9342-bash-lib-0.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/0adf60577328bf90d205d66f23bgd2ca-sudo-lib-2.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/0b8940cbc59502635b677gb6ffabd8b2-sqlite-lib-2.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/10502ff5136af0a0gfd2362503453cgb-bash-lib-1.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/140c2d7659c8c0221cfa9530g9a13gf0-openssl-lib-1.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/151b98f91d94002bd88b8b4fc71dfa0g-util-linux-lib-1.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/16f0466874bb75756d506ga0f7f99gc1-glibc-lib-3.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/20472149cc2f1g7081d4b596g0f1559a-perl-lib-2.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2350658bd2403786431cd3a7819195g2-openssh-lib-1.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/25gd3gf30746f7120b3ba724868f1769-sudo-lib-1.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/26f2ab46c211gf116gd218gd89bf40g2-zlib-lib-2.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/29658ba30f11fbadf97af5gfa7cg0cbf-kbd-lib-2.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2b323g1dg49bg1g3454c2f2f324da6f8-git-lib-2.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2c7f197638a5938df3a4944fcd9a69f6-nftables-lib-2.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2f0b1a0d940044ga75fd06754bd25344-util-linux-lib-0.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2g343a93gg82c0c98d8396bc6564d418-zlib-lib-0.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/36f52gbg44f8a1bcg92b111d170gc525-pipewire-lib-1.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/3fg86g076bdd4048a218g2f81590g299-linux-pam-lib-0.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/423aa239fb65dgd8d815ad12a379a781-zlib-lib-3.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/4f499d16361d121g419d2167c1a07a16-ncurses-lib-1.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/4f9ag2gbb57a241534gdcca5df044gbf-curl-lib-2.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/4g2c89a2bf4ab8fa9dd149f42c4cc38a-xz-lib-0.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/50d849487217aabg23c02589b6b64b26-less-lib-2.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/51d2c3a0731f5fc5dd71a8863a04db76-coreutils-lib-0.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/51fd24b07753385727980gf46653b81d-iproute2-lib-1.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/583cc41ag8d59g669ab3dcg999481c16-pipewire-lib-0.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/58697ba57f9gg3fbf2fad45059467c75-python3-lib-1.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/58g8631107g0103ag818f29fgcb0a0b0-sqlite-lib-0.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/63847bbbd08d92186a88803g071697a7-xz-lib-1.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/655c1g43cfbd31g833ddbcd67004a5gd-bash-lib-3.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/6878a621f87dg245050cgf26f9d2a431-kmod-lib-2.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/68b43d126b60a22bcf7gf2a1d205gb58-python3-lib-0.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/6b20c8a34809b6a7aag2bf444df0c192-linux-pam-lib-2.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/71ab2fg74130ba61a0f275ff488022df-kmod-lib-0.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/720814g10f70gcac173801d2cdcc754f-gcc-lib-1.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/72a6865c546c21b0689d72a2024496b0-man-db-lib-1.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/78930gg5af31ca44847a7a62fd738793-readline-lib-0.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/789fcd0f6c2a89a10008bd31869192ad-git-lib-3.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7dfda265f2g12c2b8f0f1gfc458c2426-openssh-lib-0.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/82a58f6969a324a46388g0cd3905934d-ncurses-lib-2.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8775abdfd3a1b31bb31863a2dgaccg25-nftables-lib-0.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8ab1c33a9d34f6fg559b52ff92c29f95-dbus-lib-2.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8c54326daf8073037738266gb11ga524-gcc-lib-0.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8caa459d15c3gg32ff0cg627d07agf05-iproute2-lib-2.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8cda6g8f32ga63c0a036312574123b76-shadow-lib-0.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8d1dc5f7cc36cf01gd0g9546d822df75-ncurses-lib-0.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/92gff4a30d59d841fg9gag2224026d0a-perl-lib-0.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/935ad50g1c4f684f7cacd57c3gf76db1-coreutils-lib-3.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9613646c9f73c8f84ac6dfcdgac9fgf6-perl-lib-3.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/985936265b284fg744ca86a219dg9fbc-coreutils-lib-1.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9a97g6ag1ag8783f7g42a69ada57170c-git-lib-0.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9fg1g4g773c137g00a99g799c5a1768g-xz-lib-2.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a0748f3086b03bbb19d50b8987364b9g-python3-lib-2.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a15f91b2636c272893f53651b5729bg5-systemd-lib-1.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a3c15dg62afb6acdbd7af146gb6a46d4-glibc-lib-2.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a5f87g16763b39121d95663dd5394b45-systemd-lib-0.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a6106g8504471cg77g445c6ga71d9g71-perl-lib-1.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a6d3575cd3d01b2da08408d4d49gc482-kbd-lib-0.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a7g98d58f0f6c01648g0a0b543gb10ab-nftables-lib-1.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a921c9520861g6b9a265c88ggg8187cg-man-db-lib-0.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a97f21006c44198g5688a29288g054bc-dbus-lib-0.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/aa8730f694b734fd84ba5gfcggdca28a-dbus-lib-1.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/acg93g525fb033199fg559af58d6df89-util-linux-lib-2.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/af9d09ca6f5a93148ca7a2df57b5g48a-openssh-lib-2.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/ag345cfc62g7b82af7544ca9b92d45gf-glibc-lib-0.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b16g5b13757b2d5cf1fc77d61af9b406-less-lib-1.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b65g96g6g82224353g9f4a2b0b2aaf4d-man-db-lib-2.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b705170dfb57003fbg3g1b2gf701gb04-coreutils-lib-2.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/bf1600229445b4b94d13796c72f8277b-gettext-lib-2.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c1696642738277c2cb02c4f805a4c129-openssl-lib-0.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c5dbb1d1d0439358311bb4583381620g-glibc-lib-1.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c6f431d63ga0f8cdf042ddgacd83bg17-curl-lib-3.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c7058ffggb5024d5g81a2bg6fbfcdg49-gettext-lib-1.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c905139ca29b5f41289424c91ccc78c8-openssl-lib-3.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/cda165f80864g7gg435a893937555g75-kmod-lib-1.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/cfag85bg07a341038a9522b7799da173-gcc-lib-2.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d00420d16266bg0245bbc5fddfg91f6f-gcc-lib-3.2"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d20037c218bg3c640d90ab7c7b964309-libffi-lib-0.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d48f8b2a2cad698f8f53c361289c1626-shadow-lib-2.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d499gcg2gg17b68291aa84d48a48f2ba-pipewire-lib-2.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/daf6f6940f1393425a4b5fg1a6849796-gettext-lib-0.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/dggg01660ggcaf1fg283407a580199a1-less-lib-0.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f262088bg9578abdc6780df7f1201d59-shadow-lib-1.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f3ff531d4c028c05876c2b206bg81879-libffi-lib-2.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f8322d241f98a12gd1c8bc3a73ba5830-linux-pam-lib-1.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f96fgabd002423a2313g408f3b18gb8a-kbd-lib-1.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/fg2ag213d19f9b328cg9560891bad4gf-python3-lib-3.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g262ab5b2g8ggfcba3f8811aaf29d819-curl-lib-1.0"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g43197g48653b73d0649484982529937-sqlite-lib-1.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g4adc1g2c59g9f7c297f02af5c69a812-iproute2-lib-0.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g7b54dc4587c96b2d84781gf6378c02g-bash-lib-2.6"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g9d535bg5dd2cfbbd950273dfb0d499c-readline-lib-1.5"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/gbc4a6f68gd04gc0d21c176256c4a086-git-lib-1.3"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/gdd4c8f874bg7bb121d9020bd34c1965-sudo-lib-0.8"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/gg32aa404a3c5423da8460c0af2a6f5d-systemd-lib-2.4"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/gg9c489gf3176f576a350fa271f3dgdd-openssl-lib-2.1"}
+100 @nix {"action":"start","id":1000,"level":3,"parent":0,"text":"copying path '/nix/store/0a4b503f597c61b89c576fbdg78b9342-bash-lib-0.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/0a4b503f597c61b89c576fbdg78b9342-bash-lib-0.0","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1001,"level":3,"parent":1000,"text":"copying path '/nix/store/0a4b503f597c61b89c576fbdg78b9342-bash-lib-0.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/0a4b503f597c61b89c576fbdg78b9342-bash-lib-0.0","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1004,"level":3,"parent":0,"text":"copying path '/nix/store/51d2c3a0731f5fc5dd71a8863a04db76-coreutils-lib-0.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/51d2c3a0731f5fc5dd71a8863a04db76-coreutils-lib-0.1","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1005,"level":3,"parent":1004,"text":"copying path '/nix/store/51d2c3a0731f5fc5dd71a8863a04db76-coreutils-lib-0.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/51d2c3a0731f5fc5dd71a8863a04db76-coreutils-lib-0.1","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1008,"level":3,"parent":0,"text":"copying path '/nix/store/8c54326daf8073037738266gb11ga524-gcc-lib-0.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/8c54326daf8073037738266gb11ga524-gcc-lib-0.2","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1009,"level":3,"parent":1008,"text":"copying path '/nix/store/8c54326daf8073037738266gb11ga524-gcc-lib-0.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/8c54326daf8073037738266gb11ga524-gcc-lib-0.2","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1012,"level":3,"parent":0,"text":"copying path '/nix/store/ag345cfc62g7b82af7544ca9b92d45gf-glibc-lib-0.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/ag345cfc62g7b82af7544ca9b92d45gf-glibc-lib-0.3","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1013,"level":3,"parent":1012,"text":"copying path '/nix/store/ag345cfc62g7b82af7544ca9b92d45gf-glibc-lib-0.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/ag345cfc62g7b82af7544ca9b92d45gf-glibc-lib-0.3","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1016,"level":3,"parent":0,"text":"copying path '/nix/store/c1696642738277c2cb02c4f805a4c129-openssl-lib-0.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/c1696642738277c2cb02c4f805a4c129-openssl-lib-0.4","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1017,"level":3,"parent":1016,"text":"copying path '/nix/store/c1696642738277c2cb02c4f805a4c129-openssl-lib-0.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/c1696642738277c2cb02c4f805a4c129-openssl-lib-0.4","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1020,"level":3,"parent":0,"text":"copying path '/nix/store/2g343a93gg82c0c98d8396bc6564d418-zlib-lib-0.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/2g343a93gg82c0c98d8396bc6564d418-zlib-lib-0.5","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1021,"level":3,"parent":1020,"text":"copying path '/nix/store/2g343a93gg82c0c98d8396bc6564d418-zlib-lib-0.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/2g343a93gg82c0c98d8396bc6564d418-zlib-lib-0.5","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1024,"level":3,"parent":0,"text":"copying path '/nix/store/037g7fg81a73a7b8c83g9d5g637gg0a0-curl-lib-0.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/037g7fg81a73a7b8c83g9d5g637gg0a0-curl-lib-0.6","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1025,"level":3,"parent":1024,"text":"copying path '/nix/store/037g7fg81a73a7b8c83g9d5g637gg0a0-curl-lib-0.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/037g7fg81a73a7b8c83g9d5g637gg0a0-curl-lib-0.6","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1028,"level":3,"parent":0,"text":"copying path '/nix/store/68b43d126b60a22bcf7gf2a1d205gb58-python3-lib-0.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/68b43d126b60a22bcf7gf2a1d205gb58-python3-lib-0.7","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1029,"level":3,"parent":1028,"text":"copying path '/nix/store/68b43d126b60a22bcf7gf2a1d205gb58-python3-lib-0.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/68b43d126b60a22bcf7gf2a1d205gb58-python3-lib-0.7","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1032,"level":3,"parent":0,"text":"copying path '/nix/store/92gff4a30d59d841fg9gag2224026d0a-perl-lib-0.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/92gff4a30d59d841fg9gag2224026d0a-perl-lib-0.8","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1033,"level":3,"parent":1032,"text":"copying path '/nix/store/92gff4a30d59d841fg9gag2224026d0a-perl-lib-0.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/92gff4a30d59d841fg9gag2224026d0a-perl-lib-0.8","https://cache.nixos.org","local"]}
+100 @nix {"action":"start","id":1036,"level":3,"parent":0,"text":"copying path '/nix/store/9a97g6ag1ag8783f7g42a69ada57170c-git-lib-0.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/9a97g6ag1ag8783f7g42a69ada57170c-git-lib-0.0","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":1037,"level":3,"parent":1036,"text":"copying path '/nix/store/9a97g6ag1ag8783f7g42a69ada57170c-git-lib-0.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/9a97g6ag1ag8783f7g42a69ada57170c-git-lib-0.0","https://cache.nixos.org","local"]}
+120 @nix {"action":"start","id":1002,"level":3,"parent":1001,"text":"downloading 'https://cache.nixos.org/nar/0a4b503f597c61b89c576fbdg78b9342-bash-lib-0.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/0a4b503f597c61b89c576fbdg78b9342-bash-lib-0.0.nar.xz"]}
+120 @nix {"action":"start","id":1006,"level":3,"parent":1005,"text":"downloading 'https://cache.nixos.org/nar/51d2c3a0731f5fc5dd71a8863a04db76-coreutils-lib-0.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/51d2c3a0731f5fc5dd71a8863a04db76-coreutils-lib-0.1.nar.xz"]}
+120 @nix {"action":"start","id":1010,"level":3,"parent":1009,"text":"downloading 'https://cache.nixos.org/nar/8c54326daf8073037738266gb11ga524-gcc-lib-0.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/8c54326daf8073037738266gb11ga524-gcc-lib-0.2.nar.xz"]}
+120 @nix {"action":"start","id":1014,"level":3,"parent":1013,"text":"downloading 'https://cache.nixos.org/nar/ag345cfc62g7b82af7544ca9b92d45gf-glibc-lib-0.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/ag345cfc62g7b82af7544ca9b92d45gf-glibc-lib-0.3.nar.xz"]}
+120 @nix {"action":"start","id":1018,"level":3,"parent":1017,"text":"downloading 'https://cache.nixos.org/nar/c1696642738277c2cb02c4f805a4c129-openssl-lib-0.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/c1696642738277c2cb02c4f805a4c129-openssl-lib-0.4.nar.xz"]}
+120 @nix {"action":"start","id":1022,"level":3,"parent":1021,"text":"downloading 'https://cache.nixos.org/nar/2g343a93gg82c0c98d8396bc6564d418-zlib-lib-0.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/2g343a93gg82c0c98d8396bc6564d418-zlib-lib-0.5.nar.xz"]}
+120 @nix {"action":"start","id":1026,"level":3,"parent":1025,"text":"downloading 'https://cache.nixos.org/nar/037g7fg81a73a7b8c83g9d5g637gg0a0-curl-lib-0.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/037g7fg81a73a7b8c83g9d5g637gg0a0-curl-lib-0.6.nar.xz"]}
+120 @nix {"action":"start","id":1030,"level":3,"parent":1029,"text":"downloading 'https://cache.nixos.org/nar/68b43d126b60a22bcf7gf2a1d205gb58-python3-lib-0.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/68b43d126b60a22bcf7gf2a1d205gb58-python3-lib-0.7.nar.xz"]}
+120 @nix {"action":"start","id":1034,"level":3,"parent":1033,"text":"downloading 'https://cache.nixos.org/nar/92gff4a30d59d841fg9gag2224026d0a-perl-lib-0.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/92gff4a30d59d841fg9gag2224026d0a-perl-lib-0.8.nar.xz"]}
+120 @nix {"action":"start","id":1038,"level":3,"parent":1037,"text":"downloading 'https://cache.nixos.org/nar/9a97g6ag1ag8783f7g42a69ada57170c-git-lib-0.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/9a97g6ag1ag8783f7g42a69ada57170c-git-lib-0.0.nar.xz"]}
+507 @nix {"action":"result","id":1025,"type":105,"fields":[6807793,40863482,1,0]}
+507 @nix {"action":"result","id":1033,"type":105,"fields":[4144424,8288848,1,0]}
+517 @nix {"action":"result","id":1037,"type":105,"fields":[7009375,42123489,1,0]}
+534 @nix {"action":"result","id":1029,"type":105,"fields":[6686834,26778150,1,0]}
+563 @nix {"action":"result","id":1001,"type":105,"fields":[7662074,38343468,1,0]}
+564 @nix {"action":"result","id":1005,"type":105,"fields":[6618055,19854166,1,0]}
+576 @nix {"action":"result","id":1013,"type":105,"fields":[7920695,39603475,1,0]}
+585 @nix {"action":"result","id":1017,"type":105,"fields":[7038058,21114173,1,0]}
+788 @nix {"action":"result","id":1009,"type":105,"fields":[5768834,5768834,1,0]}
+788 @nix {"action":"stop","id":1010}
+788 @nix {"action":"stop","id":1009}
+788 @nix {"action":"stop","id":1008}
+818 @nix {"action":"start","id":1040,"level":3,"parent":0,"text":"copying path '/nix/store/8d1dc5f7cc36cf01gd0g9546d822df75-ncurses-lib-0.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/8d1dc5f7cc36cf01gd0g9546d822df75-ncurses-lib-0.1","https://cache.nixos.org"]}
+818 @nix {"action":"start","id":1041,"level":3,"parent":1040,"text":"copying path '/nix/store/8d1dc5f7cc36cf01gd0g9546d822df75-ncurses-lib-0.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/8d1dc5f7cc36cf01gd0g9546d822df75-ncurses-lib-0.1","https://cache.nixos.org","local"]}
+838 @nix {"action":"start","id":1042,"level":3,"parent":1041,"text":"downloading 'https://cache.nixos.org/nar/8d1dc5f7cc36cf01gd0g9546d822df75-ncurses-lib-0.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/8d1dc5f7cc36cf01gd0g9546d822df75-ncurses-lib-0.1.nar.xz"]}
+851 @nix {"action":"result","id":1021,"type":105,"fields":[7028841,7028841,1,0]}
+851 @nix {"action":"stop","id":1022}
+851 @nix {"action":"stop","id":1021}
+851 @nix {"action":"stop","id":1020}
+881 @nix {"action":"start","id":1044,"level":3,"parent":0,"text":"copying path '/nix/store/78930gg5af31ca44847a7a62fd738793-readline-lib-0.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/78930gg5af31ca44847a7a62fd738793-readline-lib-0.2","https://cache.nixos.org"]}
+881 @nix {"action":"start","id":1045,"level":3,"parent":1044,"text":"copying path '/nix/store/78930gg5af31ca44847a7a62fd738793-readline-lib-0.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/78930gg5af31ca44847a7a62fd738793-readline-lib-0.2","https://cache.nixos.org","local"]}
+901 @nix {"action":"start","id":1046,"level":3,"parent":1045,"text":"downloading 'https://cache.nixos.org/nar/78930gg5af31ca44847a7a62fd738793-readline-lib-0.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/78930gg5af31ca44847a7a62fd738793-readline-lib-0.2.nar.xz"]}
+914 @nix {"action":"result","id":1025,"type":105,"fields":[13615585,40863482,1,0]}
+914 @nix {"action":"result","id":1033,"type":105,"fields":[8288848,8288848,1,0]}
+914 @nix {"action":"stop","id":1034}
+914 @nix {"action":"stop","id":1033}
+914 @nix {"action":"stop","id":1032}
+935 @nix {"action":"result","id":1037,"type":105,"fields":[14035560,42123489,1,0]}
+944 @nix {"action":"start","id":1048,"level":3,"parent":0,"text":"copying path '/nix/store/58g8631107g0103ag818f29fgcb0a0b0-sqlite-lib-0.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/58g8631107g0103ag818f29fgcb0a0b0-sqlite-lib-0.3","https://cache.nixos.org"]}
+944 @nix {"action":"start","id":1049,"level":3,"parent":1048,"text":"copying path '/nix/store/58g8631107g0103ag818f29fgcb0a0b0-sqlite-lib-0.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/58g8631107g0103ag818f29fgcb0a0b0-sqlite-lib-0.3","https://cache.nixos.org","local"]}
+964 @nix {"action":"start","id":1050,"level":3,"parent":1049,"text":"downloading 'https://cache.nixos.org/nar/58g8631107g0103ag818f29fgcb0a0b0-sqlite-lib-0.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/58g8631107g0103ag818f29fgcb0a0b0-sqlite-lib-0.3.nar.xz"]}
+969 @nix {"action":"result","id":1029,"type":105,"fields":[13389075,26778150,1,0]}
+1026 @nix {"action":"result","id":1001,"type":105,"fields":[15324148,38343468,1,0]}
+1028 @nix {"action":"result","id":1005,"type":105,"fields":[13236111,19854166,1,0]}
+1052 @nix {"action":"result","id":1013,"type":105,"fields":[15841390,39603475,1,0]}
+1070 @nix {"action":"result","id":1017,"type":105,"fields":[14076115,21114173,1,0]}
+1268 @nix {"action":"result","id":1041,"type":105,"fields":[7005647,28038157,1,0]}
+1319 @nix {"action":"result","id":1045,"type":105,"fields":[4768983,9548855,1,0]}
+1321 @nix {"action":"result","id":1025,"type":105,"fields":[20423378,40863482,1,0]}
+1353 @nix {"action":"result","id":1037,"type":105,"fields":[21061745,42123489,1,0]}
+1372 @nix {"action":"result","id":1049,"type":105,"fields":[7227768,43383496,1,0]}
+1403 @nix {"action":"result","id":1029,"type":105,"fields":[20075909,26778150,1,0]}
+1490 @nix {"action":"result","id":1001,"type":105,"fields":[23002771,38343468,1,0]}
+1492 @nix {"action":"result","id":1005,"type":105,"fields":[19854166,19854166,1,0]}
+1492 @nix {"action":"stop","id":1006}
+1492 @nix {"action":"stop","id":1005}
+1492 @nix {"action":"stop","id":1004}
+1522 @nix {"action":"start","id":1052,"level":3,"parent":0,"text":"copying path '/nix/store/d20037c218bg3c640d90ab7c7b964309-libffi-lib-0.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/d20037c218bg3c640d90ab7c7b964309-libffi-lib-0.4","https://cache.nixos.org"]}
+1522 @nix {"action":"start","id":1053,"level":3,"parent":1052,"text":"copying path '/nix/store/d20037c218bg3c640d90ab7c7b964309-libffi-lib-0.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/d20037c218bg3c640d90ab7c7b964309-libffi-lib-0.4","https://cache.nixos.org","local"]}
+1528 @nix {"action":"result","id":1013,"type":105,"fields":[23762085,39603475,1,0]}
+1542 @nix {"action":"start","id":1054,"level":3,"parent":1053,"text":"downloading 'https://cache.nixos.org/nar/d20037c218bg3c640d90ab7c7b964309-libffi-lib-0.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/d20037c218bg3c640d90ab7c7b964309-libffi-lib-0.4.nar.xz"]}
+1555 @nix {"action":"result","id":1017,"type":105,"fields":[21114173,21114173,1,0]}
+1555 @nix {"action":"stop","id":1018}
+1555 @nix {"action":"stop","id":1017}
+1555 @nix {"action":"stop","id":1016}
+1585 @nix {"action":"start","id":1056,"level":3,"parent":0,"text":"copying path '/nix/store/4g2c89a2bf4ab8fa9dd149f42c4cc38a-xz-lib-0.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/4g2c89a2bf4ab8fa9dd149f42c4cc38a-xz-lib-0.5","https://cache.nixos.org"]}
+1585 @nix {"action":"start","id":1057,"level":3,"parent":1056,"text":"copying path '/nix/store/4g2c89a2bf4ab8fa9dd149f42c4cc38a-xz-lib-0.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/4g2c89a2bf4ab8fa9dd149f42c4cc38a-xz-lib-0.5","https://cache.nixos.org","local"]}
+1605 @nix {"action":"start","id":1058,"level":3,"parent":1057,"text":"downloading 'https://cache.nixos.org/nar/4g2c89a2bf4ab8fa9dd149f42c4cc38a-xz-lib-0.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/4g2c89a2bf4ab8fa9dd149f42c4cc38a-xz-lib-0.5.nar.xz"]}
+1718 @nix {"action":"result","id":1041,"type":105,"fields":[14011294,28038157,1,0]}
+1728 @nix {"action":"result","id":1025,"type":105,"fields":[27231170,40863482,1,0]}
+1758 @nix {"action":"result","id":1045,"type":105,"fields":[9548855,9548855,1,0]}
+1758 @nix {"action":"stop","id":1046}
+1758 @nix {"action":"stop","id":1045}
+1758 @nix {"action":"stop","id":1044}
+1770 @nix {"action":"result","id":1037,"type":105,"fields":[28071120,42123489,1,0]}
+1788 @nix {"action":"start","id":1060,"level":3,"parent":0,"text":"copying path '/nix/store/daf6f6940f1393425a4b5fg1a6849796-gettext-lib-0.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/daf6f6940f1393425a4b5fg1a6849796-gettext-lib-0.6","https://cache.nixos.org"]}
+1788 @nix {"action":"start","id":1061,"level":3,"parent":1060,"text":"copying path '/nix/store/daf6f6940f1393425a4b5fg1a6849796-gettext-lib-0.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/daf6f6940f1393425a4b5fg1a6849796-gettext-lib-0.6","https://cache.nixos.org","local"]}
+1800 @nix {"action":"result","id":1049,"type":105,"fields":[14455536,43383496,1,0]}
+1808 @nix {"action":"start","id":1062,"level":3,"parent":1061,"text":"downloading 'https://cache.nixos.org/nar/daf6f6940f1393425a4b5fg1a6849796-gettext-lib-0.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/daf6f6940f1393425a4b5fg1a6849796-gettext-lib-0.6.nar.xz"]}
+1838 @nix {"action":"result","id":1029,"type":105,"fields":[26778150,26778150,1,0]}
+1838 @nix {"action":"stop","id":1030}
+1838 @nix {"action":"stop","id":1029}
+1838 @nix {"action":"stop","id":1028}
+1868 @nix {"action":"start","id":1064,"level":3,"parent":0,"text":"copying path '/nix/store/a5f87g16763b39121d95663dd5394b45-systemd-lib-0.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a5f87g16763b39121d95663dd5394b45-systemd-lib-0.7","https://cache.nixos.org"]}
+1868 @nix {"action":"start","id":1065,"level":3,"parent":1064,"text":"copying path '/nix/store/a5f87g16763b39121d95663dd5394b45-systemd-lib-0.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a5f87g16763b39121d95663dd5394b45-systemd-lib-0.7","https://cache.nixos.org","local"]}
+1888 @nix {"action":"start","id":1066,"level":3,"parent":1065,"text":"downloading 'https://cache.nixos.org/nar/a5f87g16763b39121d95663dd5394b45-systemd-lib-0.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a5f87g16763b39121d95663dd5394b45-systemd-lib-0.7.nar.xz"]}
+1953 @nix {"action":"result","id":1001,"type":105,"fields":[30664845,38343468,1,0]}
+1988 @nix {"action":"result","id":1053,"type":105,"fields":[7324541,29298164,1,0]}
+2000 = early
+2004 @nix {"action":"result","id":1013,"type":105,"fields":[31682780,39603475,1,0]}
+2055 @nix {"action":"result","id":1057,"type":105,"fields":[5404431,10808862,1,0]}
+2135 @nix {"action":"result","id":1025,"type":105,"fields":[34038963,40863482,1,0]}
+2168 @nix {"action":"result","id":1041,"type":105,"fields":[21016942,28038157,1,0]}
+2188 @nix {"action":"result","id":1037,"type":105,"fields":[35097304,42123489,1,0]}
+2195 @nix {"action":"result","id":1061,"type":105,"fields":[6999411,49047473,1,0]}
+2228 @nix {"action":"result","id":1049,"type":105,"fields":[21683304,43383496,1,0]}
+2349 @nix {"action":"result","id":1065,"type":105,"fields":[7627649,30558171,1,0]}
+2417 @nix {"action":"result","id":1001,"type":105,"fields":[38343468,38343468,1,0]}
+2417 @nix {"action":"stop","id":1002}
+2417 @nix {"action":"stop","id":1001}
+2417 @nix {"action":"stop","id":1000}
+2447 @nix {"action":"start","id":1068,"level":3,"parent":0,"text":"copying path '/nix/store/a97f21006c44198g5688a29288g054bc-dbus-lib-0.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a97f21006c44198g5688a29288g054bc-dbus-lib-0.8","https://cache.nixos.org"]}
+2447 @nix {"action":"start","id":1069,"level":3,"parent":1068,"text":"copying path '/nix/store/a97f21006c44198g5688a29288g054bc-dbus-lib-0.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a97f21006c44198g5688a29288g054bc-dbus-lib-0.8","https://cache.nixos.org","local"]}
+2454 @nix {"action":"result","id":1053,"type":105,"fields":[14649082,29298164,1,0]}
+2467 @nix {"action":"start","id":1070,"level":3,"parent":1069,"text":"downloading 'https://cache.nixos.org/nar/a97f21006c44198g5688a29288g054bc-dbus-lib-0.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a97f21006c44198g5688a29288g054bc-dbus-lib-0.8.nar.xz"]}
+2480 @nix {"action":"result","id":1013,"type":105,"fields":[39603475,39603475,1,0]}
+2480 @nix {"action":"stop","id":1014}
+2480 @nix {"action":"stop","id":1013}
+2480 @nix {"action":"stop","id":1012}
+2510 @nix {"action":"start","id":1072,"level":3,"parent":0,"text":"copying path '/nix/store/2f0b1a0d940044ga75fd06754bd25344-util-linux-lib-0.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/2f0b1a0d940044ga75fd06754bd25344-util-linux-lib-0.0","https://cache.nixos.org"]}
+2510 @nix {"action":"start","id":1073,"level":3,"parent":1072,"text":"copying path '/nix/store/2f0b1a0d940044ga75fd06754bd25344-util-linux-lib-0.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/2f0b1a0d940044ga75fd06754bd25344-util-linux-lib-0.0","https://cache.nixos.org","local"]}
+2525 @nix {"action":"result","id":1057,"type":105,"fields":[10808862,10808862,1,0]}
+2525 @nix {"action":"stop","id":1058}
+2525 @nix {"action":"stop","id":1057}
+2525 @nix {"action":"stop","id":1056}
+2530 @nix {"action":"start","id":1074,"level":3,"parent":1073,"text":"downloading 'https://cache.nixos.org/nar/2f0b1a0d940044ga75fd06754bd25344-util-linux-lib-0.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/2f0b1a0d940044ga75fd06754bd25344-util-linux-lib-0.0.nar.xz"]}
+2543 @nix {"action":"result","id":1025,"type":105,"fields":[40863482,40863482,1,0]}
+2543 @nix {"action":"stop","id":1026}
+2543 @nix {"action":"stop","id":1025}
+2543 @nix {"action":"stop","id":1024}
+2555 @nix {"action":"start","id":1076,"level":3,"parent":0,"text":"copying path '/nix/store/3fg86g076bdd4048a218g2f81590g299-linux-pam-lib-0.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/3fg86g076bdd4048a218g2f81590g299-linux-pam-lib-0.1","https://cache.nixos.org"]}
+2555 @nix {"action":"start","id":1077,"level":3,"parent":1076,"text":"copying path '/nix/store/3fg86g076bdd4048a218g2f81590g299-linux-pam-lib-0.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/3fg86g076bdd4048a218g2f81590g299-linux-pam-lib-0.1","https://cache.nixos.org","local"]}
+2573 @nix {"action":"start","id":1080,"level":3,"parent":0,"text":"copying path '/nix/store/71ab2fg74130ba61a0f275ff488022df-kmod-lib-0.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/71ab2fg74130ba61a0f275ff488022df-kmod-lib-0.2","https://cache.nixos.org"]}
+2573 @nix {"action":"start","id":1081,"level":3,"parent":1080,"text":"copying path '/nix/store/71ab2fg74130ba61a0f275ff488022df-kmod-lib-0.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/71ab2fg74130ba61a0f275ff488022df-kmod-lib-0.2","https://cache.nixos.org","local"]}
+2575 @nix {"action":"start","id":1078,"level":3,"parent":1077,"text":"downloading 'https://cache.nixos.org/nar/3fg86g076bdd4048a218g2f81590g299-linux-pam-lib-0.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/3fg86g076bdd4048a218g2f81590g299-linux-pam-lib-0.1.nar.xz"]}
+2593 @nix {"action":"start","id":1082,"level":3,"parent":1081,"text":"downloading 'https://cache.nixos.org/nar/71ab2fg74130ba61a0f275ff488022df-kmod-lib-0.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/71ab2fg74130ba61a0f275ff488022df-kmod-lib-0.2.nar.xz"]}
+2602 @nix {"action":"result","id":1061,"type":105,"fields":[13998823,49047473,1,0]}
+2606 @nix {"action":"result","id":1037,"type":105,"fields":[42123489,42123489,1,0]}
+2606 @nix {"action":"stop","id":1038}
+2606 @nix {"action":"stop","id":1037}
+2606 @nix {"action":"stop","id":1036}
+2619 @nix {"action":"result","id":1041,"type":105,"fields":[28038157,28038157,1,0]}
+2619 @nix {"action":"stop","id":1042}
+2619 @nix {"action":"stop","id":1041}
+2619 @nix {"action":"stop","id":1040}
+2636 @nix {"action":"start","id":1084,"level":3,"parent":0,"text":"copying path '/nix/store/a6d3575cd3d01b2da08408d4d49gc482-kbd-lib-0.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a6d3575cd3d01b2da08408d4d49gc482-kbd-lib-0.3","https://cache.nixos.org"]}
+2636 @nix {"action":"start","id":1085,"level":3,"parent":1084,"text":"copying path '/nix/store/a6d3575cd3d01b2da08408d4d49gc482-kbd-lib-0.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a6d3575cd3d01b2da08408d4d49gc482-kbd-lib-0.3","https://cache.nixos.org","local"]}
+2649 @nix {"action":"start","id":1088,"level":3,"parent":0,"text":"copying path '/nix/store/8775abdfd3a1b31bb31863a2dgaccg25-nftables-lib-0.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/8775abdfd3a1b31bb31863a2dgaccg25-nftables-lib-0.4","https://cache.nixos.org"]}
+2649 @nix {"action":"start","id":1089,"level":3,"parent":1088,"text":"copying path '/nix/store/8775abdfd3a1b31bb31863a2dgaccg25-nftables-lib-0.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/8775abdfd3a1b31bb31863a2dgaccg25-nftables-lib-0.4","https://cache.nixos.org","local"]}
+2656 @nix {"action":"result","id":1049,"type":105,"fields":[28911072,43383496,1,0]}
+2656 @nix {"action":"start","id":1086,"level":3,"parent":1085,"text":"downloading 'https://cache.nixos.org/nar/a6d3575cd3d01b2da08408d4d49gc482-kbd-lib-0.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a6d3575cd3d01b2da08408d4d49gc482-kbd-lib-0.3.nar.xz"]}
+2669 @nix {"action":"start","id":1090,"level":3,"parent":1089,"text":"downloading 'https://cache.nixos.org/nar/8775abdfd3a1b31bb31863a2dgaccg25-nftables-lib-0.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/8775abdfd3a1b31bb31863a2dgaccg25-nftables-lib-0.4.nar.xz"]}
+2831 @nix {"action":"result","id":1065,"type":105,"fields":[15271157,30558171,1,0]}
+2920 @nix {"action":"result","id":1053,"type":105,"fields":[21973623,29298164,1,0]}
+2926 @nix {"action":"result","id":1073,"type":105,"fields":[7179387,50307480,1,0]}
+2948 @nix {"action":"result","id":1069,"type":105,"fields":[6028418,12068869,1,0]}
+3001 @nix {"action":"result","id":1081,"type":105,"fields":[5901756,17732846,1,0]}
+3010 @nix {"action":"result","id":1061,"type":105,"fields":[21015432,49047473,1,0]}
+3052 @nix {"action":"result","id":1077,"type":105,"fields":[7946550,31818178,1,0]}
+3059 @nix {"action":"result","id":1089,"type":105,"fields":[6605970,33078185,1,0]}
+3061 @nix {"action":"result","id":1085,"type":105,"fields":[7359363,51567487,1,0]}
+3084 @nix {"action":"result","id":1049,"type":105,"fields":[36138841,43383496,1,0]}
+3313 @nix {"action":"result","id":1065,"type":105,"fields":[22914664,30558171,1,0]}
+3342 @nix {"action":"result","id":1073,"type":105,"fields":[14358773,50307480,1,0]}
+3386 @nix {"action":"result","id":1053,"type":105,"fields":[29298164,29298164,1,0]}
+3386 @nix {"action":"stop","id":1054}
+3386 @nix {"action":"stop","id":1053}
+3386 @nix {"action":"stop","id":1052}
+3416 @nix {"action":"start","id":1092,"level":3,"parent":0,"text":"copying path '/nix/store/g4adc1g2c59g9f7c297f02af5c69a812-iproute2-lib-0.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/g4adc1g2c59g9f7c297f02af5c69a812-iproute2-lib-0.5","https://cache.nixos.org"]}
+3416 @nix {"action":"start","id":1093,"level":3,"parent":1092,"text":"copying path '/nix/store/g4adc1g2c59g9f7c297f02af5c69a812-iproute2-lib-0.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/g4adc1g2c59g9f7c297f02af5c69a812-iproute2-lib-0.5","https://cache.nixos.org","local"]}
+3417 @nix {"action":"result","id":1061,"type":105,"fields":[28014843,49047473,1,0]}
+3430 @nix {"action":"result","id":1081,"type":105,"fields":[11817301,17732846,1,0]}
+3436 @nix {"action":"start","id":1094,"level":3,"parent":1093,"text":"downloading 'https://cache.nixos.org/nar/g4adc1g2c59g9f7c297f02af5c69a812-iproute2-lib-0.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/g4adc1g2c59g9f7c297f02af5c69a812-iproute2-lib-0.5.nar.xz"]}
+3450 @nix {"action":"result","id":1069,"type":105,"fields":[12068869,12068869,1,0]}
+3450 @nix {"action":"stop","id":1070}
+3450 @nix {"action":"stop","id":1069}
+3450 @nix {"action":"stop","id":1068}
+3470 @nix {"action":"result","id":1089,"type":105,"fields":[13228052,33078185,1,0]}
+3480 @nix {"action":"start","id":1096,"level":3,"parent":0,"text":"copying path '/nix/store/7dfda265f2g12c2b8f0f1gfc458c2426-openssh-lib-0.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/7dfda265f2g12c2b8f0f1gfc458c2426-openssh-lib-0.6","https://cache.nixos.org"]}
+3480 @nix {"action":"start","id":1097,"level":3,"parent":1096,"text":"copying path '/nix/store/7dfda265f2g12c2b8f0f1gfc458c2426-openssh-lib-0.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/7dfda265f2g12c2b8f0f1gfc458c2426-openssh-lib-0.6","https://cache.nixos.org","local"]}
+3486 @nix {"action":"result","id":1085,"type":105,"fields":[14718725,51567487,1,0]}
+3500 @nix {"action":"start","id":1098,"level":3,"parent":1097,"text":"downloading 'https://cache.nixos.org/nar/7dfda265f2g12c2b8f0f1gfc458c2426-openssh-lib-0.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/7dfda265f2g12c2b8f0f1gfc458c2426-openssh-lib-0.6.nar.xz"]}
+3513 @nix {"action":"result","id":1049,"type":105,"fields":[43383496,43383496,1,0]}
+3513 @nix {"action":"stop","id":1050}
+3513 @nix {"action":"stop","id":1049}
+3513 @nix {"action":"stop","id":1048}
+3543 @nix {"action":"start","id":1100,"level":3,"parent":0,"text":"copying path '/nix/store/8cda6g8f32ga63c0a036312574123b76-shadow-lib-0.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/8cda6g8f32ga63c0a036312574123b76-shadow-lib-0.7","https://cache.nixos.org"]}
+3543 @nix {"action":"start","id":1101,"level":3,"parent":1100,"text":"copying path '/nix/store/8cda6g8f32ga63c0a036312574123b76-shadow-lib-0.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/8cda6g8f32ga63c0a036312574123b76-shadow-lib-0.7","https://cache.nixos.org","local"]}
+3550 @nix {"action":"result","id":1077,"type":105,"fields":[15909089,31818178,1,0]}
+3563 @nix {"action":"start","id":1102,"level":3,"parent":1101,"text":"downloading 'https://cache.nixos.org/nar/8cda6g8f32ga63c0a036312574123b76-shadow-lib-0.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/8cda6g8f32ga63c0a036312574123b76-shadow-lib-0.7.nar.xz"]}
+3759 @nix {"action":"result","id":1073,"type":105,"fields":[21555418,50307480,1,0]}
+3795 @nix {"action":"result","id":1065,"type":105,"fields":[30558171,30558171,1,0]}
+3795 @nix {"action":"stop","id":1066}
+3795 @nix {"action":"stop","id":1065}
+3795 @nix {"action":"stop","id":1064}
+3825 @nix {"action":"result","id":1061,"type":105,"fields":[35031452,49047473,1,0]}
+3825 @nix {"action":"start","id":1104,"level":3,"parent":0,"text":"copying path '/nix/store/gdd4c8f874bg7bb121d9020bd34c1965-sudo-lib-0.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/gdd4c8f874bg7bb121d9020bd34c1965-sudo-lib-0.8","https://cache.nixos.org"]}
+3825 @nix {"action":"start","id":1105,"level":3,"parent":1104,"text":"copying path '/nix/store/gdd4c8f874bg7bb121d9020bd34c1965-sudo-lib-0.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/gdd4c8f874bg7bb121d9020bd34c1965-sudo-lib-0.8","https://cache.nixos.org","local"]}
+3845 @nix {"action":"start","id":1106,"level":3,"parent":1105,"text":"downloading 'https://cache.nixos.org/nar/gdd4c8f874bg7bb121d9020bd34c1965-sudo-lib-0.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/gdd4c8f874bg7bb121d9020bd34c1965-sudo-lib-0.8.nar.xz"]}
+3859 @nix {"action":"result","id":1081,"type":105,"fields":[17732846,17732846,1,0]}
+3859 @nix {"action":"stop","id":1082}
+3859 @nix {"action":"stop","id":1081}
+3859 @nix {"action":"stop","id":1080}
+3865 @nix {"action":"result","id":1093,"type":105,"fields":[6321565,18992853,1,0]}
+3880 @nix {"action":"result","id":1089,"type":105,"fields":[19834021,33078185,1,0]}
+3889 @nix {"action":"start","id":1108,"level":3,"parent":0,"text":"copying path '/nix/store/dggg01660ggcaf1fg283407a580199a1-less-lib-0.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/dggg01660ggcaf1fg283407a580199a1-less-lib-0.0","https://cache.nixos.org"]}
+3889 @nix {"action":"start","id":1109,"level":3,"parent":1108,"text":"copying path '/nix/store/dggg01660ggcaf1fg283407a580199a1-less-lib-0.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/dggg01660ggcaf1fg283407a580199a1-less-lib-0.0","https://cache.nixos.org","local"]}
+3905 @nix {"action":"result","id":1097,"type":105,"fields":[503551,503551,1,0]}
+3905 @nix {"action":"stop","id":1098}
+3905 @nix {"action":"stop","id":1097}
+3905 @nix {"action":"stop","id":1096}
+3909 @nix {"action":"start","id":1110,"level":3,"parent":1109,"text":"downloading 'https://cache.nixos.org/nar/dggg01660ggcaf1fg283407a580199a1-less-lib-0.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/dggg01660ggcaf1fg283407a580199a1-less-lib-0.0.nar.xz"]}
+3912 @nix {"action":"result","id":1085,"type":105,"fields":[22095404,51567487,1,0]}
+3935 @nix {"action":"start","id":1112,"level":3,"parent":0,"text":"copying path '/nix/store/a921c9520861g6b9a265c88ggg8187cg-man-db-lib-0.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a921c9520861g6b9a265c88ggg8187cg-man-db-lib-0.1","https://cache.nixos.org"]}
+3935 @nix {"action":"start","id":1113,"level":3,"parent":1112,"text":"copying path '/nix/store/a921c9520861g6b9a265c88ggg8187cg-man-db-lib-0.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a921c9520861g6b9a265c88ggg8187cg-man-db-lib-0.1","https://cache.nixos.org","local"]}
+3955 @nix {"action":"start","id":1114,"level":3,"parent":1113,"text":"downloading 'https://cache.nixos.org/nar/a921c9520861g6b9a265c88ggg8187cg-man-db-lib-0.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a921c9520861g6b9a265c88ggg8187cg-man-db-lib-0.1.nar.xz"]}
+3966 @nix {"action":"result","id":1101,"type":105,"fields":[6864393,34338192,1,0]}
+4047 @nix {"action":"result","id":1077,"type":105,"fields":[23855639,31818178,1,0]}
+4175 @nix {"action":"result","id":1073,"type":105,"fields":[28734804,50307480,1,0]}
+4232 @nix {"action":"result","id":1061,"type":105,"fields":[42030864,49047473,1,0]}
+4291 @nix {"action":"result","id":1089,"type":105,"fields":[26456103,33078185,1,0]}
+4295 @nix {"action":"result","id":1105,"type":105,"fields":[6741391,20252860,1,0]}
+4315 @nix {"action":"result","id":1093,"type":105,"fields":[12657209,18992853,1,0]}
+4335 @nix {"action":"result","id":1113,"type":105,"fields":[6667028,40002169,1,0]}
+4337 @nix {"action":"result","id":1085,"type":105,"fields":[29454767,51567487,1,0]}
+4377 @nix {"action":"result","id":1109,"type":105,"fields":[1763558,1763558,1,0]}
+4377 @nix {"action":"stop","id":1110}
+4377 @nix {"action":"stop","id":1109}
+4377 @nix {"action":"stop","id":1108}
+4389 @nix {"action":"result","id":1101,"type":105,"fields":[13728786,34338192,1,0]}
+4407 @nix {"action":"start","id":1116,"level":3,"parent":0,"text":"copying path '/nix/store/583cc41ag8d59g669ab3dcg999481c16-pipewire-lib-0.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/583cc41ag8d59g669ab3dcg999481c16-pipewire-lib-0.2","https://cache.nixos.org"]}
+4407 @nix {"action":"start","id":1117,"level":3,"parent":1116,"text":"copying path '/nix/store/583cc41ag8d59g669ab3dcg999481c16-pipewire-lib-0.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/583cc41ag8d59g669ab3dcg999481c16-pipewire-lib-0.2","https://cache.nixos.org","local"]}
+4427 @nix {"action":"start","id":1118,"level":3,"parent":1117,"text":"downloading 'https://cache.nixos.org/nar/583cc41ag8d59g669ab3dcg999481c16-pipewire-lib-0.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/583cc41ag8d59g669ab3dcg999481c16-pipewire-lib-0.2.nar.xz"]}
+4545 @nix {"action":"result","id":1077,"type":105,"fields":[31818178,31818178,1,0]}
+4545 @nix {"action":"stop","id":1078}
+4545 @nix {"action":"stop","id":1077}
+4545 @nix {"action":"stop","id":1076}
+4575 @nix {"action":"start","id":1120,"level":3,"parent":0,"text":"copying path '/nix/store/10502ff5136af0a0gfd2362503453cgb-bash-lib-1.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/10502ff5136af0a0gfd2362503453cgb-bash-lib-1.3","https://cache.nixos.org"]}
+4575 @nix {"action":"start","id":1121,"level":3,"parent":1120,"text":"copying path '/nix/store/10502ff5136af0a0gfd2362503453cgb-bash-lib-1.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/10502ff5136af0a0gfd2362503453cgb-bash-lib-1.3","https://cache.nixos.org","local"]}
+4592 @nix {"action":"result","id":1073,"type":105,"fields":[35931449,50307480,1,0]}
+4595 @nix {"action":"start","id":1122,"level":3,"parent":1121,"text":"downloading 'https://cache.nixos.org/nar/10502ff5136af0a0gfd2362503453cgb-bash-lib-1.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/10502ff5136af0a0gfd2362503453cgb-bash-lib-1.3.nar.xz"]}
+4640 @nix {"action":"result","id":1061,"type":105,"fields":[49047473,49047473,1,0]}
+4640 @nix {"action":"stop","id":1062}
+4640 @nix {"action":"stop","id":1061}
+4640 @nix {"action":"stop","id":1060}
+4670 @nix {"action":"start","id":1124,"level":3,"parent":0,"text":"copying path '/nix/store/985936265b284fg744ca86a219dg9fbc-coreutils-lib-1.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/985936265b284fg744ca86a219dg9fbc-coreutils-lib-1.4","https://cache.nixos.org"]}
+4670 @nix {"action":"start","id":1125,"level":3,"parent":1124,"text":"copying path '/nix/store/985936265b284fg744ca86a219dg9fbc-coreutils-lib-1.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/985936265b284fg744ca86a219dg9fbc-coreutils-lib-1.4","https://cache.nixos.org","local"]}
+4690 @nix {"action":"start","id":1126,"level":3,"parent":1125,"text":"downloading 'https://cache.nixos.org/nar/985936265b284fg744ca86a219dg9fbc-coreutils-lib-1.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/985936265b284fg744ca86a219dg9fbc-coreutils-lib-1.4.nar.xz"]}
+4702 @nix {"action":"result","id":1089,"type":105,"fields":[33078185,33078185,1,0]}
+4702 @nix {"action":"stop","id":1090}
+4702 @nix {"action":"stop","id":1089}
+4702 @nix {"action":"stop","id":1088}
+4732 @nix {"action":"start","id":1128,"level":3,"parent":0,"text":"copying path '/nix/store/720814g10f70gcac173801d2cdcc754f-gcc-lib-1.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/720814g10f70gcac173801d2cdcc754f-gcc-lib-1.5","https://cache.nixos.org"]}
+4732 @nix {"action":"start","id":1129,"level":3,"parent":1128,"text":"copying path '/nix/store/720814g10f70gcac173801d2cdcc754f-gcc-lib-1.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/720814g10f70gcac173801d2cdcc754f-gcc-lib-1.5","https://cache.nixos.org","local"]}
+4735 @nix {"action":"result","id":1113,"type":105,"fields":[13334056,40002169,1,0]}
+4752 @nix {"action":"start","id":1130,"level":3,"parent":1129,"text":"downloading 'https://cache.nixos.org/nar/720814g10f70gcac173801d2cdcc754f-gcc-lib-1.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/720814g10f70gcac173801d2cdcc754f-gcc-lib-1.5.nar.xz"]}
+4763 @nix {"action":"result","id":1085,"type":105,"fields":[36831446,51567487,1,0]}
+4765 @nix {"action":"result","id":1093,"type":105,"fields":[18992853,18992853,1,0]}
+4765 @nix {"action":"stop","id":1094}
+4765 @nix {"action":"stop","id":1093}
+4765 @nix {"action":"stop","id":1092}
+4766 @nix {"action":"result","id":1105,"type":105,"fields":[13497126,20252860,1,0]}
+4795 @nix {"action":"start","id":1132,"level":3,"parent":0,"text":"copying path '/nix/store/c5dbb1d1d0439358311bb4583381620g-glibc-lib-1.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/c5dbb1d1d0439358311bb4583381620g-glibc-lib-1.6","https://cache.nixos.org"]}
+4795 @nix {"action":"start","id":1133,"level":3,"parent":1132,"text":"copying path '/nix/store/c5dbb1d1d0439358311bb4583381620g-glibc-lib-1.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/c5dbb1d1d0439358311bb4583381620g-glibc-lib-1.6","https://cache.nixos.org","local"]}
+4812 @nix {"action":"result","id":1101,"type":105,"fields":[20593178,34338192,1,0]}
+4815 @nix {"action":"start","id":1134,"level":3,"parent":1133,"text":"downloading 'https://cache.nixos.org/nar/c5dbb1d1d0439358311bb4583381620g-glibc-lib-1.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/c5dbb1d1d0439358311bb4583381620g-glibc-lib-1.6.nar.xz"]}
+4898 @nix {"action":"result","id":1117,"type":105,"fields":[7161232,21512867,1,0]}
+5008 @nix {"action":"result","id":1073,"type":105,"fields":[43110835,50307480,1,0]}
+5080 @nix {"action":"result","id":1125,"type":105,"fields":[6868653,41262176,1,0]}
+5126 @nix {"action":"result","id":1121,"type":105,"fields":[3023565,3023565,1,0]}
+5126 @nix {"action":"stop","id":1122}
+5126 @nix {"action":"stop","id":1121}
+5126 @nix {"action":"stop","id":1120}
+5135 @nix {"action":"result","id":1113,"type":105,"fields":[20001085,40002169,1,0]}
+5156 @nix {"action":"start","id":1136,"level":3,"parent":0,"text":"copying path '/nix/store/140c2d7659c8c0221cfa9530g9a13gf0-openssl-lib-1.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/140c2d7659c8c0221cfa9530g9a13gf0-openssl-lib-1.7","https://cache.nixos.org"]}
+5156 @nix {"action":"start","id":1137,"level":3,"parent":1136,"text":"copying path '/nix/store/140c2d7659c8c0221cfa9530g9a13gf0-openssl-lib-1.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/140c2d7659c8c0221cfa9530g9a13gf0-openssl-lib-1.7","https://cache.nixos.org","local"]}
+5176 @nix {"action":"start","id":1138,"level":3,"parent":1137,"text":"downloading 'https://cache.nixos.org/nar/140c2d7659c8c0221cfa9530g9a13gf0-openssl-lib-1.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/140c2d7659c8c0221cfa9530g9a13gf0-openssl-lib-1.7.nar.xz"]}
+5188 @nix {"action":"result","id":1085,"type":105,"fields":[44190808,51567487,1,0]}
+5235 @nix {"action":"result","id":1101,"type":105,"fields":[27457571,34338192,1,0]}
+5237 @nix {"action":"result","id":1105,"type":105,"fields":[20252860,20252860,1,0]}
+5237 @nix {"action":"stop","id":1106}
+5237 @nix {"action":"stop","id":1105}
+5237 @nix {"action":"stop","id":1104}
+5244 @nix {"action":"result","id":1129,"type":105,"fields":[7581087,22772874,1,0]}
+5267 @nix {"action":"start","id":1140,"level":3,"parent":0,"text":"copying path '/nix/store/0291acd998167fc1d09b26b1c8ac9987-zlib-lib-1.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/0291acd998167fc1d09b26b1c8ac9987-zlib-lib-1.8","https://cache.nixos.org"]}
+5267 @nix {"action":"start","id":1141,"level":3,"parent":1140,"text":"copying path '/nix/store/0291acd998167fc1d09b26b1c8ac9987-zlib-lib-1.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/0291acd998167fc1d09b26b1c8ac9987-zlib-lib-1.8","https://cache.nixos.org","local"]}
+5287 @nix {"action":"start","id":1142,"level":3,"parent":1141,"text":"downloading 'https://cache.nixos.org/nar/0291acd998167fc1d09b26b1c8ac9987-zlib-lib-1.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/0291acd998167fc1d09b26b1c8ac9987-zlib-lib-1.8.nar.xz"]}
+5390 @nix {"action":"result","id":1117,"type":105,"fields":[14337050,21512867,1,0]}
+5409 @nix {"action":"result","id":1133,"type":105,"fields":[4283572,4283572,1,0]}
+5409 @nix {"action":"stop","id":1134}
+5409 @nix {"action":"stop","id":1133}
+5409 @nix {"action":"stop","id":1132}
+5425 @nix {"action":"result","id":1073,"type":105,"fields":[50307480,50307480,1,0]}
+5425 @nix {"action":"stop","id":1074}
+5425 @nix {"action":"stop","id":1073}
+5425 @nix {"action":"stop","id":1072}
+5439 @nix {"action":"start","id":1144,"level":3,"parent":0,"text":"copying path '/nix/store/g262ab5b2g8ggfcba3f8811aaf29d819-curl-lib-1.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/g262ab5b2g8ggfcba3f8811aaf29d819-curl-lib-1.0","https://cache.nixos.org"]}
+5439 @nix {"action":"start","id":1145,"level":3,"parent":1144,"text":"copying path '/nix/store/g262ab5b2g8ggfcba3f8811aaf29d819-curl-lib-1.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/g262ab5b2g8ggfcba3f8811aaf29d819-curl-lib-1.0","https://cache.nixos.org","local"]}
+5455 @nix {"action":"start","id":1148,"level":3,"parent":0,"text":"copying path '/nix/store/58697ba57f9gg3fbf2fad45059467c75-python3-lib-1.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/58697ba57f9gg3fbf2fad45059467c75-python3-lib-1.1","https://cache.nixos.org"]}
+5455 @nix {"action":"start","id":1149,"level":3,"parent":1148,"text":"copying path '/nix/store/58697ba57f9gg3fbf2fad45059467c75-python3-lib-1.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/58697ba57f9gg3fbf2fad45059467c75-python3-lib-1.1","https://cache.nixos.org","local"]}
+5459 @nix {"action":"start","id":1146,"level":3,"parent":1145,"text":"downloading 'https://cache.nixos.org/nar/g262ab5b2g8ggfcba3f8811aaf29d819-curl-lib-1.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/g262ab5b2g8ggfcba3f8811aaf29d819-curl-lib-1.0.nar.xz"]}
+5475 @nix {"action":"start","id":1150,"level":3,"parent":1149,"text":"downloading 'https://cache.nixos.org/nar/58697ba57f9gg3fbf2fad45059467c75-python3-lib-1.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/58697ba57f9gg3fbf2fad45059467c75-python3-lib-1.1.nar.xz"]}
+5491 @nix {"action":"result","id":1125,"type":105,"fields":[13754059,41262176,1,0]}
+5535 @nix {"action":"result","id":1113,"type":105,"fields":[26668113,40002169,1,0]}
+5577 @nix {"action":"result","id":1137,"type":105,"fields":[7087031,42522183,1,0]}
+5614 @nix {"action":"result","id":1085,"type":105,"fields":[51567487,51567487,1,0]}
+5614 @nix {"action":"stop","id":1086}
+5614 @nix {"action":"stop","id":1085}
+5614 @nix {"action":"stop","id":1084}
+5644 @nix {"action":"start","id":1152,"level":3,"parent":0,"text":"copying path '/nix/store/a6106g8504471cg77g445c6ga71d9g71-perl-lib-1.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a6106g8504471cg77g445c6ga71d9g71-perl-lib-1.2","https://cache.nixos.org"]}
+5644 @nix {"action":"start","id":1153,"level":3,"parent":1152,"text":"copying path '/nix/store/a6106g8504471cg77g445c6ga71d9g71-perl-lib-1.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a6106g8504471cg77g445c6ga71d9g71-perl-lib-1.2","https://cache.nixos.org","local"]}
+5659 @nix {"action":"result","id":1101,"type":105,"fields":[34338192,34338192,1,0]}
+5659 @nix {"action":"stop","id":1102}
+5659 @nix {"action":"stop","id":1101}
+5659 @nix {"action":"stop","id":1100}
+5664 @nix {"action":"start","id":1154,"level":3,"parent":1153,"text":"downloading 'https://cache.nixos.org/nar/a6106g8504471cg77g445c6ga71d9g71-perl-lib-1.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a6106g8504471cg77g445c6ga71d9g71-perl-lib-1.2.nar.xz"]}
+5667 @nix {"action":"result","id":1141,"type":105,"fields":[6004467,24032881,1,0]}
+5689 @nix {"action":"start","id":1156,"level":3,"parent":0,"text":"copying path '/nix/store/gbc4a6f68gd04gc0d21c176256c4a086-git-lib-1.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/gbc4a6f68gd04gc0d21c176256c4a086-git-lib-1.3","https://cache.nixos.org"]}
+5689 @nix {"action":"start","id":1157,"level":3,"parent":1156,"text":"copying path '/nix/store/gbc4a6f68gd04gc0d21c176256c4a086-git-lib-1.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/gbc4a6f68gd04gc0d21c176256c4a086-git-lib-1.3","https://cache.nixos.org","local"]}
+5709 @nix {"action":"start","id":1158,"level":3,"parent":1157,"text":"downloading 'https://cache.nixos.org/nar/gbc4a6f68gd04gc0d21c176256c4a086-git-lib-1.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/gbc4a6f68gd04gc0d21c176256c4a086-git-lib-1.3.nar.xz"]}
+5757 @nix {"action":"result","id":1129,"type":105,"fields":[15176980,22772874,1,0]}
+5882 @nix {"action":"result","id":1117,"type":105,"fields":[21512867,21512867,1,0]}
+5882 @nix {"action":"stop","id":1118}
+5882 @nix {"action":"stop","id":1117}
+5882 @nix {"action":"stop","id":1116}
+5886 @nix {"action":"result","id":1149,"type":105,"fields":[7288576,43782190,1,0]}
+5887 @nix {"action":"result","id":1145,"type":105,"fields":[4968230,9947549,1,0]}
+5901 @nix {"action":"result","id":1125,"type":105,"fields":[20622712,41262176,1,0]}
+5912 @nix {"action":"start","id":1160,"level":3,"parent":0,"text":"copying path '/nix/store/4f499d16361d121g419d2167c1a07a16-ncurses-lib-1.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/4f499d16361d121g419d2167c1a07a16-ncurses-lib-1.4","https://cache.nixos.org"]}
+5912 @nix {"action":"start","id":1161,"level":3,"parent":1160,"text":"copying path '/nix/store/4f499d16361d121g419d2167c1a07a16-ncurses-lib-1.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/4f499d16361d121g419d2167c1a07a16-ncurses-lib-1.4","https://cache.nixos.org","local"]}
+5932 @nix {"action":"start","id":1162,"level":3,"parent":1161,"text":"downloading 'https://cache.nixos.org/nar/4f499d16361d121g419d2167c1a07a16-ncurses-lib-1.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/4f499d16361d121g419d2167c1a07a16-ncurses-lib-1.4.nar.xz"]}
+5935 @nix {"action":"result","id":1113,"type":105,"fields":[33335141,40002169,1,0]}
+5998 @nix {"action":"result","id":1137,"type":105,"fields":[14174061,42522183,1,0]}
+6000 = busy
+6060 @nix {"action":"result","id":1153,"type":105,"fields":[6323222,25292888,1,0]}
+6067 @nix {"action":"result","id":1141,"type":105,"fields":[12008935,24032881,1,0]}
+6169 @nix {"action":"result","id":1157,"type":105,"fields":[5603778,11207556,1,0]}
+6270 @nix {"action":"result","id":1129,"type":105,"fields":[22772874,22772874,1,0]}
+6270 @nix {"action":"stop","id":1130}
+6270 @nix {"action":"stop","id":1129}
+6270 @nix {"action":"stop","id":1128}
+6300 @nix {"action":"start","id":1164,"level":3,"parent":0,"text":"copying path '/nix/store/g9d535bg5dd2cfbbd950273dfb0d499c-readline-lib-1.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/g9d535bg5dd2cfbbd950273dfb0d499c-readline-lib-1.5","https://cache.nixos.org"]}
+6300 @nix {"action":"start","id":1165,"level":3,"parent":1164,"text":"copying path '/nix/store/g9d535bg5dd2cfbbd950273dfb0d499c-readline-lib-1.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/g9d535bg5dd2cfbbd950273dfb0d499c-readline-lib-1.5","https://cache.nixos.org","local"]}
+6312 @nix {"action":"result","id":1125,"type":105,"fields":[27508117,41262176,1,0]}
+6318 @nix {"action":"result","id":1149,"type":105,"fields":[14594063,43782190,1,0]}
+6320 @nix {"action":"start","id":1166,"level":3,"parent":1165,"text":"downloading 'https://cache.nixos.org/nar/g9d535bg5dd2cfbbd950273dfb0d499c-readline-lib-1.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/g9d535bg5dd2cfbbd950273dfb0d499c-readline-lib-1.5.nar.xz"]}
+6335 @nix {"action":"result","id":1113,"type":105,"fields":[40002169,40002169,1,0]}
+6335 @nix {"action":"stop","id":1114}
+6335 @nix {"action":"stop","id":1113}
+6335 @nix {"action":"stop","id":1112}
+6336 @nix {"action":"result","id":1145,"type":105,"fields":[9947549,9947549,1,0]}
+6336 @nix {"action":"stop","id":1146}
+6336 @nix {"action":"stop","id":1145}
+6336 @nix {"action":"stop","id":1144}
+6354 @nix {"action":"result","id":1161,"type":105,"fields":[7507033,45042197,1,0]}
+6365 @nix {"action":"start","id":1168,"level":3,"parent":0,"text":"copying path '/nix/store/g43197g48653b73d0649484982529937-sqlite-lib-1.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/g43197g48653b73d0649484982529937-sqlite-lib-1.6","https://cache.nixos.org"]}
+6365 @nix {"action":"start","id":1169,"level":3,"parent":1168,"text":"copying path '/nix/store/g43197g48653b73d0649484982529937-sqlite-lib-1.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/g43197g48653b73d0649484982529937-sqlite-lib-1.6","https://cache.nixos.org","local"]}
+6366 @nix {"action":"start","id":1172,"level":3,"parent":0,"text":"copying path '/nix/store/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7","https://cache.nixos.org"]}
+6366 @nix {"action":"start","id":1173,"level":3,"parent":1172,"text":"copying path '/nix/store/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7","https://cache.nixos.org","local"]}
+6385 @nix {"action":"start","id":1170,"level":3,"parent":1169,"text":"downloading 'https://cache.nixos.org/nar/g43197g48653b73d0649484982529937-sqlite-lib-1.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/g43197g48653b73d0649484982529937-sqlite-lib-1.6.nar.xz"]}
+6386 @nix {"action":"start","id":1174,"level":3,"parent":1173,"text":"downloading 'https://cache.nixos.org/nar/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7.nar.xz"]}
+6419 @nix {"action":"result","id":1137,"type":105,"fields":[21261092,42522183,1,0]}
+6467 @nix {"action":"result","id":1141,"type":105,"fields":[18013402,24032881,1,0]}
+6476 @nix {"action":"result","id":1153,"type":105,"fields":[12646444,25292888,1,0]}
+6649 @nix {"action":"result","id":1157,"type":105,"fields":[11207556,11207556,1,0]}
+6649 @nix {"action":"stop","id":1158}
+6649 @nix {"action":"stop","id":1157}
+6649 @nix {"action":"stop","id":1156}
+6679 @nix {"action":"start","id":1176,"level":3,"parent":0,"text":"copying path '/nix/store/63847bbbd08d92186a88803g071697a7-xz-lib-1.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/63847bbbd08d92186a88803g071697a7-xz-lib-1.8","https://cache.nixos.org"]}
+6679 @nix {"action":"start","id":1177,"level":3,"parent":1176,"text":"copying path '/nix/store/63847bbbd08d92186a88803g071697a7-xz-lib-1.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/63847bbbd08d92186a88803g071697a7-xz-lib-1.8","https://cache.nixos.org","local"]}
+6699 @nix {"action":"start","id":1178,"level":3,"parent":1177,"text":"downloading 'https://cache.nixos.org/nar/63847bbbd08d92186a88803g071697a7-xz-lib-1.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/63847bbbd08d92186a88803g071697a7-xz-lib-1.8.nar.xz"]}
+6722 @nix {"action":"result","id":1125,"type":105,"fields":[34376770,41262176,1,0]}
+6749 @nix {"action":"result","id":1149,"type":105,"fields":[21882640,43782190,1,0]}
+6786 @nix {"action":"result","id":1165,"type":105,"fields":[7727291,30956865,1,0]}
+6796 @nix {"action":"result","id":1161,"type":105,"fields":[15014066,45042197,1,0]}
+6818 @nix {"action":"result","id":1173,"type":105,"fields":[7708507,46302204,1,0]}
+6840 @nix {"action":"result","id":1137,"type":105,"fields":[28348122,42522183,1,0]}
+6868 @nix {"action":"result","id":1141,"type":105,"fields":[24032881,24032881,1,0]}
+6868 @nix {"action":"stop","id":1142}
+6868 @nix {"action":"stop","id":1141}
+6868 @nix {"action":"stop","id":1140}
+6876 @nix {"action":"result","id":1169,"type":105,"fields":[6227688,12467563,1,0]}
+6892 @nix {"action":"result","id":1153,"type":105,"fields":[18969666,25292888,1,0]}
+6898 @nix {"action":"start","id":1180,"level":3,"parent":0,"text":"copying path '/nix/store/c7058ffggb5024d5g81a2bg6fbfcdg49-gettext-lib-1.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/c7058ffggb5024d5g81a2bg6fbfcdg49-gettext-lib-1.0","https://cache.nixos.org"]}
+6898 @nix {"action":"start","id":1181,"level":3,"parent":1180,"text":"copying path '/nix/store/c7058ffggb5024d5g81a2bg6fbfcdg49-gettext-lib-1.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/c7058ffggb5024d5g81a2bg6fbfcdg49-gettext-lib-1.0","https://cache.nixos.org","local"]}
+6918 @nix {"action":"start","id":1182,"level":3,"parent":1181,"text":"downloading 'https://cache.nixos.org/nar/c7058ffggb5024d5g81a2bg6fbfcdg49-gettext-lib-1.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/c7058ffggb5024d5g81a2bg6fbfcdg49-gettext-lib-1.0.nar.xz"]}
+7081 @nix {"action":"result","id":1177,"type":105,"fields":[6443374,32216872,1,0]}
+7133 @nix {"action":"result","id":1125,"type":105,"fields":[41262176,41262176,1,0]}
+7133 @nix {"action":"stop","id":1126}
+7133 @nix {"action":"stop","id":1125}
+7133 @nix {"action":"stop","id":1124}
+7163 @nix {"action":"start","id":1184,"level":3,"parent":0,"text":"copying path '/nix/store/a15f91b2636c272893f53651b5729bg5-systemd-lib-1.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a15f91b2636c272893f53651b5729bg5-systemd-lib-1.1","https://cache.nixos.org"]}
+7163 @nix {"action":"start","id":1185,"level":3,"parent":1184,"text":"copying path '/nix/store/a15f91b2636c272893f53651b5729bg5-systemd-lib-1.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a15f91b2636c272893f53651b5729bg5-systemd-lib-1.1","https://cache.nixos.org","local"]}
+7181 @nix {"action":"result","id":1149,"type":105,"fields":[29188127,43782190,1,0]}
+7183 @nix {"action":"start","id":1186,"level":3,"parent":1185,"text":"downloading 'https://cache.nixos.org/nar/a15f91b2636c272893f53651b5729bg5-systemd-lib-1.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a15f91b2636c272893f53651b5729bg5-systemd-lib-1.1.nar.xz"]}
+7238 @nix {"action":"result","id":1161,"type":105,"fields":[22521099,45042197,1,0]}
+7261 @nix {"action":"result","id":1137,"type":105,"fields":[35435153,42522183,1,0]}
+7271 @nix {"action":"result","id":1173,"type":105,"fields":[15434068,46302204,1,0]}
+7273 @nix {"action":"result","id":1165,"type":105,"fields":[15470483,30956865,1,0]}
+7308 @nix {"action":"result","id":1153,"type":105,"fields":[25292888,25292888,1,0]}
+7308 @nix {"action":"stop","id":1154}
+7308 @nix {"action":"stop","id":1153}
+7308 @nix {"action":"stop","id":1152}
+7338 @nix {"action":"start","id":1188,"level":3,"parent":0,"text":"copying path '/nix/store/aa8730f694b734fd84ba5gfcggdca28a-dbus-lib-1.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/aa8730f694b734fd84ba5gfcggdca28a-dbus-lib-1.2","https://cache.nixos.org"]}
+7338 @nix {"action":"start","id":1189,"level":3,"parent":1188,"text":"copying path '/nix/store/aa8730f694b734fd84ba5gfcggdca28a-dbus-lib-1.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/aa8730f694b734fd84ba5gfcggdca28a-dbus-lib-1.2","https://cache.nixos.org","local"]}
+7358 @nix {"action":"start","id":1190,"level":3,"parent":1189,"text":"downloading 'https://cache.nixos.org/nar/aa8730f694b734fd84ba5gfcggdca28a-dbus-lib-1.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/aa8730f694b734fd84ba5gfcggdca28a-dbus-lib-1.2.nar.xz"]}
+7388 @nix {"action":"result","id":1169,"type":105,"fields":[12467563,12467563,1,0]}
+7388 @nix {"action":"stop","id":1170}
+7388 @nix {"action":"stop","id":1169}
+7388 @nix {"action":"stop","id":1168}
+7418 @nix {"action":"start","id":1192,"level":3,"parent":0,"text":"copying path '/nix/store/151b98f91d94002bd88b8b4fc71dfa0g-util-linux-lib-1.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/151b98f91d94002bd88b8b4fc71dfa0g-util-linux-lib-1.3","https://cache.nixos.org"]}
+7418 @nix {"action":"start","id":1193,"level":3,"parent":1192,"text":"copying path '/nix/store/151b98f91d94002bd88b8b4fc71dfa0g-util-linux-lib-1.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/151b98f91d94002bd88b8b4fc71dfa0g-util-linux-lib-1.3","https://cache.nixos.org","local"]}
+7438 @nix {"action":"start","id":1194,"level":3,"parent":1193,"text":"downloading 'https://cache.nixos.org/nar/151b98f91d94002bd88b8b4fc71dfa0g-util-linux-lib-1.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/151b98f91d94002bd88b8b4fc71dfa0g-util-linux-lib-1.3.nar.xz"]}
+7441 @nix {"action":"result","id":1181,"type":105,"fields":[6863785,13727570,1,0]}
+7483 @nix {"action":"result","id":1177,"type":105,"fields":[12886749,32216872,1,0]}
+7612 @nix {"action":"result","id":1149,"type":105,"fields":[36476703,43782190,1,0]}
+7626 @nix {"action":"result","id":1185,"type":105,"fields":[7927035,47562211,1,0]}
+7680 @nix {"action":"result","id":1161,"type":105,"fields":[30028131,45042197,1,0]}
+7682 @nix {"action":"result","id":1137,"type":105,"fields":[42522183,42522183,1,0]}
+7682 @nix {"action":"stop","id":1138}
+7682 @nix {"action":"stop","id":1137}
+7682 @nix {"action":"stop","id":1136}
+7712 @nix {"action":"start","id":1196,"level":3,"parent":0,"text":"copying path '/nix/store/f8322d241f98a12gd1c8bc3a73ba5830-linux-pam-lib-1.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/f8322d241f98a12gd1c8bc3a73ba5830-linux-pam-lib-1.4","https://cache.nixos.org"]}
+7712 @nix {"action":"start","id":1197,"level":3,"parent":1196,"text":"copying path '/nix/store/f8322d241f98a12gd1c8bc3a73ba5830-linux-pam-lib-1.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/f8322d241f98a12gd1c8bc3a73ba5830-linux-pam-lib-1.4","https://cache.nixos.org","local"]}
+7723 @nix {"action":"result","id":1173,"type":105,"fields":[23142575,46302204,1,0]}
+7732 @nix {"action":"start","id":1198,"level":3,"parent":1197,"text":"downloading 'https://cache.nixos.org/nar/f8322d241f98a12gd1c8bc3a73ba5830-linux-pam-lib-1.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/f8322d241f98a12gd1c8bc3a73ba5830-linux-pam-lib-1.4.nar.xz"]}
+7752 @nix {"action":"result","id":1189,"type":105,"fields":[6685686,33476879,1,0]}
+7760 @nix {"action":"result","id":1165,"type":105,"fields":[23213674,30956865,1,0]}
+7885 @nix {"action":"result","id":1177,"type":105,"fields":[19330123,32216872,1,0]}
+7984 @nix {"action":"result","id":1181,"type":105,"fields":[13727570,13727570,1,0]}
+7984 @nix {"action":"stop","id":1182}
+7984 @nix {"action":"stop","id":1181}
+7984 @nix {"action":"stop","id":1180}
+7992 @nix {"action":"result","id":1193,"type":105,"fields":[7487266,14987577,1,0]}
+8014 @nix {"action":"start","id":1200,"level":3,"parent":0,"text":"copying path '/nix/store/cda165f80864g7gg435a893937555g75-kmod-lib-1.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/cda165f80864g7gg435a893937555g75-kmod-lib-1.5","https://cache.nixos.org"]}
+8014 @nix {"action":"start","id":1201,"level":3,"parent":1200,"text":"copying path '/nix/store/cda165f80864g7gg435a893937555g75-kmod-lib-1.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/cda165f80864g7gg435a893937555g75-kmod-lib-1.5","https://cache.nixos.org","local"]}
+8034 @nix {"action":"start","id":1202,"level":3,"parent":1201,"text":"downloading 'https://cache.nixos.org/nar/cda165f80864g7gg435a893937555g75-kmod-lib-1.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/cda165f80864g7gg435a893937555g75-kmod-lib-1.5.nar.xz"]}
+8044 @nix {"action":"result","id":1149,"type":105,"fields":[43782190,43782190,1,0]}
+8044 @nix {"action":"stop","id":1150}
+8044 @nix {"action":"stop","id":1149}
+8044 @nix {"action":"stop","id":1148}
+8074 @nix {"action":"start","id":1204,"level":3,"parent":0,"text":"copying path '/nix/store/f96fgabd002423a2313g408f3b18gb8a-kbd-lib-1.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/f96fgabd002423a2313g408f3b18gb8a-kbd-lib-1.6","https://cache.nixos.org"]}
+8074 @nix {"action":"start","id":1205,"level":3,"parent":1204,"text":"copying path '/nix/store/f96fgabd002423a2313g408f3b18gb8a-kbd-lib-1.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/f96fgabd002423a2313g408f3b18gb8a-kbd-lib-1.6","https://cache.nixos.org","local"]}
+8089 @nix {"action":"result","id":1185,"type":105,"fields":[15854070,47562211,1,0]}
+8094 @nix {"action":"start","id":1206,"level":3,"parent":1205,"text":"downloading 'https://cache.nixos.org/nar/f96fgabd002423a2313g408f3b18gb8a-kbd-lib-1.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/f96fgabd002423a2313g408f3b18gb8a-kbd-lib-1.6.nar.xz"]}
+8122 @nix {"action":"result","id":1161,"type":105,"fields":[37535164,45042197,1,0]}
+8157 @nix {"action":"result","id":1197,"type":105,"fields":[902245,902245,1,0]}
+8157 @nix {"action":"stop","id":1198}
+8157 @nix {"action":"stop","id":1197}
+8157 @nix {"action":"stop","id":1196}
+8167 @nix {"action":"result","id":1189,"type":105,"fields":[13387522,33476879,1,0]}
+8176 @nix {"action":"result","id":1173,"type":105,"fields":[30868136,46302204,1,0]}
+8187 @nix {"action":"start","id":1208,"level":3,"parent":0,"text":"copying path '/nix/store/a7g98d58f0f6c01648g0a0b543gb10ab-nftables-lib-1.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a7g98d58f0f6c01648g0a0b543gb10ab-nftables-lib-1.7","https://cache.nixos.org"]}
+8187 @nix {"action":"start","id":1209,"level":3,"parent":1208,"text":"copying path '/nix/store/a7g98d58f0f6c01648g0a0b543gb10ab-nftables-lib-1.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a7g98d58f0f6c01648g0a0b543gb10ab-nftables-lib-1.7","https://cache.nixos.org","local"]}
+8207 @nix {"action":"start","id":1210,"level":3,"parent":1209,"text":"downloading 'https://cache.nixos.org/nar/a7g98d58f0f6c01648g0a0b543gb10ab-nftables-lib-1.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a7g98d58f0f6c01648g0a0b543gb10ab-nftables-lib-1.7.nar.xz"]}
+8247 @nix {"action":"result","id":1165,"type":105,"fields":[30956865,30956865,1,0]}
+8247 @nix {"action":"stop","id":1166}
+8247 @nix {"action":"stop","id":1165}
+8247 @nix {"action":"stop","id":1164}
+8277 @nix {"action":"start","id":1212,"level":3,"parent":0,"text":"copying path '/nix/store/51fd24b07753385727980gf46653b81d-iproute2-lib-1.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/51fd24b07753385727980gf46653b81d-iproute2-lib-1.8","https://cache.nixos.org"]}
+8277 @nix {"action":"start","id":1213,"level":3,"parent":1212,"text":"copying path '/nix/store/51fd24b07753385727980gf46653b81d-iproute2-lib-1.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/51fd24b07753385727980gf46653b81d-iproute2-lib-1.8","https://cache.nixos.org","local"]}
+8287 @nix {"action":"result","id":1177,"type":105,"fields":[25773498,32216872,1,0]}
+8297 @nix {"action":"start","id":1214,"level":3,"parent":1213,"text":"downloading 'https://cache.nixos.org/nar/51fd24b07753385727980gf46653b81d-iproute2-lib-1.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/51fd24b07753385727980gf46653b81d-iproute2-lib-1.8.nar.xz"]}
+8441 @nix {"action":"result","id":1201,"type":105,"fields":[6944125,34736886,1,0]}
+8478 @nix {"action":"result","id":1205,"type":105,"fields":[5415861,16247584,1,0]}
+8552 @nix {"action":"result","id":1185,"type":105,"fields":[23781106,47562211,1,0]}
+8564 @nix {"action":"result","id":1161,"type":105,"fields":[45042197,45042197,1,0]}
+8564 @nix {"action":"stop","id":1162}
+8564 @nix {"action":"stop","id":1161}
+8564 @nix {"action":"stop","id":1160}
+8567 @nix {"action":"result","id":1193,"type":105,"fields":[14987577,14987577,1,0]}
+8567 @nix {"action":"stop","id":1194}
+8567 @nix {"action":"stop","id":1193}
+8567 @nix {"action":"stop","id":1192}
+8581 @nix {"action":"result","id":1189,"type":105,"fields":[20073208,33476879,1,0]}
+8594 @nix {"action":"start","id":1216,"level":3,"parent":0,"text":"copying path '/nix/store/2350658bd2403786431cd3a7819195g2-openssh-lib-1.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/2350658bd2403786431cd3a7819195g2-openssh-lib-1.0","https://cache.nixos.org"]}
+8594 @nix {"action":"start","id":1217,"level":3,"parent":1216,"text":"copying path '/nix/store/2350658bd2403786431cd3a7819195g2-openssh-lib-1.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/2350658bd2403786431cd3a7819195g2-openssh-lib-1.0","https://cache.nixos.org","local"]}
+8597 @nix {"action":"start","id":1220,"level":3,"parent":0,"text":"copying path '/nix/store/f262088bg9578abdc6780df7f1201d59-shadow-lib-1.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/f262088bg9578abdc6780df7f1201d59-shadow-lib-1.1","https://cache.nixos.org"]}
+8597 @nix {"action":"start","id":1221,"level":3,"parent":1220,"text":"copying path '/nix/store/f262088bg9578abdc6780df7f1201d59-shadow-lib-1.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/f262088bg9578abdc6780df7f1201d59-shadow-lib-1.1","https://cache.nixos.org","local"]}
+8614 @nix {"action":"start","id":1218,"level":3,"parent":1217,"text":"downloading 'https://cache.nixos.org/nar/2350658bd2403786431cd3a7819195g2-openssh-lib-1.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/2350658bd2403786431cd3a7819195g2-openssh-lib-1.0.nar.xz"]}
+8617 @nix {"action":"start","id":1222,"level":3,"parent":1221,"text":"downloading 'https://cache.nixos.org/nar/f262088bg9578abdc6780df7f1201d59-shadow-lib-1.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/f262088bg9578abdc6780df7f1201d59-shadow-lib-1.1.nar.xz"]}
+8628 @nix {"action":"result","id":1173,"type":105,"fields":[38576643,46302204,1,0]}
+8689 @nix {"action":"result","id":1177,"type":105,"fields":[32216872,32216872,1,0]}
+8689 @nix {"action":"stop","id":1178}
+8689 @nix {"action":"stop","id":1177}
+8689 @nix {"action":"stop","id":1176}
+8695 @nix {"action":"result","id":1209,"type":105,"fields":[2162252,2162252,1,0]}
+8695 @nix {"action":"stop","id":1210}
+8695 @nix {"action":"stop","id":1209}
+8695 @nix {"action":"stop","id":1208}
+8716 @nix {"action":"result","id":1213,"type":105,"fields":[7186283,35996893,1,0]}
+8719 @nix {"action":"start","id":1224,"level":3,"parent":0,"text":"copying path '/nix/store/25gd3gf30746f7120b3ba724868f1769-sudo-lib-1.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/25gd3gf30746f7120b3ba724868f1769-sudo-lib-1.2","https://cache.nixos.org"]}
+8719 @nix {"action":"start","id":1225,"level":3,"parent":1224,"text":"copying path '/nix/store/25gd3gf30746f7120b3ba724868f1769-sudo-lib-1.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/25gd3gf30746f7120b3ba724868f1769-sudo-lib-1.2","https://cache.nixos.org","local"]}
+8725 @nix {"action":"start","id":1228,"level":3,"parent":0,"text":"copying path '/nix/store/b16g5b13757b2d5cf1fc77d61af9b406-less-lib-1.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/b16g5b13757b2d5cf1fc77d61af9b406-less-lib-1.3","https://cache.nixos.org"]}
+8725 @nix {"action":"start","id":1229,"level":3,"parent":1228,"text":"copying path '/nix/store/b16g5b13757b2d5cf1fc77d61af9b406-less-lib-1.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/b16g5b13757b2d5cf1fc77d61af9b406-less-lib-1.3","https://cache.nixos.org","local"]}
+8739 @nix {"action":"start","id":1226,"level":3,"parent":1225,"text":"downloading 'https://cache.nixos.org/nar/25gd3gf30746f7120b3ba724868f1769-sudo-lib-1.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/25gd3gf30746f7120b3ba724868f1769-sudo-lib-1.2.nar.xz"]}
+8745 @nix {"action":"start","id":1230,"level":3,"parent":1229,"text":"downloading 'https://cache.nixos.org/nar/b16g5b13757b2d5cf1fc77d61af9b406-less-lib-1.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/b16g5b13757b2d5cf1fc77d61af9b406-less-lib-1.3.nar.xz"]}
+8868 @nix {"action":"result","id":1201,"type":105,"fields":[13888249,34736886,1,0]}
+8882 @nix {"action":"result","id":1205,"type":105,"fields":[10831723,16247584,1,0]}
+8996 @nix {"action":"result","id":1189,"type":105,"fields":[26775044,33476879,1,0]}
+9015 @nix {"action":"result","id":1185,"type":105,"fields":[31708141,47562211,1,0]}
+9081 @nix {"action":"result","id":1173,"type":105,"fields":[46302204,46302204,1,0]}
+9081 @nix {"action":"stop","id":1174}
+9081 @nix {"action":"stop","id":1173}
+9081 @nix {"action":"stop","id":1172}
+9092 @nix {"action":"result","id":1217,"type":105,"fields":[7298968,21911561,1,0]}
+9111 @nix {"action":"start","id":1232,"level":3,"parent":0,"text":"copying path '/nix/store/72a6865c546c21b0689d72a2024496b0-man-db-lib-1.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/72a6865c546c21b0689d72a2024496b0-man-db-lib-1.4","https://cache.nixos.org"]}
+9111 @nix {"action":"start","id":1233,"level":3,"parent":1232,"text":"copying path '/nix/store/72a6865c546c21b0689d72a2024496b0-man-db-lib-1.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/72a6865c546c21b0689d72a2024496b0-man-db-lib-1.4","https://cache.nixos.org","local"]}
+9131 @nix {"action":"start","id":1234,"level":3,"parent":1233,"text":"downloading 'https://cache.nixos.org/nar/72a6865c546c21b0689d72a2024496b0-man-db-lib-1.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/72a6865c546c21b0689d72a2024496b0-man-db-lib-1.4.nar.xz"]}
+9156 @nix {"action":"result","id":1213,"type":105,"fields":[14388935,35996893,1,0]}
+9168 @nix {"action":"result","id":1221,"type":105,"fields":[3422259,3422259,1,0]}
+9168 @nix {"action":"stop","id":1222}
+9168 @nix {"action":"stop","id":1221}
+9168 @nix {"action":"stop","id":1220}
+9171 @nix {"action":"result","id":1225,"type":105,"fields":[7444792,37256900,1,0]}
+9198 @nix {"action":"start","id":1236,"level":3,"parent":0,"text":"copying path '/nix/store/36f52gbg44f8a1bcg92b111d170gc525-pipewire-lib-1.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/36f52gbg44f8a1bcg92b111d170gc525-pipewire-lib-1.5","https://cache.nixos.org"]}
+9198 @nix {"action":"start","id":1237,"level":3,"parent":1236,"text":"copying path '/nix/store/36f52gbg44f8a1bcg92b111d170gc525-pipewire-lib-1.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/36f52gbg44f8a1bcg92b111d170gc525-pipewire-lib-1.5","https://cache.nixos.org","local"]}
+9218 @nix {"action":"start","id":1238,"level":3,"parent":1237,"text":"downloading 'https://cache.nixos.org/nar/36f52gbg44f8a1bcg92b111d170gc525-pipewire-lib-1.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/36f52gbg44f8a1bcg92b111d170gc525-pipewire-lib-1.5.nar.xz"]}
+9244 @nix {"action":"result","id":1229,"type":105,"fields":[7718898,23171568,1,0]}
+9286 @nix {"action":"result","id":1205,"type":105,"fields":[16247584,16247584,1,0]}
+9286 @nix {"action":"stop","id":1206}
+9286 @nix {"action":"stop","id":1205}
+9286 @nix {"action":"stop","id":1204}
+9295 @nix {"action":"result","id":1201,"type":105,"fields":[20832374,34736886,1,0]}
+9316 @nix {"action":"start","id":1240,"level":3,"parent":0,"text":"copying path '/nix/store/g7b54dc4587c96b2d84781gf6378c02g-bash-lib-2.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/g7b54dc4587c96b2d84781gf6378c02g-bash-lib-2.6","https://cache.nixos.org"]}
+9316 @nix {"action":"start","id":1241,"level":3,"parent":1240,"text":"copying path '/nix/store/g7b54dc4587c96b2d84781gf6378c02g-bash-lib-2.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/g7b54dc4587c96b2d84781gf6378c02g-bash-lib-2.6","https://cache.nixos.org","local"]}
+9336 @nix {"action":"start","id":1242,"level":3,"parent":1241,"text":"downloading 'https://cache.nixos.org/nar/g7b54dc4587c96b2d84781gf6378c02g-bash-lib-2.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/g7b54dc4587c96b2d84781gf6378c02g-bash-lib-2.6.nar.xz"]}
+9411 @nix {"action":"result","id":1189,"type":105,"fields":[33476879,33476879,1,0]}
+9411 @nix {"action":"stop","id":1190}
+9411 @nix {"action":"stop","id":1189}
+9411 @nix {"action":"stop","id":1188}
+9441 @nix {"action":"start","id":1244,"level":3,"parent":0,"text":"copying path '/nix/store/b705170dfb57003fbg3g1b2gf701gb04-coreutils-lib-2.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/b705170dfb57003fbg3g1b2gf701gb04-coreutils-lib-2.7","https://cache.nixos.org"]}
+9441 @nix {"action":"start","id":1245,"level":3,"parent":1244,"text":"copying path '/nix/store/b705170dfb57003fbg3g1b2gf701gb04-coreutils-lib-2.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/b705170dfb57003fbg3g1b2gf701gb04-coreutils-lib-2.7","https://cache.nixos.org","local"]}
+9461 @nix {"action":"start","id":1246,"level":3,"parent":1245,"text":"downloading 'https://cache.nixos.org/nar/b705170dfb57003fbg3g1b2gf701gb04-coreutils-lib-2.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/b705170dfb57003fbg3g1b2gf701gb04-coreutils-lib-2.7.nar.xz"]}
+9478 @nix {"action":"result","id":1185,"type":105,"fields":[39635176,47562211,1,0]}
+9590 @nix {"action":"result","id":1217,"type":105,"fields":[14597936,21911561,1,0]}
+9596 @nix {"action":"result","id":1213,"type":105,"fields":[21591588,35996893,1,0]}
+9623 @nix {"action":"result","id":1225,"type":105,"fields":[14889583,37256900,1,0]}
+9663 @nix {"action":"result","id":1237,"type":105,"fields":[7703381,38516907,1,0]}
+9721 @nix {"action":"result","id":1241,"type":105,"fields":[6104126,24431575,1,0]}
+9722 @nix {"action":"result","id":1201,"type":105,"fields":[27776499,34736886,1,0]}
+9745 @nix {"action":"result","id":1233,"type":105,"fields":[4682266,4682266,1,0]}
+9745 @nix {"action":"stop","id":1234}
+9745 @nix {"action":"stop","id":1233}
+9745 @nix {"action":"stop","id":1232}
+9763 @nix {"action":"result","id":1229,"type":105,"fields":[15437797,23171568,1,0]}
+9775 @nix {"action":"start","id":1248,"level":3,"parent":0,"text":"copying path '/nix/store/cfag85bg07a341038a9522b7799da173-gcc-lib-2.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/cfag85bg07a341038a9522b7799da173-gcc-lib-2.8","https://cache.nixos.org"]}
+9775 @nix {"action":"start","id":1249,"level":3,"parent":1248,"text":"copying path '/nix/store/cfag85bg07a341038a9522b7799da173-gcc-lib-2.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/cfag85bg07a341038a9522b7799da173-gcc-lib-2.8","https://cache.nixos.org","local"]}
+9795 @nix {"action":"start","id":1250,"level":3,"parent":1249,"text":"downloading 'https://cache.nixos.org/nar/cfag85bg07a341038a9522b7799da173-gcc-lib-2.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/cfag85bg07a341038a9522b7799da173-gcc-lib-2.8.nar.xz"]}
+9941 @nix {"action":"result","id":1185,"type":105,"fields":[47562211,47562211,1,0]}
+9941 @nix {"action":"stop","id":1186}
+9941 @nix {"action":"stop","id":1185}
+9941 @nix {"action":"stop","id":1184}
+9971 @nix {"action":"start","id":1252,"level":3,"parent":0,"text":"copying path '/nix/store/a3c15dg62afb6acdbd7af146gb6a46d4-glibc-lib-2.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a3c15dg62afb6acdbd7af146gb6a46d4-glibc-lib-2.0","https://cache.nixos.org"]}
+9971 @nix {"action":"start","id":1253,"level":3,"parent":1252,"text":"copying path '/nix/store/a3c15dg62afb6acdbd7af146gb6a46d4-glibc-lib-2.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a3c15dg62afb6acdbd7af146gb6a46d4-glibc-lib-2.0","https://cache.nixos.org","local"]}
+9991 @nix {"action":"start","id":1254,"level":3,"parent":1253,"text":"downloading 'https://cache.nixos.org/nar/a3c15dg62afb6acdbd7af146gb6a46d4-glibc-lib-2.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a3c15dg62afb6acdbd7af146gb6a46d4-glibc-lib-2.0.nar.xz"]}
+10036 @nix {"action":"result","id":1213,"type":105,"fields":[28794240,35996893,1,0]}
+10076 @nix {"action":"result","id":1225,"type":105,"fields":[22350846,37256900,1,0]}
+10089 @nix {"action":"result","id":1217,"type":105,"fields":[21911561,21911561,1,0]}
+10089 @nix {"action":"stop","id":1218}
+10089 @nix {"action":"stop","id":1217}
+10089 @nix {"action":"stop","id":1216}
+10119 @nix {"action":"start","id":1256,"level":3,"parent":0,"text":"copying path '/nix/store/gg9c489gf3176f576a350fa271f3dgdd-openssl-lib-2.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/gg9c489gf3176f576a350fa271f3dgdd-openssl-lib-2.1","https://cache.nixos.org"]}
+10119 @nix {"action":"start","id":1257,"level":3,"parent":1256,"text":"copying path '/nix/store/gg9c489gf3176f576a350fa271f3dgdd-openssl-lib-2.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/gg9c489gf3176f576a350fa271f3dgdd-openssl-lib-2.1","https://cache.nixos.org","local"]}
+10126 @nix {"action":"result","id":1241,"type":105,"fields":[12208252,24431575,1,0]}
+10128 @nix {"action":"result","id":1237,"type":105,"fields":[15406763,38516907,1,0]}
+10138 @nix {"action":"result","id":1245,"type":105,"fields":[5942273,5942273,1,0]}
+10138 @nix {"action":"stop","id":1246}
+10138 @nix {"action":"stop","id":1245}
+10138 @nix {"action":"stop","id":1244}
+10139 @nix {"action":"start","id":1258,"level":3,"parent":1257,"text":"downloading 'https://cache.nixos.org/nar/gg9c489gf3176f576a350fa271f3dgdd-openssl-lib-2.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/gg9c489gf3176f576a350fa271f3dgdd-openssl-lib-2.1.nar.xz"]}
+10150 @nix {"action":"result","id":1201,"type":105,"fields":[34736886,34736886,1,0]}
+10150 @nix {"action":"stop","id":1202}
+10150 @nix {"action":"stop","id":1201}
+10150 @nix {"action":"stop","id":1200}
+10168 @nix {"action":"start","id":1260,"level":3,"parent":0,"text":"copying path '/nix/store/26f2ab46c211gf116gd218gd89bf40g2-zlib-lib-2.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/26f2ab46c211gf116gd218gd89bf40g2-zlib-lib-2.2","https://cache.nixos.org"]}
+10168 @nix {"action":"start","id":1261,"level":3,"parent":1260,"text":"copying path '/nix/store/26f2ab46c211gf116gd218gd89bf40g2-zlib-lib-2.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/26f2ab46c211gf116gd218gd89bf40g2-zlib-lib-2.2","https://cache.nixos.org","local"]}
+10180 @nix {"action":"start","id":1264,"level":3,"parent":0,"text":"copying path '/nix/store/4f9ag2gbb57a241534gdcca5df044gbf-curl-lib-2.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/4f9ag2gbb57a241534gdcca5df044gbf-curl-lib-2.3","https://cache.nixos.org"]}
+10180 @nix {"action":"start","id":1265,"level":3,"parent":1264,"text":"copying path '/nix/store/4f9ag2gbb57a241534gdcca5df044gbf-curl-lib-2.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/4f9ag2gbb57a241534gdcca5df044gbf-curl-lib-2.3","https://cache.nixos.org","local"]}
+10188 @nix {"action":"start","id":1262,"level":3,"parent":1261,"text":"downloading 'https://cache.nixos.org/nar/26f2ab46c211gf116gd218gd89bf40g2-zlib-lib-2.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/26f2ab46c211gf116gd218gd89bf40g2-zlib-lib-2.2.nar.xz"]}
+10200 @nix {"action":"start","id":1266,"level":3,"parent":1265,"text":"downloading 'https://cache.nixos.org/nar/4f9ag2gbb57a241534gdcca5df044gbf-curl-lib-2.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/4f9ag2gbb57a241534gdcca5df044gbf-curl-lib-2.3.nar.xz"]}
+10209 @nix {"action":"result","id":1249,"type":105,"fields":[7349369,44180884,1,0]}
+10283 @nix {"action":"result","id":1229,"type":105,"fields":[23171568,23171568,1,0]}
+10283 @nix {"action":"stop","id":1230}
+10283 @nix {"action":"stop","id":1229}
+10283 @nix {"action":"stop","id":1228}
+10313 @nix {"action":"start","id":1268,"level":3,"parent":0,"text":"copying path '/nix/store/a0748f3086b03bbb19d50b8987364b9g-python3-lib-2.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/a0748f3086b03bbb19d50b8987364b9g-python3-lib-2.4","https://cache.nixos.org"]}
+10313 @nix {"action":"start","id":1269,"level":3,"parent":1268,"text":"copying path '/nix/store/a0748f3086b03bbb19d50b8987364b9g-python3-lib-2.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/a0748f3086b03bbb19d50b8987364b9g-python3-lib-2.4","https://cache.nixos.org","local"]}
+10333 @nix {"action":"start","id":1270,"level":3,"parent":1269,"text":"downloading 'https://cache.nixos.org/nar/a0748f3086b03bbb19d50b8987364b9g-python3-lib-2.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/a0748f3086b03bbb19d50b8987364b9g-python3-lib-2.4.nar.xz"]}
+10392 @nix {"action":"result","id":1253,"type":105,"fields":[6422896,25691582,1,0]}
+10476 @nix {"action":"result","id":1213,"type":105,"fields":[35996893,35996893,1,0]}
+10476 @nix {"action":"stop","id":1214}
+10476 @nix {"action":"stop","id":1213}
+10476 @nix {"action":"stop","id":1212}
+10506 @nix {"action":"start","id":1272,"level":3,"parent":0,"text":"copying path '/nix/store/20472149cc2f1g7081d4b596g0f1559a-perl-lib-2.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/20472149cc2f1g7081d4b596g0f1559a-perl-lib-2.5","https://cache.nixos.org"]}
+10506 @nix {"action":"start","id":1273,"level":3,"parent":1272,"text":"copying path '/nix/store/20472149cc2f1g7081d4b596g0f1559a-perl-lib-2.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/20472149cc2f1g7081d4b596g0f1559a-perl-lib-2.5","https://cache.nixos.org","local"]}
+10526 @nix {"action":"start","id":1274,"level":3,"parent":1273,"text":"downloading 'https://cache.nixos.org/nar/20472149cc2f1g7081d4b596g0f1559a-perl-lib-2.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/20472149cc2f1g7081d4b596g0f1559a-perl-lib-2.5.nar.xz"]}
+10528 @nix {"action":"result","id":1225,"type":105,"fields":[29795638,37256900,1,0]}
+10531 @nix {"action":"result","id":1241,"type":105,"fields":[18312377,24431575,1,0]}
+10593 @nix {"action":"result","id":1237,"type":105,"fields":[23110144,38516907,1,0]}
+10613 @nix {"action":"result","id":1261,"type":105,"fields":[7567813,45440891,1,0]}
+10616 @nix {"action":"result","id":1265,"type":105,"fields":[6726327,26951589,1,0]}
+10644 @nix {"action":"result","id":1249,"type":105,"fields":[14715672,44180884,1,0]}
+10724 @nix {"action":"result","id":1269,"type":105,"fields":[4226002,8462287,1,0]}
+10813 @nix {"action":"result","id":1253,"type":105,"fields":[12845791,25691582,1,0]}
+10879 @nix {"action":"result","id":1257,"type":105,"fields":[7202280,7202280,1,0]}
+10879 @nix {"action":"stop","id":1258}
+10879 @nix {"action":"stop","id":1257}
+10879 @nix {"action":"stop","id":1256}
+10909 @nix {"action":"start","id":1276,"level":3,"parent":0,"text":"copying path '/nix/store/2b323g1dg49bg1g3454c2f2f324da6f8-git-lib-2.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/2b323g1dg49bg1g3454c2f2f324da6f8-git-lib-2.6","https://cache.nixos.org"]}
+10909 @nix {"action":"start","id":1277,"level":3,"parent":1276,"text":"copying path '/nix/store/2b323g1dg49bg1g3454c2f2f324da6f8-git-lib-2.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/2b323g1dg49bg1g3454c2f2f324da6f8-git-lib-2.6","https://cache.nixos.org","local"]}
+10929 @nix {"action":"start","id":1278,"level":3,"parent":1277,"text":"downloading 'https://cache.nixos.org/nar/2b323g1dg49bg1g3454c2f2f324da6f8-git-lib-2.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/2b323g1dg49bg1g3454c2f2f324da6f8-git-lib-2.6.nar.xz"]}
+10937 @nix {"action":"result","id":1241,"type":105,"fields":[24431575,24431575,1,0]}
+10937 @nix {"action":"stop","id":1242}
+10937 @nix {"action":"stop","id":1241}
+10937 @nix {"action":"stop","id":1240}
+10961 @nix {"action":"result","id":1273,"type":105,"fields":[7769254,46700898,1,0]}
+10967 @nix {"action":"start","id":1280,"level":3,"parent":0,"text":"copying path '/nix/store/82a58f6969a324a46388g0cd3905934d-ncurses-lib-2.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/82a58f6969a324a46388g0cd3905934d-ncurses-lib-2.7","https://cache.nixos.org"]}
+10967 @nix {"action":"start","id":1281,"level":3,"parent":1280,"text":"copying path '/nix/store/82a58f6969a324a46388g0cd3905934d-ncurses-lib-2.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/82a58f6969a324a46388g0cd3905934d-ncurses-lib-2.7","https://cache.nixos.org","local"]}
+10981 @nix {"action":"result","id":1225,"type":105,"fields":[37256900,37256900,1,0]}
+10981 @nix {"action":"stop","id":1226}
+10981 @nix {"action":"stop","id":1225}
+10981 @nix {"action":"stop","id":1224}
+10987 @nix {"action":"start","id":1282,"level":3,"parent":1281,"text":"downloading 'https://cache.nixos.org/nar/82a58f6969a324a46388g0cd3905934d-ncurses-lib-2.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/82a58f6969a324a46388g0cd3905934d-ncurses-lib-2.7.nar.xz"]}
+11011 @nix {"action":"start","id":1284,"level":3,"parent":0,"text":"copying path '/nix/store/0143b75d0ggfd17b14d901gdg4b32f1d-readline-lib-2.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/0143b75d0ggfd17b14d901gdg4b32f1d-readline-lib-2.8","https://cache.nixos.org"]}
+11011 @nix {"action":"start","id":1285,"level":3,"parent":1284,"text":"copying path '/nix/store/0143b75d0ggfd17b14d901gdg4b32f1d-readline-lib-2.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/0143b75d0ggfd17b14d901gdg4b32f1d-readline-lib-2.8","https://cache.nixos.org","local"]}
+11031 @nix {"action":"start","id":1286,"level":3,"parent":1285,"text":"downloading 'https://cache.nixos.org/nar/0143b75d0ggfd17b14d901gdg4b32f1d-readline-lib-2.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/0143b75d0ggfd17b14d901gdg4b32f1d-readline-lib-2.8.nar.xz"]}
+11053 @nix {"action":"result","id":1265,"type":105,"fields":[13468081,26951589,1,0]}
+11058 @nix {"action":"result","id":1237,"type":105,"fields":[30813526,38516907,1,0]}
+11058 @nix {"action":"result","id":1261,"type":105,"fields":[15135626,45440891,1,0]}
+11079 @nix {"action":"result","id":1249,"type":105,"fields":[22081975,44180884,1,0]}
+11136 @nix {"action":"result","id":1269,"type":105,"fields":[8462287,8462287,1,0]}
+11136 @nix {"action":"stop","id":1270}
+11136 @nix {"action":"stop","id":1269}
+11136 @nix {"action":"stop","id":1268}
+11166 @nix {"action":"start","id":1288,"level":3,"parent":0,"text":"copying path '/nix/store/0b8940cbc59502635b677gb6ffabd8b2-sqlite-lib-2.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/0b8940cbc59502635b677gb6ffabd8b2-sqlite-lib-2.0","https://cache.nixos.org"]}
+11166 @nix {"action":"start","id":1289,"level":3,"parent":1288,"text":"copying path '/nix/store/0b8940cbc59502635b677gb6ffabd8b2-sqlite-lib-2.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/0b8940cbc59502635b677gb6ffabd8b2-sqlite-lib-2.0","https://cache.nixos.org","local"]}
+11186 @nix {"action":"start","id":1290,"level":3,"parent":1289,"text":"downloading 'https://cache.nixos.org/nar/0b8940cbc59502635b677gb6ffabd8b2-sqlite-lib-2.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/0b8940cbc59502635b677gb6ffabd8b2-sqlite-lib-2.0.nar.xz"]}
+11234 @nix {"action":"result","id":1253,"type":105,"fields":[19268687,25691582,1,0]}
+11361 @nix {"action":"result","id":1277,"type":105,"fields":[7045106,28211596,1,0]}
+11417 @nix {"action":"result","id":1273,"type":105,"fields":[15555582,46700898,1,0]}
+11477 @nix {"action":"result","id":1285,"type":105,"fields":[7987770,47960905,1,0]}
+11490 @nix {"action":"result","id":1265,"type":105,"fields":[20209835,26951589,1,0]}
+11504 @nix {"action":"result","id":1261,"type":105,"fields":[22720446,45440891,1,0]}
+11514 @nix {"action":"result","id":1249,"type":105,"fields":[29448278,44180884,1,0]}
+11520 @nix {"action":"result","id":1281,"type":105,"fields":[7063132,14126264,1,0]}
+11523 @nix {"action":"result","id":1237,"type":105,"fields":[38516907,38516907,1,0]}
+11523 @nix {"action":"stop","id":1238}
+11523 @nix {"action":"stop","id":1237}
+11523 @nix {"action":"stop","id":1236}
+11553 @nix {"action":"start","id":1292,"level":3,"parent":0,"text":"copying path '/nix/store/f3ff531d4c028c05876c2b206bg81879-libffi-lib-2.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/f3ff531d4c028c05876c2b206bg81879-libffi-lib-2.1","https://cache.nixos.org"]}
+11553 @nix {"action":"start","id":1293,"level":3,"parent":1292,"text":"copying path '/nix/store/f3ff531d4c028c05876c2b206bg81879-libffi-lib-2.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/f3ff531d4c028c05876c2b206bg81879-libffi-lib-2.1","https://cache.nixos.org","local"]}
+11573 @nix {"action":"start","id":1294,"level":3,"parent":1293,"text":"downloading 'https://cache.nixos.org/nar/f3ff531d4c028c05876c2b206bg81879-libffi-lib-2.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/f3ff531d4c028c05876c2b206bg81879-libffi-lib-2.1.nar.xz"]}
+11634 @nix {"action":"result","id":1289,"type":105,"fields":[7363967,29471603,1,0]}
+11655 @nix {"action":"result","id":1253,"type":105,"fields":[25691582,25691582,1,0]}
+11655 @nix {"action":"stop","id":1254}
+11655 @nix {"action":"stop","id":1253}
+11655 @nix {"action":"stop","id":1252}
+11685 @nix {"action":"start","id":1296,"level":3,"parent":0,"text":"copying path '/nix/store/9fg1g4g773c137g00a99g799c5a1768g-xz-lib-2.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/9fg1g4g773c137g00a99g799c5a1768g-xz-lib-2.2","https://cache.nixos.org"]}
+11685 @nix {"action":"start","id":1297,"level":3,"parent":1296,"text":"copying path '/nix/store/9fg1g4g773c137g00a99g799c5a1768g-xz-lib-2.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/9fg1g4g773c137g00a99g799c5a1768g-xz-lib-2.2","https://cache.nixos.org","local"]}
+11705 @nix {"action":"start","id":1298,"level":3,"parent":1297,"text":"downloading 'https://cache.nixos.org/nar/9fg1g4g773c137g00a99g799c5a1768g-xz-lib-2.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/9fg1g4g773c137g00a99g799c5a1768g-xz-lib-2.2.nar.xz"]}
+11814 @nix {"action":"result","id":1277,"type":105,"fields":[14105798,28211596,1,0]}
+11873 @nix {"action":"result","id":1273,"type":105,"fields":[23341911,46700898,1,0]}
+11927 @nix {"action":"result","id":1265,"type":105,"fields":[26951589,26951589,1,0]}
+11927 @nix {"action":"stop","id":1266}
+11927 @nix {"action":"stop","id":1265}
+11927 @nix {"action":"stop","id":1264}
+11943 @nix {"action":"result","id":1285,"type":105,"fields":[15975541,47960905,1,0]}
+11949 @nix {"action":"result","id":1249,"type":105,"fields":[36814581,44180884,1,0]}
+11949 @nix {"action":"result","id":1261,"type":105,"fields":[30288259,45440891,1,0]}
+11957 @nix {"action":"start","id":1300,"level":3,"parent":0,"text":"copying path '/nix/store/bf1600229445b4b94d13796c72f8277b-gettext-lib-2.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/bf1600229445b4b94d13796c72f8277b-gettext-lib-2.3","https://cache.nixos.org"]}
+11957 @nix {"action":"start","id":1301,"level":3,"parent":1300,"text":"copying path '/nix/store/bf1600229445b4b94d13796c72f8277b-gettext-lib-2.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/bf1600229445b4b94d13796c72f8277b-gettext-lib-2.3","https://cache.nixos.org","local"]}
+11977 @nix {"action":"start","id":1302,"level":3,"parent":1301,"text":"downloading 'https://cache.nixos.org/nar/bf1600229445b4b94d13796c72f8277b-gettext-lib-2.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/bf1600229445b4b94d13796c72f8277b-gettext-lib-2.3.nar.xz"]}
+12000 = late
+12073 @nix {"action":"result","id":1281,"type":105,"fields":[14126264,14126264,1,0]}
+12073 @nix {"action":"stop","id":1282}
+12073 @nix {"action":"stop","id":1281}
+12073 @nix {"action":"stop","id":1280}
+12093 @nix {"action":"result","id":1297,"type":105,"fields":[7019270,49220912,1,0]}
+12102 @nix {"action":"result","id":1289,"type":105,"fields":[14727934,29471603,1,0]}
+12103 @nix {"action":"start","id":1304,"level":3,"parent":0,"text":"copying path '/nix/store/gg32aa404a3c5423da8460c0af2a6f5d-systemd-lib-2.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/gg32aa404a3c5423da8460c0af2a6f5d-systemd-lib-2.4","https://cache.nixos.org"]}
+12103 @nix {"action":"start","id":1305,"level":3,"parent":1304,"text":"copying path '/nix/store/gg32aa404a3c5423da8460c0af2a6f5d-systemd-lib-2.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/gg32aa404a3c5423da8460c0af2a6f5d-systemd-lib-2.4","https://cache.nixos.org","local"]}
+12123 @nix {"action":"start","id":1306,"level":3,"parent":1305,"text":"downloading 'https://cache.nixos.org/nar/gg32aa404a3c5423da8460c0af2a6f5d-systemd-lib-2.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/gg32aa404a3c5423da8460c0af2a6f5d-systemd-lib-2.4.nar.xz"]}
+12137 @nix {"action":"result","id":1293,"type":105,"fields":[7686555,15386271,1,0]}
+12266 @nix {"action":"result","id":1277,"type":105,"fields":[21150904,28211596,1,0]}
+12329 @nix {"action":"result","id":1273,"type":105,"fields":[31128240,46700898,1,0]}
+12384 @nix {"action":"result","id":1249,"type":105,"fields":[44180884,44180884,1,0]}
+12384 @nix {"action":"stop","id":1250}
+12384 @nix {"action":"stop","id":1249}
+12384 @nix {"action":"stop","id":1248}
+12388 @nix {"action":"result","id":1301,"type":105,"fields":[7023857,35135580,1,0]}
+12394 @nix {"action":"result","id":1261,"type":105,"fields":[37856072,45440891,1,0]}
+12410 @nix {"action":"result","id":1285,"type":105,"fields":[23980453,47960905,1,0]}
+12414 @nix {"action":"start","id":1308,"level":3,"parent":0,"text":"copying path '/nix/store/8ab1c33a9d34f6fg559b52ff92c29f95-dbus-lib-2.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/8ab1c33a9d34f6fg559b52ff92c29f95-dbus-lib-2.5","https://cache.nixos.org"]}
+12414 @nix {"action":"start","id":1309,"level":3,"parent":1308,"text":"copying path '/nix/store/8ab1c33a9d34f6fg559b52ff92c29f95-dbus-lib-2.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/8ab1c33a9d34f6fg559b52ff92c29f95-dbus-lib-2.5","https://cache.nixos.org","local"]}
+12434 @nix {"action":"start","id":1310,"level":3,"parent":1309,"text":"downloading 'https://cache.nixos.org/nar/8ab1c33a9d34f6fg559b52ff92c29f95-dbus-lib-2.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/8ab1c33a9d34f6fg559b52ff92c29f95-dbus-lib-2.5.nar.xz"]}
+12502 @nix {"action":"result","id":1297,"type":105,"fields":[14055745,49220912,1,0]}
+12513 @nix {"action":"result","id":1305,"type":105,"fields":[5539752,16646278,1,0]}
+12570 @nix {"action":"result","id":1289,"type":105,"fields":[22091901,29471603,1,0]}
+12719 @nix {"action":"result","id":1277,"type":105,"fields":[28211596,28211596,1,0]}
+12719 @nix {"action":"stop","id":1278}
+12719 @nix {"action":"stop","id":1277}
+12719 @nix {"action":"stop","id":1276}
+12722 @nix {"action":"result","id":1293,"type":105,"fields":[15386271,15386271,1,0]}
+12722 @nix {"action":"stop","id":1294}
+12722 @nix {"action":"stop","id":1293}
+12722 @nix {"action":"stop","id":1292}
+12749 @nix {"action":"start","id":1312,"level":3,"parent":0,"text":"copying path '/nix/store/acg93g525fb033199fg559af58d6df89-util-linux-lib-2.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/acg93g525fb033199fg559af58d6df89-util-linux-lib-2.6","https://cache.nixos.org"]}
+12749 @nix {"action":"start","id":1313,"level":3,"parent":1312,"text":"copying path '/nix/store/acg93g525fb033199fg559af58d6df89-util-linux-lib-2.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/acg93g525fb033199fg559af58d6df89-util-linux-lib-2.6","https://cache.nixos.org","local"]}
+12752 @nix {"action":"start","id":1316,"level":3,"parent":0,"text":"copying path '/nix/store/6b20c8a34809b6a7aag2bf444df0c192-linux-pam-lib-2.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/6b20c8a34809b6a7aag2bf444df0c192-linux-pam-lib-2.7","https://cache.nixos.org"]}
+12752 @nix {"action":"start","id":1317,"level":3,"parent":1316,"text":"copying path '/nix/store/6b20c8a34809b6a7aag2bf444df0c192-linux-pam-lib-2.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/6b20c8a34809b6a7aag2bf444df0c192-linux-pam-lib-2.7","https://cache.nixos.org","local"]}
+12769 @nix {"action":"start","id":1314,"level":3,"parent":1313,"text":"downloading 'https://cache.nixos.org/nar/acg93g525fb033199fg559af58d6df89-util-linux-lib-2.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/acg93g525fb033199fg559af58d6df89-util-linux-lib-2.6.nar.xz"]}
+12772 @nix {"action":"start","id":1318,"level":3,"parent":1317,"text":"downloading 'https://cache.nixos.org/nar/6b20c8a34809b6a7aag2bf444df0c192-linux-pam-lib-2.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/6b20c8a34809b6a7aag2bf444df0c192-linux-pam-lib-2.7.nar.xz"]}
+12785 @nix {"action":"result","id":1273,"type":105,"fields":[38914569,46700898,1,0]}
+12819 @nix {"action":"result","id":1301,"type":105,"fields":[14047713,35135580,1,0]}
+12831 @nix {"action":"result","id":1309,"type":105,"fields":[7199228,50480919,1,0]}
+12840 @nix {"action":"result","id":1261,"type":105,"fields":[45440891,45440891,1,0]}
+12840 @nix {"action":"stop","id":1262}
+12840 @nix {"action":"stop","id":1261}
+12840 @nix {"action":"stop","id":1260}
+12870 @nix {"action":"start","id":1320,"level":3,"parent":0,"text":"copying path '/nix/store/6878a621f87dg245050cgf26f9d2a431-kmod-lib-2.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/6878a621f87dg245050cgf26f9d2a431-kmod-lib-2.8","https://cache.nixos.org"]}
+12870 @nix {"action":"start","id":1321,"level":3,"parent":1320,"text":"copying path '/nix/store/6878a621f87dg245050cgf26f9d2a431-kmod-lib-2.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/6878a621f87dg245050cgf26f9d2a431-kmod-lib-2.8","https://cache.nixos.org","local"]}
+12876 @nix {"action":"result","id":1285,"type":105,"fields":[31968223,47960905,1,0]}
+12890 @nix {"action":"start","id":1322,"level":3,"parent":1321,"text":"downloading 'https://cache.nixos.org/nar/6878a621f87dg245050cgf26f9d2a431-kmod-lib-2.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/6878a621f87dg245050cgf26f9d2a431-kmod-lib-2.8.nar.xz"]}
+12911 @nix {"action":"result","id":1297,"type":105,"fields":[21092219,49220912,1,0]}
+12924 @nix {"action":"result","id":1305,"type":105,"fields":[11093015,16646278,1,0]}
+13039 @nix {"action":"result","id":1289,"type":105,"fields":[29471603,29471603,1,0]}
+13039 @nix {"action":"stop","id":1290}
+13039 @nix {"action":"stop","id":1289}
+13039 @nix {"action":"stop","id":1288}
+13069 @nix {"action":"start","id":1324,"level":3,"parent":0,"text":"copying path '/nix/store/29658ba30f11fbadf97af5gfa7cg0cbf-kbd-lib-2.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/29658ba30f11fbadf97af5gfa7cg0cbf-kbd-lib-2.0","https://cache.nixos.org"]}
+13069 @nix {"action":"start","id":1325,"level":3,"parent":1324,"text":"copying path '/nix/store/29658ba30f11fbadf97af5gfa7cg0cbf-kbd-lib-2.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/29658ba30f11fbadf97af5gfa7cg0cbf-kbd-lib-2.0","https://cache.nixos.org","local"]}
+13089 @nix {"action":"start","id":1326,"level":3,"parent":1325,"text":"downloading 'https://cache.nixos.org/nar/29658ba30f11fbadf97af5gfa7cg0cbf-kbd-lib-2.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/29658ba30f11fbadf97af5gfa7cg0cbf-kbd-lib-2.0.nar.xz"]}
+13183 @nix {"action":"result","id":1317,"type":105,"fields":[5959544,17906285,1,0]}
+13192 @nix {"action":"result","id":1313,"type":105,"fields":[7265996,36395587,1,0]}
+13241 @nix {"action":"result","id":1273,"type":105,"fields":[46700898,46700898,1,0]}
+13241 @nix {"action":"stop","id":1274}
+13241 @nix {"action":"stop","id":1273}
+13241 @nix {"action":"stop","id":1272}
+13249 @nix {"action":"result","id":1309,"type":105,"fields":[14415721,50480919,1,0]}
+13250 @nix {"action":"result","id":1301,"type":105,"fields":[21071570,35135580,1,0]}
+13271 @nix {"action":"start","id":1328,"level":3,"parent":0,"text":"copying path '/nix/store/2c7f197638a5938df3a4944fcd9a69f6-nftables-lib-2.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/2c7f197638a5938df3a4944fcd9a69f6-nftables-lib-2.1","https://cache.nixos.org"]}
+13271 @nix {"action":"start","id":1329,"level":3,"parent":1328,"text":"copying path '/nix/store/2c7f197638a5938df3a4944fcd9a69f6-nftables-lib-2.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/2c7f197638a5938df3a4944fcd9a69f6-nftables-lib-2.1","https://cache.nixos.org","local"]}
+13291 @nix {"action":"start","id":1330,"level":3,"parent":1329,"text":"downloading 'https://cache.nixos.org/nar/2c7f197638a5938df3a4944fcd9a69f6-nftables-lib-2.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/2c7f197638a5938df3a4944fcd9a69f6-nftables-lib-2.1.nar.xz"]}
+13296 @nix {"action":"result","id":1321,"type":105,"fields":[7379188,51740926,1,0]}
+13319 @nix {"action":"result","id":1297,"type":105,"fields":[28111489,49220912,1,0]}
+13335 @nix {"action":"result","id":1305,"type":105,"fields":[16646278,16646278,1,0]}
+13335 @nix {"action":"stop","id":1306}
+13335 @nix {"action":"stop","id":1305}
+13335 @nix {"action":"stop","id":1304}
+13342 @nix {"action":"result","id":1285,"type":105,"fields":[39955993,47960905,1,0]}
+13365 @nix {"action":"start","id":1332,"level":3,"parent":0,"text":"copying path '/nix/store/8caa459d15c3gg32ff0cg627d07agf05-iproute2-lib-2.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/8caa459d15c3gg32ff0cg627d07agf05-iproute2-lib-2.2","https://cache.nixos.org"]}
+13365 @nix {"action":"start","id":1333,"level":3,"parent":1332,"text":"copying path '/nix/store/8caa459d15c3gg32ff0cg627d07agf05-iproute2-lib-2.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/8caa459d15c3gg32ff0cg627d07agf05-iproute2-lib-2.2","https://cache.nixos.org","local"]}
+13385 @nix {"action":"start","id":1334,"level":3,"parent":1333,"text":"downloading 'https://cache.nixos.org/nar/8caa459d15c3gg32ff0cg627d07agf05-iproute2-lib-2.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/8caa459d15c3gg32ff0cg627d07agf05-iproute2-lib-2.2.nar.xz"]}
+13525 @nix {"action":"result","id":1325,"type":105,"fields":[7524518,37655594,1,0]}
+13615 @nix {"action":"result","id":1317,"type":105,"fields":[11932914,17906285,1,0]}
+13636 @nix {"action":"result","id":1313,"type":105,"fields":[14548394,36395587,1,0]}
+13667 @nix {"action":"result","id":1309,"type":105,"fields":[21632213,50480919,1,0]}
+13681 @nix {"action":"result","id":1301,"type":105,"fields":[28095427,35135580,1,0]}
+13723 @nix {"action":"result","id":1321,"type":105,"fields":[14775698,51740926,1,0]}
+13723 @nix {"action":"result","id":1329,"type":105,"fields":[6379355,19166292,1,0]}
+13728 @nix {"action":"result","id":1297,"type":105,"fields":[35147963,49220912,1,0]}
+13809 @nix {"action":"result","id":1285,"type":105,"fields":[47960905,47960905,1,0]}
+13809 @nix {"action":"stop","id":1286}
+13809 @nix {"action":"stop","id":1285}
+13809 @nix {"action":"stop","id":1284}
+13839 @nix {"action":"start","id":1336,"level":3,"parent":0,"text":"copying path '/nix/store/af9d09ca6f5a93148ca7a2df57b5g48a-openssh-lib-2.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/af9d09ca6f5a93148ca7a2df57b5g48a-openssh-lib-2.3","https://cache.nixos.org"]}
+13839 @nix {"action":"start","id":1337,"level":3,"parent":1336,"text":"copying path '/nix/store/af9d09ca6f5a93148ca7a2df57b5g48a-openssh-lib-2.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/af9d09ca6f5a93148ca7a2df57b5g48a-openssh-lib-2.3","https://cache.nixos.org","local"]}
+13859 @nix {"action":"start","id":1338,"level":3,"parent":1337,"text":"downloading 'https://cache.nixos.org/nar/af9d09ca6f5a93148ca7a2df57b5g48a-openssh-lib-2.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/af9d09ca6f5a93148ca7a2df57b5g48a-openssh-lib-2.3.nar.xz"]}
+13981 @nix {"action":"result","id":1325,"type":105,"fields":[15049037,37655594,1,0]}
+14019 @nix {"action":"result","id":1333,"type":105,"fields":[5080960,5080960,1,0]}
+14019 @nix {"action":"stop","id":1334}
+14019 @nix {"action":"stop","id":1333}
+14019 @nix {"action":"stop","id":1332}
+14047 @nix {"action":"result","id":1317,"type":105,"fields":[17906285,17906285,1,0]}
+14047 @nix {"action":"stop","id":1318}
+14047 @nix {"action":"stop","id":1317}
+14047 @nix {"action":"stop","id":1316}
+14049 @nix {"action":"start","id":1340,"level":3,"parent":0,"text":"copying path '/nix/store/d48f8b2a2cad698f8f53c361289c1626-shadow-lib-2.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/d48f8b2a2cad698f8f53c361289c1626-shadow-lib-2.4","https://cache.nixos.org"]}
+14049 @nix {"action":"start","id":1341,"level":3,"parent":1340,"text":"copying path '/nix/store/d48f8b2a2cad698f8f53c361289c1626-shadow-lib-2.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/d48f8b2a2cad698f8f53c361289c1626-shadow-lib-2.4","https://cache.nixos.org","local"]}
+14069 @nix {"action":"start","id":1342,"level":3,"parent":1341,"text":"downloading 'https://cache.nixos.org/nar/d48f8b2a2cad698f8f53c361289c1626-shadow-lib-2.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/d48f8b2a2cad698f8f53c361289c1626-shadow-lib-2.4.nar.xz"]}
+14077 @nix {"action":"start","id":1344,"level":3,"parent":0,"text":"copying path '/nix/store/0adf60577328bf90d205d66f23bgd2ca-sudo-lib-2.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/0adf60577328bf90d205d66f23bgd2ca-sudo-lib-2.5","https://cache.nixos.org"]}
+14077 @nix {"action":"start","id":1345,"level":3,"parent":1344,"text":"copying path '/nix/store/0adf60577328bf90d205d66f23bgd2ca-sudo-lib-2.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/0adf60577328bf90d205d66f23bgd2ca-sudo-lib-2.5","https://cache.nixos.org","local"]}
+14080 @nix {"action":"result","id":1313,"type":105,"fields":[21830791,36395587,1,0]}
+14084 @nix {"action":"result","id":1309,"type":105,"fields":[28831441,50480919,1,0]}
+14097 @nix {"action":"start","id":1346,"level":3,"parent":1345,"text":"downloading 'https://cache.nixos.org/nar/0adf60577328bf90d205d66f23bgd2ca-sudo-lib-2.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/0adf60577328bf90d205d66f23bgd2ca-sudo-lib-2.5.nar.xz"]}
+14113 @nix {"action":"result","id":1301,"type":105,"fields":[35135580,35135580,1,0]}
+14113 @nix {"action":"stop","id":1302}
+14113 @nix {"action":"stop","id":1301}
+14113 @nix {"action":"stop","id":1300}
+14137 @nix {"action":"result","id":1297,"type":105,"fields":[42184438,49220912,1,0]}
+14143 @nix {"action":"start","id":1348,"level":3,"parent":0,"text":"copying path '/nix/store/50d849487217aabg23c02589b6b64b26-less-lib-2.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/50d849487217aabg23c02589b6b64b26-less-lib-2.6","https://cache.nixos.org"]}
+14143 @nix {"action":"start","id":1349,"level":3,"parent":1348,"text":"copying path '/nix/store/50d849487217aabg23c02589b6b64b26-less-lib-2.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/50d849487217aabg23c02589b6b64b26-less-lib-2.6","https://cache.nixos.org","local"]}
+14150 @nix {"action":"result","id":1321,"type":105,"fields":[22172208,51740926,1,0]}
+14163 @nix {"action":"start","id":1350,"level":3,"parent":1349,"text":"downloading 'https://cache.nixos.org/nar/50d849487217aabg23c02589b6b64b26-less-lib-2.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/50d849487217aabg23c02589b6b64b26-less-lib-2.6.nar.xz"]}
+14176 @nix {"action":"result","id":1329,"type":105,"fields":[12772823,19166292,1,0]}
+14308 @nix {"action":"result","id":1337,"type":105,"fields":[7783120,38915601,1,0]}
+14438 @nix {"action":"result","id":1325,"type":105,"fields":[22590056,37655594,1,0]}
+14502 @nix {"action":"result","id":1309,"type":105,"fields":[36047934,50480919,1,0]}
+14522 @nix {"action":"result","id":1341,"type":105,"fields":[6799183,20426299,1,0]}
+14524 @nix {"action":"result","id":1313,"type":105,"fields":[29113189,36395587,1,0]}
+14544 @nix {"action":"result","id":1349,"type":105,"fields":[6690373,40175608,1,0]}
+14546 @nix {"action":"result","id":1297,"type":105,"fields":[49220912,49220912,1,0]}
+14546 @nix {"action":"stop","id":1298}
+14546 @nix {"action":"stop","id":1297}
+14546 @nix {"action":"stop","id":1296}
+14576 @nix {"action":"result","id":1321,"type":105,"fields":[29551396,51740926,1,0]}
+14576 @nix {"action":"start","id":1352,"level":3,"parent":0,"text":"copying path '/nix/store/b65g96g6g82224353g9f4a2b0b2aaf4d-man-db-lib-2.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/b65g96g6g82224353g9f4a2b0b2aaf4d-man-db-lib-2.7","https://cache.nixos.org"]}
+14576 @nix {"action":"start","id":1353,"level":3,"parent":1352,"text":"copying path '/nix/store/b65g96g6g82224353g9f4a2b0b2aaf4d-man-db-lib-2.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/b65g96g6g82224353g9f4a2b0b2aaf4d-man-db-lib-2.7","https://cache.nixos.org","local"]}
+14596 @nix {"action":"start","id":1354,"level":3,"parent":1353,"text":"downloading 'https://cache.nixos.org/nar/b65g96g6g82224353g9f4a2b0b2aaf4d-man-db-lib-2.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/b65g96g6g82224353g9f4a2b0b2aaf4d-man-db-lib-2.7.nar.xz"]}
+14629 @nix {"action":"result","id":1329,"type":105,"fields":[19166292,19166292,1,0]}
+14629 @nix {"action":"stop","id":1330}
+14629 @nix {"action":"stop","id":1329}
+14629 @nix {"action":"stop","id":1328}
+14659 @nix {"action":"start","id":1356,"level":3,"parent":0,"text":"copying path '/nix/store/d499gcg2gg17b68291aa84d48a48f2ba-pipewire-lib-2.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/d499gcg2gg17b68291aa84d48a48f2ba-pipewire-lib-2.8","https://cache.nixos.org"]}
+14659 @nix {"action":"start","id":1357,"level":3,"parent":1356,"text":"copying path '/nix/store/d499gcg2gg17b68291aa84d48a48f2ba-pipewire-lib-2.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/d499gcg2gg17b68291aa84d48a48f2ba-pipewire-lib-2.8","https://cache.nixos.org","local"]}
+14679 @nix {"action":"start","id":1358,"level":3,"parent":1357,"text":"downloading 'https://cache.nixos.org/nar/d499gcg2gg17b68291aa84d48a48f2ba-pipewire-lib-2.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/d499gcg2gg17b68291aa84d48a48f2ba-pipewire-lib-2.8.nar.xz"]}
+14777 @nix {"action":"result","id":1337,"type":105,"fields":[15566240,38915601,1,0]}
+14794 @nix {"action":"result","id":1345,"type":105,"fields":[6340967,6340967,1,0]}
+14794 @nix {"action":"stop","id":1346}
+14794 @nix {"action":"stop","id":1345}
+14794 @nix {"action":"stop","id":1344}
+14824 @nix {"action":"start","id":1360,"level":3,"parent":0,"text":"copying path '/nix/store/655c1g43cfbd31g833ddbcd67004a5gd-bash-lib-3.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/655c1g43cfbd31g833ddbcd67004a5gd-bash-lib-3.0","https://cache.nixos.org"]}
+14824 @nix {"action":"start","id":1361,"level":3,"parent":1360,"text":"copying path '/nix/store/655c1g43cfbd31g833ddbcd67004a5gd-bash-lib-3.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/655c1g43cfbd31g833ddbcd67004a5gd-bash-lib-3.0","https://cache.nixos.org","local"]}
+14844 @nix {"action":"start","id":1362,"level":3,"parent":1361,"text":"downloading 'https://cache.nixos.org/nar/655c1g43cfbd31g833ddbcd67004a5gd-bash-lib-3.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/655c1g43cfbd31g833ddbcd67004a5gd-bash-lib-3.0.nar.xz"]}
+14894 @nix {"action":"result","id":1325,"type":105,"fields":[30114575,37655594,1,0]}
+14920 @nix {"action":"result","id":1309,"type":105,"fields":[43264426,50480919,1,0]}
+14945 @nix {"action":"result","id":1349,"type":105,"fields":[13380747,40175608,1,0]}
+14968 @nix {"action":"result","id":1313,"type":105,"fields":[36395587,36395587,1,0]}
+14968 @nix {"action":"stop","id":1314}
+14968 @nix {"action":"stop","id":1313}
+14968 @nix {"action":"stop","id":1312}
+14996 @nix {"action":"result","id":1341,"type":105,"fields":[13612741,20426299,1,0]}
+14998 @nix {"action":"start","id":1364,"level":3,"parent":0,"text":"copying path '/nix/store/935ad50g1c4f684f7cacd57c3gf76db1-coreutils-lib-3.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/935ad50g1c4f684f7cacd57c3gf76db1-coreutils-lib-3.1","https://cache.nixos.org"]}
+14998 @nix {"action":"start","id":1365,"level":3,"parent":1364,"text":"copying path '/nix/store/935ad50g1c4f684f7cacd57c3gf76db1-coreutils-lib-3.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/935ad50g1c4f684f7cacd57c3gf76db1-coreutils-lib-3.1","https://cache.nixos.org","local"]}
+15003 @nix {"action":"result","id":1321,"type":105,"fields":[36947906,51740926,1,0]}
+15018 @nix {"action":"start","id":1366,"level":3,"parent":1365,"text":"downloading 'https://cache.nixos.org/nar/935ad50g1c4f684f7cacd57c3gf76db1-coreutils-lib-3.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/935ad50g1c4f684f7cacd57c3gf76db1-coreutils-lib-3.1.nar.xz"]}
+15070 @nix {"action":"result","id":1353,"type":105,"fields":[7219026,21686306,1,0]}
+15235 @nix {"action":"result","id":1361,"type":105,"fields":[6891962,41435615,1,0]}
+15246 @nix {"action":"result","id":1337,"type":105,"fields":[23349361,38915601,1,0]}
+15338 @nix {"action":"result","id":1309,"type":105,"fields":[50480919,50480919,1,0]}
+15338 @nix {"action":"stop","id":1310}
+15338 @nix {"action":"stop","id":1309}
+15338 @nix {"action":"stop","id":1308}
+15347 @nix {"action":"result","id":1349,"type":105,"fields":[20087804,40175608,1,0]}
+15351 @nix {"action":"result","id":1325,"type":105,"fields":[37655594,37655594,1,0]}
+15351 @nix {"action":"stop","id":1326}
+15351 @nix {"action":"stop","id":1325}
+15351 @nix {"action":"stop","id":1324}
+15368 @nix {"action":"start","id":1368,"level":3,"parent":0,"text":"copying path '/nix/store/d00420d16266bg0245bbc5fddfg91f6f-gcc-lib-3.2' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/d00420d16266bg0245bbc5fddfg91f6f-gcc-lib-3.2","https://cache.nixos.org"]}
+15368 @nix {"action":"start","id":1369,"level":3,"parent":1368,"text":"copying path '/nix/store/d00420d16266bg0245bbc5fddfg91f6f-gcc-lib-3.2' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/d00420d16266bg0245bbc5fddfg91f6f-gcc-lib-3.2","https://cache.nixos.org","local"]}
+15381 @nix {"action":"start","id":1372,"level":3,"parent":0,"text":"copying path '/nix/store/16f0466874bb75756d506ga0f7f99gc1-glibc-lib-3.3' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/16f0466874bb75756d506ga0f7f99gc1-glibc-lib-3.3","https://cache.nixos.org"]}
+15381 @nix {"action":"start","id":1373,"level":3,"parent":1372,"text":"copying path '/nix/store/16f0466874bb75756d506ga0f7f99gc1-glibc-lib-3.3' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/16f0466874bb75756d506ga0f7f99gc1-glibc-lib-3.3","https://cache.nixos.org","local"]}
+15388 @nix {"action":"start","id":1370,"level":3,"parent":1369,"text":"downloading 'https://cache.nixos.org/nar/d00420d16266bg0245bbc5fddfg91f6f-gcc-lib-3.2.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/d00420d16266bg0245bbc5fddfg91f6f-gcc-lib-3.2.nar.xz"]}
+15401 @nix {"action":"start","id":1374,"level":3,"parent":1373,"text":"downloading 'https://cache.nixos.org/nar/16f0466874bb75756d506ga0f7f99gc1-glibc-lib-3.3.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/16f0466874bb75756d506ga0f7f99gc1-glibc-lib-3.3.nar.xz"]}
+15430 @nix {"action":"result","id":1321,"type":105,"fields":[44344416,51740926,1,0]}
+15439 @nix {"action":"result","id":1357,"type":105,"fields":[7600974,7600974,1,0]}
+15439 @nix {"action":"stop","id":1358}
+15439 @nix {"action":"stop","id":1357}
+15439 @nix {"action":"stop","id":1356}
+15439 @nix {"action":"result","id":1365,"type":105,"fields":[6825962,27350283,1,0]}
+15469 @nix {"action":"start","id":1376,"level":3,"parent":0,"text":"copying path '/nix/store/c905139ca29b5f41289424c91ccc78c8-openssl-lib-3.4' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/c905139ca29b5f41289424c91ccc78c8-openssl-lib-3.4","https://cache.nixos.org"]}
+15469 @nix {"action":"start","id":1377,"level":3,"parent":1376,"text":"copying path '/nix/store/c905139ca29b5f41289424c91ccc78c8-openssl-lib-3.4' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/c905139ca29b5f41289424c91ccc78c8-openssl-lib-3.4","https://cache.nixos.org","local"]}
+15470 @nix {"action":"result","id":1341,"type":105,"fields":[20426299,20426299,1,0]}
+15470 @nix {"action":"stop","id":1342}
+15470 @nix {"action":"stop","id":1341}
+15470 @nix {"action":"stop","id":1340}
+15489 @nix {"action":"start","id":1378,"level":3,"parent":1377,"text":"downloading 'https://cache.nixos.org/nar/c905139ca29b5f41289424c91ccc78c8-openssl-lib-3.4.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/c905139ca29b5f41289424c91ccc78c8-openssl-lib-3.4.nar.xz"]}
+15500 @nix {"action":"start","id":1380,"level":3,"parent":0,"text":"copying path '/nix/store/423aa239fb65dgd8d815ad12a379a781-zlib-lib-3.5' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/423aa239fb65dgd8d815ad12a379a781-zlib-lib-3.5","https://cache.nixos.org"]}
+15500 @nix {"action":"start","id":1381,"level":3,"parent":1380,"text":"copying path '/nix/store/423aa239fb65dgd8d815ad12a379a781-zlib-lib-3.5' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/423aa239fb65dgd8d815ad12a379a781-zlib-lib-3.5","https://cache.nixos.org","local"]}
+15520 @nix {"action":"start","id":1382,"level":3,"parent":1381,"text":"downloading 'https://cache.nixos.org/nar/423aa239fb65dgd8d815ad12a379a781-zlib-lib-3.5.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/423aa239fb65dgd8d815ad12a379a781-zlib-lib-3.5.nar.xz"]}
+15565 @nix {"action":"result","id":1353,"type":105,"fields":[14452666,21686306,1,0]}
+15647 @nix {"action":"result","id":1361,"type":105,"fields":[13800692,41435615,1,0]}
+15715 @nix {"action":"result","id":1337,"type":105,"fields":[31132481,38915601,1,0]}
+15748 @nix {"action":"result","id":1349,"type":105,"fields":[26778177,40175608,1,0]}
+15789 @nix {"action":"result","id":1369,"type":105,"fields":[4425235,8860981,1,0]}
+15803 @nix {"action":"result","id":1373,"type":105,"fields":[7110321,42695622,1,0]}
+15857 @nix {"action":"result","id":1321,"type":105,"fields":[51740926,51740926,1,0]}
+15857 @nix {"action":"stop","id":1322}
+15857 @nix {"action":"stop","id":1321}
+15857 @nix {"action":"stop","id":1320}
+15881 @nix {"action":"result","id":1365,"type":105,"fields":[13667402,27350283,1,0]}
+15887 @nix {"action":"start","id":1384,"level":3,"parent":0,"text":"copying path '/nix/store/c6f431d63ga0f8cdf042ddgacd83bg17-curl-lib-3.6' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/c6f431d63ga0f8cdf042ddgacd83bg17-curl-lib-3.6","https://cache.nixos.org"]}
+15887 @nix {"action":"start","id":1385,"level":3,"parent":1384,"text":"copying path '/nix/store/c6f431d63ga0f8cdf042ddgacd83bg17-curl-lib-3.6' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/c6f431d63ga0f8cdf042ddgacd83bg17-curl-lib-3.6","https://cache.nixos.org","local"]}
+15907 @nix {"action":"start","id":1386,"level":3,"parent":1385,"text":"downloading 'https://cache.nixos.org/nar/c6f431d63ga0f8cdf042ddgacd83bg17-curl-lib-3.6.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/c6f431d63ga0f8cdf042ddgacd83bg17-curl-lib-3.6.nar.xz"]}
+15926 @nix {"action":"result","id":1377,"type":105,"fields":[7144755,28610290,1,0]}
+15953 @nix {"action":"result","id":1381,"type":105,"fields":[5060494,10120988,1,0]}
+16059 @nix {"action":"result","id":1361,"type":105,"fields":[20709423,41435615,1,0]}
+16060 @nix {"action":"result","id":1353,"type":105,"fields":[21686306,21686306,1,0]}
+16060 @nix {"action":"stop","id":1354}
+16060 @nix {"action":"stop","id":1353}
+16060 @nix {"action":"stop","id":1352}
+16090 @nix {"action":"start","id":1388,"level":3,"parent":0,"text":"copying path '/nix/store/fg2ag213d19f9b328cg9560891bad4gf-python3-lib-3.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/fg2ag213d19f9b328cg9560891bad4gf-python3-lib-3.7","https://cache.nixos.org"]}
+16090 @nix {"action":"start","id":1389,"level":3,"parent":1388,"text":"copying path '/nix/store/fg2ag213d19f9b328cg9560891bad4gf-python3-lib-3.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/fg2ag213d19f9b328cg9560891bad4gf-python3-lib-3.7","https://cache.nixos.org","local"]}
+16110 @nix {"action":"start","id":1390,"level":3,"parent":1389,"text":"downloading 'https://cache.nixos.org/nar/fg2ag213d19f9b328cg9560891bad4gf-python3-lib-3.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/fg2ag213d19f9b328cg9560891bad4gf-python3-lib-3.7.nar.xz"]}
+16149 @nix {"action":"result","id":1349,"type":105,"fields":[33468551,40175608,1,0]}
+16184 @nix {"action":"result","id":1337,"type":105,"fields":[38915601,38915601,1,0]}
+16184 @nix {"action":"stop","id":1338}
+16184 @nix {"action":"stop","id":1337}
+16184 @nix {"action":"stop","id":1336}
+16211 @nix {"action":"result","id":1369,"type":105,"fields":[8860981,8860981,1,0]}
+16211 @nix {"action":"stop","id":1370}
+16211 @nix {"action":"stop","id":1369}
+16211 @nix {"action":"stop","id":1368}
+16214 @nix {"action":"start","id":1392,"level":3,"parent":0,"text":"copying path '/nix/store/9613646c9f73c8f84ac6dfcdgac9fgf6-perl-lib-3.8' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/9613646c9f73c8f84ac6dfcdgac9fgf6-perl-lib-3.8","https://cache.nixos.org"]}
+16214 @nix {"action":"start","id":1393,"level":3,"parent":1392,"text":"copying path '/nix/store/9613646c9f73c8f84ac6dfcdgac9fgf6-perl-lib-3.8' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/9613646c9f73c8f84ac6dfcdgac9fgf6-perl-lib-3.8","https://cache.nixos.org","local"]}
+16225 @nix {"action":"result","id":1373,"type":105,"fields":[14220641,42695622,1,0]}
+16234 @nix {"action":"start","id":1394,"level":3,"parent":1393,"text":"downloading 'https://cache.nixos.org/nar/9613646c9f73c8f84ac6dfcdgac9fgf6-perl-lib-3.8.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/9613646c9f73c8f84ac6dfcdgac9fgf6-perl-lib-3.8.nar.xz"]}
+16241 @nix {"action":"start","id":1396,"level":3,"parent":0,"text":"copying path '/nix/store/789fcd0f6c2a89a10008bd31869192ad-git-lib-3.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/789fcd0f6c2a89a10008bd31869192ad-git-lib-3.0","https://cache.nixos.org"]}
+16241 @nix {"action":"start","id":1397,"level":3,"parent":1396,"text":"copying path '/nix/store/789fcd0f6c2a89a10008bd31869192ad-git-lib-3.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/789fcd0f6c2a89a10008bd31869192ad-git-lib-3.0","https://cache.nixos.org","local"]}
+16261 @nix {"action":"start","id":1398,"level":3,"parent":1397,"text":"downloading 'https://cache.nixos.org/nar/789fcd0f6c2a89a10008bd31869192ad-git-lib-3.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/789fcd0f6c2a89a10008bd31869192ad-git-lib-3.0.nar.xz"]}
+16289 @nix {"action":"result","id":1385,"type":105,"fields":[6901157,48359599,1,0]}
+16323 @nix {"action":"result","id":1365,"type":105,"fields":[20508843,27350283,1,0]}
+16384 @nix {"action":"result","id":1377,"type":105,"fields":[14305145,28610290,1,0]}
+16406 @nix {"action":"result","id":1381,"type":105,"fields":[10120988,10120988,1,0]}
+16406 @nix {"action":"stop","id":1382}
+16406 @nix {"action":"stop","id":1381}
+16406 @nix {"action":"stop","id":1380}
+16471 @nix {"action":"result","id":1361,"type":105,"fields":[27618154,41435615,1,0]}
+16551 @nix {"action":"result","id":1349,"type":105,"fields":[40175608,40175608,1,0]}
+16551 @nix {"action":"stop","id":1350}
+16551 @nix {"action":"stop","id":1349}
+16551 @nix {"action":"stop","id":1348}
+16563 @nix {"action":"result","id":1389,"type":105,"fields":[7463629,29870297,1,0]}
+16648 @nix {"action":"result","id":1373,"type":105,"fields":[21347811,42695622,1,0]}
+16652 @nix {"action":"result","id":1397,"type":105,"fields":[7081131,49619606,1,0]}
+16691 @nix {"action":"result","id":1385,"type":105,"fields":[13802314,48359599,1,0]}
+16698 @nix {"action":"result","id":1393,"type":105,"fields":[5684625,11380995,1,0]}
+16765 @nix {"action":"result","id":1365,"type":105,"fields":[27350283,27350283,1,0]}
+16765 @nix {"action":"stop","id":1366}
+16765 @nix {"action":"stop","id":1365}
+16765 @nix {"action":"stop","id":1364}
+16841 @nix {"action":"result","id":1377,"type":105,"fields":[21449900,28610290,1,0]}
+16883 @nix {"action":"result","id":1361,"type":105,"fields":[34526884,41435615,1,0]}
+17036 @nix {"action":"result","id":1389,"type":105,"fields":[14927259,29870297,1,0]}
+17063 @nix {"action":"result","id":1397,"type":105,"fields":[14162263,49619606,1,0]}
+17070 @nix {"action":"result","id":1373,"type":105,"fields":[28458132,42695622,1,0]}
+17094 @nix {"action":"result","id":1385,"type":105,"fields":[20720638,48359599,1,0]}
+17183 @nix {"action":"result","id":1393,"type":105,"fields":[11380995,11380995,1,0]}
+17183 @nix {"action":"stop","id":1394}
+17183 @nix {"action":"stop","id":1393}
+17183 @nix {"action":"stop","id":1392}
+17295 @nix {"action":"result","id":1361,"type":105,"fields":[41435615,41435615,1,0]}
+17295 @nix {"action":"stop","id":1362}
+17295 @nix {"action":"stop","id":1361}
+17295 @nix {"action":"stop","id":1360}
+17299 @nix {"action":"result","id":1377,"type":105,"fields":[28610290,28610290,1,0]}
+17299 @nix {"action":"stop","id":1378}
+17299 @nix {"action":"stop","id":1377}
+17299 @nix {"action":"stop","id":1376}
+17475 @nix {"action":"result","id":1397,"type":105,"fields":[21260623,49619606,1,0]}
+17492 @nix {"action":"result","id":1373,"type":105,"fields":[35568452,42695622,1,0]}
+17496 @nix {"action":"result","id":1385,"type":105,"fields":[27621794,48359599,1,0]}
+17509 @nix {"action":"result","id":1389,"type":105,"fields":[22390888,29870297,1,0]}
+17886 @nix {"action":"result","id":1397,"type":105,"fields":[28341754,49619606,1,0]}
+17899 @nix {"action":"result","id":1385,"type":105,"fields":[34540118,48359599,1,0]}
+17915 @nix {"action":"result","id":1373,"type":105,"fields":[42695622,42695622,1,0]}
+17915 @nix {"action":"stop","id":1374}
+17915 @nix {"action":"stop","id":1373}
+17915 @nix {"action":"stop","id":1372}
+17983 @nix {"action":"result","id":1389,"type":105,"fields":[29870297,29870297,1,0]}
+17983 @nix {"action":"stop","id":1390}
+17983 @nix {"action":"stop","id":1389}
+17983 @nix {"action":"stop","id":1388}
+18298 @nix {"action":"result","id":1397,"type":105,"fields":[35440114,49619606,1,0]}
+18301 @nix {"action":"result","id":1385,"type":105,"fields":[41441275,48359599,1,0]}
+18704 @nix {"action":"result","id":1385,"type":105,"fields":[48359599,48359599,1,0]}
+18704 @nix {"action":"stop","id":1386}
+18704 @nix {"action":"stop","id":1385}
+18704 @nix {"action":"stop","id":1384}
+18709 @nix {"action":"result","id":1397,"type":105,"fields":[42521246,49619606,1,0]}
+19121 @nix {"action":"result","id":1397,"type":105,"fields":[49619606,49619606,1,0]}
+19121 @nix {"action":"stop","id":1398}
+19121 @nix {"action":"stop","id":1397}
+19121 @nix {"action":"stop","id":1396}

@@ -1,0 +1,19 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/457g041938841219cc5cc66c0793dg57-estimated-1.0.drv'","type":105,"fields":["/nix/store/457g041938841219cc5cc66c0793dg57-estimated-1.0.drv","",1,1]}
+50 @nix {"action":"result","id":10,"type":104,"fields":["buildPhase"]}
+50 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/21177c20cb5afa58gg9fa616b27a0b3b-overrun-1.0.drv'","type":105,"fields":["/nix/store/21177c20cb5afa58gg9fa616b27a0b3b-overrun-1.0.drv","",1,1]}
+100 @nix {"action":"result","id":11,"type":104,"fields":["checkPhase"]}
+100 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/f926008gg7bacfdd8dbf76dgg89a8a44-phased-1.0.drv'","type":105,"fields":["/nix/store/f926008gg7bacfdd8dbf76dgg89a8a44-phased-1.0.drv","",1,1]}
+150 @nix {"action":"result","id":12,"type":104,"fields":["unpackPhase"]}
+150 @nix {"action":"start","id":13,"level":3,"parent":0,"text":"building '/nix/store/7a76f70ffb9473462660fcadd1af13g2-fresh-1.0.drv'","type":105,"fields":["/nix/store/7a76f70ffb9473462660fcadd1af13g2-fresh-1.0.drv","",1,1]}
+950 @nix {"action":"result","id":12,"type":104,"fields":["patchPhase"]}
+1500 = starting
+1750 @nix {"action":"result","id":12,"type":104,"fields":["configurePhase"]}
+2550 @nix {"action":"result","id":12,"type":104,"fields":["buildPhase"]}
+2600 = overrun
+3000 @nix {"action":"stop","id":10}
+3350 @nix {"action":"result","id":12,"type":104,"fields":["installPhase"]}
+4000 @nix {"action":"stop","id":13}
+4150 @nix {"action":"result","id":12,"type":104,"fields":["fixupPhase"]}
+4500 = late
+4900 @nix {"action":"stop","id":12}
+5050 @nix {"action":"stop","id":11}

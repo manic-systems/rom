@@ -1,0 +1,14 @@
+{
+  "derivations": {
+    "/nix/store/d240704g0ada5fb759df3c22387f5f05-three-1.0.drv": {
+      "inputs": [
+        "/nix/store/c654g2db198f153d9f8545173d5807gd-two-1.0.drv"
+      ]
+    },
+    "/nix/store/c654g2db198f153d9f8545173d5807gd-two-1.0.drv": {
+      "inputs": [
+        "/nix/store/d3b6877b3gf6bgdf67gf987cb8d1gdgf-one-1.0.drv"
+      ]
+    }
+  }
+}

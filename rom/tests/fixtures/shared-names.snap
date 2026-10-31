@@ -1,0 +1,42 @@
+=== sources @ 1500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ bundle\e[0m
+\e[0;90m│  ├─ \e[0;34m⏸ app-1.0\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ source\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ source\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ source\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ hook\e[0m                 \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ lib-2.0\e[0m
+\e[0;90m│     ├─ \e[0;33m⏵ source\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│     ├─ \e[0;33m⏵ source\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│     ├─ \e[0;33m⏵ source\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│     ├─ \e[0;33m⏵ hook\e[0m                 \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│     ╰─ \e[0;34m⏸ hook\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 8       \e[0;32m✔ 0         \e[0;34m⏸ 4       \e[0m∑ 12
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== consumers @ 5500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ bundle\e[0m
+\e[0;90m│  ├─ \e[0;33m⏵ app-1.0\e[0m                 \e[0;33m━━━━━\e[0;90m──────────────────\e[0;37m  ⏱ 1s / 6s\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ lib-2.0\e[0m                 \e[0;33m━━━━━━━━━━━━╸\e[0;90m──────────\e[0;37m  ⏱ 1s / 3s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 2       \e[0;32m✔ 9         \e[0;34m⏸ 1       \e[0m∑ 12
+\e[0;90m┗━ \e[0mElapsed ⏱ 5s
+=== finished @ 8317ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m┕━ \e[0;32mFinished after 8s\e[0m
+=== log ===
+these 12 derivations will be built:\e[0m
+  /nix/store/158673a4854c39c2b5cd8d2c52bfc4gd-lib-2.0.drv\e[0m
+  /nix/store/1f6fd65d77d6364ffafd5a745ba5c498-bundle.drv\e[0m
+  /nix/store/2c4b303cdbag0dd7dfg127756797668b-source.drv\e[0m
+  /nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv\e[0m
+  /nix/store/48973630fc8562483241b67835398d5a-source.drv\e[0m
+  /nix/store/5fb595adc35a67431461abb85130aa7a-source.drv\e[0m
+  /nix/store/ada987408d4654f36gc691a5d4383ag8-source.drv\e[0m
+  /nix/store/agd7b38a6bd8d468c6a16c11a8d23bb8-source.drv\e[0m
+  /nix/store/c4g04fa6g5dg90609c290a62f254ad2b-hook.drv\e[0m
+  /nix/store/d2a37b56b4g7407096cfa661113ab09a-hook.drv\e[0m
+  /nix/store/g29fad2bgaa70a500g5f100871085a74-hook.drv\e[0m
+  /nix/store/gga6a744d78d28386438b4a8f8ff32g5-source.drv\e[0m

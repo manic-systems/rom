@@ -1,0 +1,15 @@
+0 @nix {"action":"msg","level":3,"msg":"these 4 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/6bgg7bfbgb264d6g51265dd323394b26-lib-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d811bdfd4b2aaa53ff3cc3fbf00dccb3-docs-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/fg749g921g906f775f8c99fdb6f589a3-dep-1.0.drv"}
+300 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/fg749g921g906f775f8c99fdb6f589a3-dep-1.0.drv'","type":105,"fields":["/nix/store/fg749g921g906f775f8c99fdb6f589a3-dep-1.0.drv","",1,1]}
+800 = planned
+1500 = first-running
+1800 @nix {"action":"stop","id":10}
+1850 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/6bgg7bfbgb264d6g51265dd323394b26-lib-1.0.drv'","type":105,"fields":["/nix/store/6bgg7bfbgb264d6g51265dd323394b26-lib-1.0.drv","",1,1]}
+3000 = second-running
+3400 @nix {"action":"stop","id":11}
+3450 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv'","type":105,"fields":["/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv","",1,1]}
+4600 = last-running
+5000 @nix {"action":"stop","id":12}

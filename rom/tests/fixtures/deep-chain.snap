@@ -1,0 +1,53 @@
+=== deepest @ 1500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ python3.12-layer-0-with-a-rather-long-descriptive-name-1.0\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ python3.12-layer-1-with-a-rather-long-descriptive-name-1.1\e[0m
+\e[0;90m│     ╰─ \e[0;34m⏸ python3.12-layer-2-with-a-rather-long-descriptive-name-1.2\e[0m
+\e[0;90m│        ╰─ \e[0;34m⏸ python3.12-layer-3-with-a-rather-long-descriptive-name-1.3\e[0m
+\e[0;90m│           ╰─ \e[0;34m⏸ python3.12-layer-4-with-a-rather-long-descriptive-name-1.4\e[0m
+\e[0;90m│              ╰─ \e[0;34m⏸ python3.12-layer-5-with-a-rather-long-descriptive-name-1.5\e[0m
+\e[0;90m│                 ╰─ \e[0;34m⏸ python3.12-layer-6-with-a-rather-long-descr…ive-name-1.6\e[0m
+\e[0;90m│                    ╰─ \e[0;34m⏸ python3.12-layer-7-with-a-rather-long-de…ive-name-1.7\e[0m
+\e[0;90m│                       ╰─ \e[0;34m⏸ python3.12-layer-8-with-a-rather-long…ive-name-1.8\e[0m
+\e[0;90m│                          ╰─ \e[0;34m⏸ python3.12-layer-9-with-a-rather-l…ive-name-1.9\e[0m
+\e[0;90m│                             ╰─ \e[0;34m⏸ python3.12-layer-10-with-a-rath…ve-name-1.10\e[0m
+\e[0;90m│                                ╰─ \e[0;34m⏸ python3.12-layer-11-with-a-r…ve-name-1.11\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 1         \e[0;34m⏸ 12      \e[0m∑ 14
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== halfway @ 9600ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ python3.12-layer-0-with-a-rather-long-descriptive-name-1.0\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ python3.12-layer-1-with-a-rather-long-descriptive-name-1.1\e[0m
+\e[0;90m│     ╰─ \e[0;34m⏸ python3.12-layer-2-with-a-rather-long-descriptive-name-1.2\e[0m
+\e[0;90m│        ╰─ \e[0;34m⏸ python3.12-layer-3-with-a-rather-long-descriptive-name-1.3\e[0m
+\e[0;90m│           ╰─ \e[0;34m⏸ python3.12-layer-4-with-a-rather-long-descriptive-name-1.4\e[0m
+\e[0;90m│              ╰─ \e[0;34m⏸ python3.12-layer-5-with-a-rather-long-descriptive-name-1.5\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 7         \e[0;34m⏸ 6       \e[0m∑ 14
+\e[0;90m┗━ \e[0mElapsed ⏱ 9s
+=== top @ 18000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ python3.12-layer-…name-1.0\e[0m \e[0;90m────────\e[0;33m━━━╸\e[0;90m───────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 13        \e[0;34m⏸ 0       \e[0m∑ 14
+\e[0;90m┗━ \e[0mElapsed ⏱ 18s
+=== finished @ 18300ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m┕━ \e[0;32mFinished after 18s\e[0m
+=== log ===
+these 14 derivations will be built:\e[0m
+  /nix/store/2g824bfcb7d0g3586c0g97040ba92c98-python3.12-layer-1-with-a-rather-long-descriptive-name-1.1.drv\e[0m
+  /nix/store/7021577fbd707a067g32006d55721d15-python3.12-layer-5-with-a-rather-long-descriptive-name-1.5.drv\e[0m
+  /nix/store/80bc1ad7105gga8dg040d2a557d0b7cc-python3.12-layer-3-with-a-rather-long-descriptive-name-1.3.drv\e[0m
+  /nix/store/84199339f545bcaf6gab20a111d105fc-python3.12-layer-13-with-a-rather-long-descriptive-name-1.13.drv\e[0m
+  /nix/store/a1612c3a7cga4f4897b26f5475579bcd-python3.12-layer-11-with-a-rather-long-descriptive-name-1.11.drv\e[0m
+  /nix/store/a3bc1f5d5g2bff8b1d8gad9bf5gg518d-python3.12-layer-8-with-a-rather-long-descriptive-name-1.8.drv\e[0m
+  /nix/store/a802c3b3f0dgdgd4b491g6c7cd8bf111-python3.12-layer-10-with-a-rather-long-descriptive-name-1.10.drv\e[0m
+  /nix/store/c55aagg0f7g8982b9196b6480fff3faa-python3.12-layer-7-with-a-rather-long-descriptive-name-1.7.drv\e[0m
+  /nix/store/ca800cc843bdcadd1g690077718ff9cc-python3.12-layer-12-with-a-rather-long-descriptive-name-1.12.drv\e[0m
+  /nix/store/d3a47fc5cc724c0387514f96bcf07cga-python3.12-layer-2-with-a-rather-long-descriptive-name-1.2.drv\e[0m
+  /nix/store/f3f15575204adbf60f7133f476a04d08-python3.12-layer-6-with-a-rather-long-descriptive-name-1.6.drv\e[0m
+  /nix/store/f4ff9c818ga842g5cgc05cdgc2c71625-python3.12-layer-4-with-a-rather-long-descriptive-name-1.4.drv\e[0m
+  /nix/store/fc07b52489gc5648258f1a3b1d1g3c6g-python3.12-layer-9-with-a-rather-long-descriptive-name-1.9.drv\e[0m
+  /nix/store/gga3afdafd415fca62g80b3176b43374-python3.12-layer-0-with-a-rather-long-descriptive-name-1.0.drv\e[0m

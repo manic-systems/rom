@@ -1,0 +1,22 @@
+{
+  "derivations": {
+    "/nix/store/b7bd55c11b781b0ccc43aa6f57g9dadg-deploy.drv": {
+      "inputs": [
+        "/nix/store/04dg070g066925c65766bdb16g91946a-local-a-1.0.drv",
+        "/nix/store/3b5ac6fadd9459d64d45bg53975d6968-local-b-1.0.drv",
+        "/nix/store/f6d8c78gd74fd6a8g9505743g5a9gb69-remote-c-1.0.drv",
+        "/nix/store/1db0gff3fca4f20g795d939a5c6c56b9-remote-d-1.0.drv",
+        "/nix/store/33b9g44364a03079d8674g6084f5gf76-remote-e-1.0.drv",
+        "/nix/store/7887g1955f75c5a785d2dcd27795cb6c-remote-f-1.0.drv",
+        "/nix/store/6b959ad8bdf277fb11af3ac411b4c013-locked-g-1.0.drv"
+      ]
+    },
+    "/nix/store/04dg070g066925c65766bdb16g91946a-local-a-1.0.drv": {},
+    "/nix/store/3b5ac6fadd9459d64d45bg53975d6968-local-b-1.0.drv": {},
+    "/nix/store/f6d8c78gd74fd6a8g9505743g5a9gb69-remote-c-1.0.drv": {},
+    "/nix/store/1db0gff3fca4f20g795d939a5c6c56b9-remote-d-1.0.drv": {},
+    "/nix/store/33b9g44364a03079d8674g6084f5gf76-remote-e-1.0.drv": {},
+    "/nix/store/7887g1955f75c5a785d2dcd27795cb6c-remote-f-1.0.drv": {},
+    "/nix/store/6b959ad8bdf277fb11af3ac411b4c013-locked-g-1.0.drv": {}
+  }
+}

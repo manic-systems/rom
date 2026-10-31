@@ -1,0 +1,129 @@
+=== early @ 2000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m│  ╰─ \e[0;36m↓ sqlite-lib-0.3\e[0m          \e[0;36m━━━━━━━╸\e[0;90m───────────────\e[0;36m   33%\e[0;90m  14 MiB/41 MiB\e[0;35m  c\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 10      \e[0;32m↓ 7         \e[0;34m⏸ 83      \e[0m∑ 100
+\e[0;90m┗━ \e[0mElapsed ⏱ 2s
+=== busy @ 6000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m│  ╰─ \e[0;36m↓ coreutils-lib-1.4\e[0m       \e[0;36m━━━━━━━━━━━\e[0;90m────────────\e[0;36m   49%\e[0;90m  20 MiB/39 MiB\e[0;35m  c\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 10      \e[0;32m↓ 31        \e[0;34m⏸ 59      \e[0m∑ 100
+\e[0;90m┗━ \e[0mElapsed ⏱ 6s
+=== late @ 12000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m│  ╰─ \e[0;36m↓ perl-lib-2.5\e[0m            \e[0;36m━━━━━━━━━━━\e[0;90m────────────\e[0;36m   49%\e[0;90m  22 MiB/45 MiB\e[0;35m  c\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 10      \e[0;32m↓ 66        \e[0;34m⏸ 24      \e[0m∑ 100
+\e[0;90m┗━ \e[0mElapsed ⏱ 12s
+=== finished @ 19121ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m┕━ \e[0;32mFinished after 19s\e[0m
+=== log ===
+these 100 paths will be fetched (1.2 GiB download, 4.8 GiB unpacked):\e[0m
+  /nix/store/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7\e[0m
+  /nix/store/0143b75d0ggfd17b14d901gdg4b32f1d-readline-lib-2.8\e[0m
+  /nix/store/0291acd998167fc1d09b26b1c8ac9987-zlib-lib-1.8\e[0m
+  /nix/store/037g7fg81a73a7b8c83g9d5g637gg0a0-curl-lib-0.6\e[0m
+  /nix/store/0a4b503f597c61b89c576fbdg78b9342-bash-lib-0.0\e[0m
+  /nix/store/0adf60577328bf90d205d66f23bgd2ca-sudo-lib-2.5\e[0m
+  /nix/store/0b8940cbc59502635b677gb6ffabd8b2-sqlite-lib-2.0\e[0m
+  /nix/store/10502ff5136af0a0gfd2362503453cgb-bash-lib-1.3\e[0m
+  /nix/store/140c2d7659c8c0221cfa9530g9a13gf0-openssl-lib-1.7\e[0m
+  /nix/store/151b98f91d94002bd88b8b4fc71dfa0g-util-linux-lib-1.3\e[0m
+  /nix/store/16f0466874bb75756d506ga0f7f99gc1-glibc-lib-3.3\e[0m
+  /nix/store/20472149cc2f1g7081d4b596g0f1559a-perl-lib-2.5\e[0m
+  /nix/store/2350658bd2403786431cd3a7819195g2-openssh-lib-1.0\e[0m
+  /nix/store/25gd3gf30746f7120b3ba724868f1769-sudo-lib-1.2\e[0m
+  /nix/store/26f2ab46c211gf116gd218gd89bf40g2-zlib-lib-2.2\e[0m
+  /nix/store/29658ba30f11fbadf97af5gfa7cg0cbf-kbd-lib-2.0\e[0m
+  /nix/store/2b323g1dg49bg1g3454c2f2f324da6f8-git-lib-2.6\e[0m
+  /nix/store/2c7f197638a5938df3a4944fcd9a69f6-nftables-lib-2.1\e[0m
+  /nix/store/2f0b1a0d940044ga75fd06754bd25344-util-linux-lib-0.0\e[0m
+  /nix/store/2g343a93gg82c0c98d8396bc6564d418-zlib-lib-0.5\e[0m
+  /nix/store/36f52gbg44f8a1bcg92b111d170gc525-pipewire-lib-1.5\e[0m
+  /nix/store/3fg86g076bdd4048a218g2f81590g299-linux-pam-lib-0.1\e[0m
+  /nix/store/423aa239fb65dgd8d815ad12a379a781-zlib-lib-3.5\e[0m
+  /nix/store/4f499d16361d121g419d2167c1a07a16-ncurses-lib-1.4\e[0m
+  /nix/store/4f9ag2gbb57a241534gdcca5df044gbf-curl-lib-2.3\e[0m
+  /nix/store/4g2c89a2bf4ab8fa9dd149f42c4cc38a-xz-lib-0.5\e[0m
+  /nix/store/50d849487217aabg23c02589b6b64b26-less-lib-2.6\e[0m
+  /nix/store/51d2c3a0731f5fc5dd71a8863a04db76-coreutils-lib-0.1\e[0m
+  /nix/store/51fd24b07753385727980gf46653b81d-iproute2-lib-1.8\e[0m
+  /nix/store/583cc41ag8d59g669ab3dcg999481c16-pipewire-lib-0.2\e[0m
+  /nix/store/58697ba57f9gg3fbf2fad45059467c75-python3-lib-1.1\e[0m
+  /nix/store/58g8631107g0103ag818f29fgcb0a0b0-sqlite-lib-0.3\e[0m
+  /nix/store/63847bbbd08d92186a88803g071697a7-xz-lib-1.8\e[0m
+  /nix/store/655c1g43cfbd31g833ddbcd67004a5gd-bash-lib-3.0\e[0m
+  /nix/store/6878a621f87dg245050cgf26f9d2a431-kmod-lib-2.8\e[0m
+  /nix/store/68b43d126b60a22bcf7gf2a1d205gb58-python3-lib-0.7\e[0m
+  /nix/store/6b20c8a34809b6a7aag2bf444df0c192-linux-pam-lib-2.7\e[0m
+  /nix/store/71ab2fg74130ba61a0f275ff488022df-kmod-lib-0.2\e[0m
+  /nix/store/720814g10f70gcac173801d2cdcc754f-gcc-lib-1.5\e[0m
+  /nix/store/72a6865c546c21b0689d72a2024496b0-man-db-lib-1.4\e[0m
+  /nix/store/78930gg5af31ca44847a7a62fd738793-readline-lib-0.2\e[0m
+  /nix/store/789fcd0f6c2a89a10008bd31869192ad-git-lib-3.0\e[0m
+  /nix/store/7dfda265f2g12c2b8f0f1gfc458c2426-openssh-lib-0.6\e[0m
+  /nix/store/82a58f6969a324a46388g0cd3905934d-ncurses-lib-2.7\e[0m
+  /nix/store/8775abdfd3a1b31bb31863a2dgaccg25-nftables-lib-0.4\e[0m
+  /nix/store/8ab1c33a9d34f6fg559b52ff92c29f95-dbus-lib-2.5\e[0m
+  /nix/store/8c54326daf8073037738266gb11ga524-gcc-lib-0.2\e[0m
+  /nix/store/8caa459d15c3gg32ff0cg627d07agf05-iproute2-lib-2.2\e[0m
+  /nix/store/8cda6g8f32ga63c0a036312574123b76-shadow-lib-0.7\e[0m
+  /nix/store/8d1dc5f7cc36cf01gd0g9546d822df75-ncurses-lib-0.1\e[0m
+  /nix/store/92gff4a30d59d841fg9gag2224026d0a-perl-lib-0.8\e[0m
+  /nix/store/935ad50g1c4f684f7cacd57c3gf76db1-coreutils-lib-3.1\e[0m
+  /nix/store/9613646c9f73c8f84ac6dfcdgac9fgf6-perl-lib-3.8\e[0m
+  /nix/store/985936265b284fg744ca86a219dg9fbc-coreutils-lib-1.4\e[0m
+  /nix/store/9a97g6ag1ag8783f7g42a69ada57170c-git-lib-0.0\e[0m
+  /nix/store/9fg1g4g773c137g00a99g799c5a1768g-xz-lib-2.2\e[0m
+  /nix/store/a0748f3086b03bbb19d50b8987364b9g-python3-lib-2.4\e[0m
+  /nix/store/a15f91b2636c272893f53651b5729bg5-systemd-lib-1.1\e[0m
+  /nix/store/a3c15dg62afb6acdbd7af146gb6a46d4-glibc-lib-2.0\e[0m
+  /nix/store/a5f87g16763b39121d95663dd5394b45-systemd-lib-0.7\e[0m
+  /nix/store/a6106g8504471cg77g445c6ga71d9g71-perl-lib-1.2\e[0m
+  /nix/store/a6d3575cd3d01b2da08408d4d49gc482-kbd-lib-0.3\e[0m
+  /nix/store/a7g98d58f0f6c01648g0a0b543gb10ab-nftables-lib-1.7\e[0m
+  /nix/store/a921c9520861g6b9a265c88ggg8187cg-man-db-lib-0.1\e[0m
+  /nix/store/a97f21006c44198g5688a29288g054bc-dbus-lib-0.8\e[0m
+  /nix/store/aa8730f694b734fd84ba5gfcggdca28a-dbus-lib-1.2\e[0m
+  /nix/store/acg93g525fb033199fg559af58d6df89-util-linux-lib-2.6\e[0m
+  /nix/store/af9d09ca6f5a93148ca7a2df57b5g48a-openssh-lib-2.3\e[0m
+  /nix/store/ag345cfc62g7b82af7544ca9b92d45gf-glibc-lib-0.3\e[0m
+  /nix/store/b16g5b13757b2d5cf1fc77d61af9b406-less-lib-1.3\e[0m
+  /nix/store/b65g96g6g82224353g9f4a2b0b2aaf4d-man-db-lib-2.7\e[0m
+  /nix/store/b705170dfb57003fbg3g1b2gf701gb04-coreutils-lib-2.7\e[0m
+  /nix/store/bf1600229445b4b94d13796c72f8277b-gettext-lib-2.3\e[0m
+  /nix/store/c1696642738277c2cb02c4f805a4c129-openssl-lib-0.4\e[0m
+  /nix/store/c5dbb1d1d0439358311bb4583381620g-glibc-lib-1.6\e[0m
+  /nix/store/c6f431d63ga0f8cdf042ddgacd83bg17-curl-lib-3.6\e[0m
+  /nix/store/c7058ffggb5024d5g81a2bg6fbfcdg49-gettext-lib-1.0\e[0m
+  /nix/store/c905139ca29b5f41289424c91ccc78c8-openssl-lib-3.4\e[0m
+  /nix/store/cda165f80864g7gg435a893937555g75-kmod-lib-1.5\e[0m
+  /nix/store/cfag85bg07a341038a9522b7799da173-gcc-lib-2.8\e[0m
+  /nix/store/d00420d16266bg0245bbc5fddfg91f6f-gcc-lib-3.2\e[0m
+  /nix/store/d20037c218bg3c640d90ab7c7b964309-libffi-lib-0.4\e[0m
+  /nix/store/d48f8b2a2cad698f8f53c361289c1626-shadow-lib-2.4\e[0m
+  /nix/store/d499gcg2gg17b68291aa84d48a48f2ba-pipewire-lib-2.8\e[0m
+  /nix/store/daf6f6940f1393425a4b5fg1a6849796-gettext-lib-0.6\e[0m
+  /nix/store/dggg01660ggcaf1fg283407a580199a1-less-lib-0.0\e[0m
+  /nix/store/f262088bg9578abdc6780df7f1201d59-shadow-lib-1.1\e[0m
+  /nix/store/f3ff531d4c028c05876c2b206bg81879-libffi-lib-2.1\e[0m
+  /nix/store/f8322d241f98a12gd1c8bc3a73ba5830-linux-pam-lib-1.4\e[0m
+  /nix/store/f96fgabd002423a2313g408f3b18gb8a-kbd-lib-1.6\e[0m
+  /nix/store/fg2ag213d19f9b328cg9560891bad4gf-python3-lib-3.7\e[0m
+  /nix/store/g262ab5b2g8ggfcba3f8811aaf29d819-curl-lib-1.0\e[0m
+  /nix/store/g43197g48653b73d0649484982529937-sqlite-lib-1.6\e[0m
+  /nix/store/g4adc1g2c59g9f7c297f02af5c69a812-iproute2-lib-0.5\e[0m
+  /nix/store/g7b54dc4587c96b2d84781gf6378c02g-bash-lib-2.6\e[0m
+  /nix/store/g9d535bg5dd2cfbbd950273dfb0d499c-readline-lib-1.5\e[0m
+  /nix/store/gbc4a6f68gd04gc0d21c176256c4a086-git-lib-1.3\e[0m
+  /nix/store/gdd4c8f874bg7bb121d9020bd34c1965-sudo-lib-0.8\e[0m
+  /nix/store/gg32aa404a3c5423da8460c0af2a6f5d-systemd-lib-2.4\e[0m
+  /nix/store/gg9c489gf3176f576a350fa271f3dgdd-openssl-lib-2.1\e[0m

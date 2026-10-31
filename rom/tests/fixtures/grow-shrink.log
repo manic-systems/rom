@@ -1,0 +1,227 @@
+0 @nix {"action":"msg","level":3,"msg":"these 74 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/016f12f989g1f7f28f6fa8183f904ad5-grow-shrink-root.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/02ga5cg880ga58969a68bdg1f7gd7a8d-big-d-29.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/037b9g32aa0df3cfg53aa979g0cdf5b1-big-d-25.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/05cg3ff665g434cc867c0gd5f09g0a60-big-b-29.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/0bg5988c323337g3bd084a91578d1b69-big-b-3.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/0f5g7921827014c3b25645742g623a97-big-b-20.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/11b0g98d1092gcb7a5b66496d5c2g138-big-b-5.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/11c5d9d0af65b67045872g7448b4c85a-big-b-12.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/13435gdd4a7df072ddd1af2b79b4409c-big-d-21.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/167d0dabc9d0b52f16abcc5c96b5bf2d-big-b-32.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/18575640abfb8f9225ca5d9c1c281168-big-b-35.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/193a2cca6292a587g8gf4f3567d7c93c-big-d-22.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2060f769c2201d2fbfdfbf09c0dg3078-big-b-19.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/221c9b54a98f998631228bd6cc39d279-big-d-24.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/267bg6095c65d4gggb70da11f60148d7-single-c-0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/28gfag7134301ad38b1358d40a22a0bf-big-b-23.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2gfc4112f6c6g002cc02839a37gdbd6a-big-d-14.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/31aca7144b3f7db01f03c14g25g8c202-big-b-27.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/352d0543a85176d390c176gad8106f71-small-a-1.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/3d9f47a03ca4c99f4f8443c55c0fc3b8-big-d-26.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/4232567509a7dbc68523dg0dfg1g277d-big-b-34.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/454gc5056gg75dd07d6905a79882410f-big-d-2.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/4959g98cga4a73c0c3c3f65bf7d00b02-big-d-17.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/49g601d89450d33g930244276c050ac8-big-b-22.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/4a802c7468797cc334ddc7a223847327-big-b-7.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/4cb6c4dc6522128ba804dfb2a5c61677-big-b-28.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/5228bg9029d93d1g66g52g4fg1b24433-big-b-37.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/5488816a046c0c78gc168c6fb445b1g3-big-b-6.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/55a419b483g3192c15bfad116947ga29-big-b-21.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/5gcd70b3c6ac5bc8684bb3c708d25g7f-big-d-11.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/5gf17b92g4901bccgca145c6d5609fdf-big-b-17.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/690d11c1db9g99d443ag7840281a15d0-big-d-16.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7105971g84g689f134cd9cg61g7fddb3-big-b-0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/73acf8663d0a9cda69a95687584fg404-big-d-10.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/759b76cg909g39g2a2b96g5c571380ba-big-b-31.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/78889065bffg195d72530831b59d148c-big-b-8.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7a946bdb39aadc36310723d3c41g7f90-big-b-13.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7c2d4f858109277d35bb1b3754bgfd53-big-d-13.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8cg995ff0bf7f1d998377812abf2dca0-big-d-7.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8db2ad3f1gb25g5771b891bb7a9b2bfg-big-b-26.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8f60f89d3daafaf01004a6092df4b2g6-big-d-20.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8fa7532a77g72793794c613a7agb3fb3-big-d-3.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/8g37b23d55g2a1086912b3d06c7c8334-big-b-14.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/92031g5f182d08a796b043314cc82635-big-d-15.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/989334311a4485cd75fd7360b5bdd44f-big-b-4.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9cdg1a8d2a77g2d835d4f8g31fgb2841-big-b-25.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9fbf0f931g43gf696fd514cagdfd5fg3-big-d-27.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a0a7df78cg108ad9fb66b9fa1f252287-big-d-8.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a414bfa7ffg62bbd2462g36326d813c3-big-b-2.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/a96f5gdga3d1df225gaa8328ffada7a9-big-b-24.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/af93722703b9f083b314d5111a468927-big-d-6.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b0b686896g7395dff5316354ad732493-big-b-33.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b0f5022gd92dc9b55d8df6d51g4ad632-big-b-1.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b4408727a86a4cb96f3209495bb50b7f-big-d-19.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b647gcad80c5g25f533bb87ad3631481-big-b-9.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b96g6f956b68fggd62718791a7123f1g-big-b-36.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/bc40699077f360618fd209f610f57227-big-b-30.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c12bd7da2g6a6ff5b8f363afab13ccag-big-b-11.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c1g702f114020902acg754g64g4a9agb-big-b-39.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c2g3b8dg550353ga5cc8dca6f8058028-big-b-16.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c53b704b777b6g9g6adc0753787a6533-big-d-12.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c5d7883413358579da8873b4dc08c096-small-a-0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c73f6ad4729b271c65290ga4cg909c19-big-d-23.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d930g9db38d11654137719c5908166bc-big-b-15.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f1bd9765fb2024bgc964d8ba63508873-big-d-1.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f2991829gdagaf83374510d28d9fb292-big-b-18.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f900b052167c1ac06bc676bdbddcg740-big-b-10.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/fa05f5b7cbg3f46ddf3b4d57f16f5f23-big-d-0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g475c59610cf16g9c9b43193828377c8-big-b-38.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g828a659548cb365628a124gab140gd2-big-d-9.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/ga79676da60a5b46f513cc6b0399d2c8-big-d-4.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/gc39d043da58600g59c74b89fa8304d6-big-d-18.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/gd13cf95b4f0a963aa0837124858b42b-big-d-5.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/ggf3a3bd5gcafda102c9468d36916231-big-d-28.drv"}
+100 @nix {"action":"start","id":100,"level":3,"parent":0,"text":"building '/nix/store/c5d7883413358579da8873b4dc08c096-small-a-0.drv'","type":105,"fields":["/nix/store/c5d7883413358579da8873b4dc08c096-small-a-0.drv","",1,1]}
+115 @nix {"action":"start","id":101,"level":3,"parent":0,"text":"building '/nix/store/352d0543a85176d390c176gad8106f71-small-a-1.drv'","type":105,"fields":["/nix/store/352d0543a85176d390c176gad8106f71-small-a-1.drv","",1,1]}
+1500 = small
+3169 @nix {"action":"stop","id":101}
+3193 @nix {"action":"stop","id":100}
+3193 @nix {"action":"start","id":102,"level":3,"parent":0,"text":"building '/nix/store/7105971g84g689f134cd9cg61g7fddb3-big-b-0.drv'","type":105,"fields":["/nix/store/7105971g84g689f134cd9cg61g7fddb3-big-b-0.drv","",1,1]}
+3208 @nix {"action":"start","id":103,"level":3,"parent":0,"text":"building '/nix/store/b0f5022gd92dc9b55d8df6d51g4ad632-big-b-1.drv'","type":105,"fields":["/nix/store/b0f5022gd92dc9b55d8df6d51g4ad632-big-b-1.drv","",1,1]}
+3223 @nix {"action":"start","id":104,"level":3,"parent":0,"text":"building '/nix/store/a414bfa7ffg62bbd2462g36326d813c3-big-b-2.drv'","type":105,"fields":["/nix/store/a414bfa7ffg62bbd2462g36326d813c3-big-b-2.drv","",1,1]}
+3238 @nix {"action":"start","id":105,"level":3,"parent":0,"text":"building '/nix/store/0bg5988c323337g3bd084a91578d1b69-big-b-3.drv'","type":105,"fields":["/nix/store/0bg5988c323337g3bd084a91578d1b69-big-b-3.drv","",1,1]}
+3253 @nix {"action":"start","id":106,"level":3,"parent":0,"text":"building '/nix/store/989334311a4485cd75fd7360b5bdd44f-big-b-4.drv'","type":105,"fields":["/nix/store/989334311a4485cd75fd7360b5bdd44f-big-b-4.drv","",1,1]}
+3268 @nix {"action":"start","id":107,"level":3,"parent":0,"text":"building '/nix/store/11b0g98d1092gcb7a5b66496d5c2g138-big-b-5.drv'","type":105,"fields":["/nix/store/11b0g98d1092gcb7a5b66496d5c2g138-big-b-5.drv","",1,1]}
+3283 @nix {"action":"start","id":108,"level":3,"parent":0,"text":"building '/nix/store/5488816a046c0c78gc168c6fb445b1g3-big-b-6.drv'","type":105,"fields":["/nix/store/5488816a046c0c78gc168c6fb445b1g3-big-b-6.drv","",1,1]}
+3298 @nix {"action":"start","id":109,"level":3,"parent":0,"text":"building '/nix/store/4a802c7468797cc334ddc7a223847327-big-b-7.drv'","type":105,"fields":["/nix/store/4a802c7468797cc334ddc7a223847327-big-b-7.drv","",1,1]}
+3313 @nix {"action":"start","id":110,"level":3,"parent":0,"text":"building '/nix/store/78889065bffg195d72530831b59d148c-big-b-8.drv'","type":105,"fields":["/nix/store/78889065bffg195d72530831b59d148c-big-b-8.drv","",1,1]}
+3328 @nix {"action":"start","id":111,"level":3,"parent":0,"text":"building '/nix/store/b647gcad80c5g25f533bb87ad3631481-big-b-9.drv'","type":105,"fields":["/nix/store/b647gcad80c5g25f533bb87ad3631481-big-b-9.drv","",1,1]}
+3343 @nix {"action":"start","id":112,"level":3,"parent":0,"text":"building '/nix/store/f900b052167c1ac06bc676bdbddcg740-big-b-10.drv'","type":105,"fields":["/nix/store/f900b052167c1ac06bc676bdbddcg740-big-b-10.drv","",1,1]}
+3358 @nix {"action":"start","id":113,"level":3,"parent":0,"text":"building '/nix/store/c12bd7da2g6a6ff5b8f363afab13ccag-big-b-11.drv'","type":105,"fields":["/nix/store/c12bd7da2g6a6ff5b8f363afab13ccag-big-b-11.drv","",1,1]}
+3373 @nix {"action":"start","id":114,"level":3,"parent":0,"text":"building '/nix/store/11c5d9d0af65b67045872g7448b4c85a-big-b-12.drv'","type":105,"fields":["/nix/store/11c5d9d0af65b67045872g7448b4c85a-big-b-12.drv","",1,1]}
+3388 @nix {"action":"start","id":115,"level":3,"parent":0,"text":"building '/nix/store/7a946bdb39aadc36310723d3c41g7f90-big-b-13.drv'","type":105,"fields":["/nix/store/7a946bdb39aadc36310723d3c41g7f90-big-b-13.drv","",1,1]}
+3403 @nix {"action":"start","id":116,"level":3,"parent":0,"text":"building '/nix/store/8g37b23d55g2a1086912b3d06c7c8334-big-b-14.drv'","type":105,"fields":["/nix/store/8g37b23d55g2a1086912b3d06c7c8334-big-b-14.drv","",1,1]}
+3418 @nix {"action":"start","id":117,"level":3,"parent":0,"text":"building '/nix/store/d930g9db38d11654137719c5908166bc-big-b-15.drv'","type":105,"fields":["/nix/store/d930g9db38d11654137719c5908166bc-big-b-15.drv","",1,1]}
+3433 @nix {"action":"start","id":118,"level":3,"parent":0,"text":"building '/nix/store/c2g3b8dg550353ga5cc8dca6f8058028-big-b-16.drv'","type":105,"fields":["/nix/store/c2g3b8dg550353ga5cc8dca6f8058028-big-b-16.drv","",1,1]}
+3448 @nix {"action":"start","id":119,"level":3,"parent":0,"text":"building '/nix/store/5gf17b92g4901bccgca145c6d5609fdf-big-b-17.drv'","type":105,"fields":["/nix/store/5gf17b92g4901bccgca145c6d5609fdf-big-b-17.drv","",1,1]}
+3463 @nix {"action":"start","id":120,"level":3,"parent":0,"text":"building '/nix/store/f2991829gdagaf83374510d28d9fb292-big-b-18.drv'","type":105,"fields":["/nix/store/f2991829gdagaf83374510d28d9fb292-big-b-18.drv","",1,1]}
+3478 @nix {"action":"start","id":121,"level":3,"parent":0,"text":"building '/nix/store/2060f769c2201d2fbfdfbf09c0dg3078-big-b-19.drv'","type":105,"fields":["/nix/store/2060f769c2201d2fbfdfbf09c0dg3078-big-b-19.drv","",1,1]}
+3493 @nix {"action":"start","id":122,"level":3,"parent":0,"text":"building '/nix/store/0f5g7921827014c3b25645742g623a97-big-b-20.drv'","type":105,"fields":["/nix/store/0f5g7921827014c3b25645742g623a97-big-b-20.drv","",1,1]}
+3508 @nix {"action":"start","id":123,"level":3,"parent":0,"text":"building '/nix/store/55a419b483g3192c15bfad116947ga29-big-b-21.drv'","type":105,"fields":["/nix/store/55a419b483g3192c15bfad116947ga29-big-b-21.drv","",1,1]}
+3523 @nix {"action":"start","id":124,"level":3,"parent":0,"text":"building '/nix/store/49g601d89450d33g930244276c050ac8-big-b-22.drv'","type":105,"fields":["/nix/store/49g601d89450d33g930244276c050ac8-big-b-22.drv","",1,1]}
+3538 @nix {"action":"start","id":125,"level":3,"parent":0,"text":"building '/nix/store/28gfag7134301ad38b1358d40a22a0bf-big-b-23.drv'","type":105,"fields":["/nix/store/28gfag7134301ad38b1358d40a22a0bf-big-b-23.drv","",1,1]}
+3553 @nix {"action":"start","id":126,"level":3,"parent":0,"text":"building '/nix/store/a96f5gdga3d1df225gaa8328ffada7a9-big-b-24.drv'","type":105,"fields":["/nix/store/a96f5gdga3d1df225gaa8328ffada7a9-big-b-24.drv","",1,1]}
+3568 @nix {"action":"start","id":127,"level":3,"parent":0,"text":"building '/nix/store/9cdg1a8d2a77g2d835d4f8g31fgb2841-big-b-25.drv'","type":105,"fields":["/nix/store/9cdg1a8d2a77g2d835d4f8g31fgb2841-big-b-25.drv","",1,1]}
+3583 @nix {"action":"start","id":128,"level":3,"parent":0,"text":"building '/nix/store/8db2ad3f1gb25g5771b891bb7a9b2bfg-big-b-26.drv'","type":105,"fields":["/nix/store/8db2ad3f1gb25g5771b891bb7a9b2bfg-big-b-26.drv","",1,1]}
+3598 @nix {"action":"start","id":129,"level":3,"parent":0,"text":"building '/nix/store/31aca7144b3f7db01f03c14g25g8c202-big-b-27.drv'","type":105,"fields":["/nix/store/31aca7144b3f7db01f03c14g25g8c202-big-b-27.drv","",1,1]}
+3613 @nix {"action":"start","id":130,"level":3,"parent":0,"text":"building '/nix/store/4cb6c4dc6522128ba804dfb2a5c61677-big-b-28.drv'","type":105,"fields":["/nix/store/4cb6c4dc6522128ba804dfb2a5c61677-big-b-28.drv","",1,1]}
+3628 @nix {"action":"start","id":131,"level":3,"parent":0,"text":"building '/nix/store/05cg3ff665g434cc867c0gd5f09g0a60-big-b-29.drv'","type":105,"fields":["/nix/store/05cg3ff665g434cc867c0gd5f09g0a60-big-b-29.drv","",1,1]}
+3643 @nix {"action":"start","id":132,"level":3,"parent":0,"text":"building '/nix/store/bc40699077f360618fd209f610f57227-big-b-30.drv'","type":105,"fields":["/nix/store/bc40699077f360618fd209f610f57227-big-b-30.drv","",1,1]}
+3658 @nix {"action":"start","id":133,"level":3,"parent":0,"text":"building '/nix/store/759b76cg909g39g2a2b96g5c571380ba-big-b-31.drv'","type":105,"fields":["/nix/store/759b76cg909g39g2a2b96g5c571380ba-big-b-31.drv","",1,1]}
+3673 @nix {"action":"start","id":134,"level":3,"parent":0,"text":"building '/nix/store/167d0dabc9d0b52f16abcc5c96b5bf2d-big-b-32.drv'","type":105,"fields":["/nix/store/167d0dabc9d0b52f16abcc5c96b5bf2d-big-b-32.drv","",1,1]}
+3688 @nix {"action":"start","id":135,"level":3,"parent":0,"text":"building '/nix/store/b0b686896g7395dff5316354ad732493-big-b-33.drv'","type":105,"fields":["/nix/store/b0b686896g7395dff5316354ad732493-big-b-33.drv","",1,1]}
+3703 @nix {"action":"start","id":136,"level":3,"parent":0,"text":"building '/nix/store/4232567509a7dbc68523dg0dfg1g277d-big-b-34.drv'","type":105,"fields":["/nix/store/4232567509a7dbc68523dg0dfg1g277d-big-b-34.drv","",1,1]}
+3718 @nix {"action":"start","id":137,"level":3,"parent":0,"text":"building '/nix/store/18575640abfb8f9225ca5d9c1c281168-big-b-35.drv'","type":105,"fields":["/nix/store/18575640abfb8f9225ca5d9c1c281168-big-b-35.drv","",1,1]}
+3733 @nix {"action":"start","id":138,"level":3,"parent":0,"text":"building '/nix/store/b96g6f956b68fggd62718791a7123f1g-big-b-36.drv'","type":105,"fields":["/nix/store/b96g6f956b68fggd62718791a7123f1g-big-b-36.drv","",1,1]}
+3748 @nix {"action":"start","id":139,"level":3,"parent":0,"text":"building '/nix/store/5228bg9029d93d1g66g52g4fg1b24433-big-b-37.drv'","type":105,"fields":["/nix/store/5228bg9029d93d1g66g52g4fg1b24433-big-b-37.drv","",1,1]}
+3763 @nix {"action":"start","id":140,"level":3,"parent":0,"text":"building '/nix/store/g475c59610cf16g9c9b43193828377c8-big-b-38.drv'","type":105,"fields":["/nix/store/g475c59610cf16g9c9b43193828377c8-big-b-38.drv","",1,1]}
+3778 @nix {"action":"start","id":141,"level":3,"parent":0,"text":"building '/nix/store/c1g702f114020902acg754g64g4a9agb-big-b-39.drv'","type":105,"fields":["/nix/store/c1g702f114020902acg754g64g4a9agb-big-b-39.drv","",1,1]}
+4800 = big
+5746 @nix {"action":"stop","id":104}
+5946 @nix {"action":"stop","id":118}
+5954 @nix {"action":"stop","id":113}
+5962 @nix {"action":"stop","id":108}
+5970 @nix {"action":"stop","id":103}
+6146 @nix {"action":"stop","id":132}
+6154 @nix {"action":"stop","id":127}
+6186 @nix {"action":"stop","id":130}
+6194 @nix {"action":"stop","id":125}
+6202 @nix {"action":"stop","id":120}
+6210 @nix {"action":"stop","id":115}
+6218 @nix {"action":"stop","id":110}
+6226 @nix {"action":"stop","id":105}
+6394 @nix {"action":"stop","id":139}
+6402 @nix {"action":"stop","id":134}
+6410 @nix {"action":"stop","id":129}
+6418 @nix {"action":"stop","id":124}
+6426 @nix {"action":"stop","id":119}
+6434 @nix {"action":"stop","id":114}
+6458 @nix {"action":"stop","id":122}
+6466 @nix {"action":"stop","id":117}
+6474 @nix {"action":"stop","id":112}
+6482 @nix {"action":"stop","id":107}
+6490 @nix {"action":"stop","id":102}
+6650 @nix {"action":"stop","id":141}
+6658 @nix {"action":"stop","id":136}
+6666 @nix {"action":"stop","id":131}
+6674 @nix {"action":"stop","id":126}
+6682 @nix {"action":"stop","id":121}
+6690 @nix {"action":"stop","id":116}
+6698 @nix {"action":"stop","id":111}
+6706 @nix {"action":"stop","id":106}
+6738 @nix {"action":"stop","id":109}
+6874 @nix {"action":"stop","id":140}
+6882 @nix {"action":"stop","id":135}
+6914 @nix {"action":"stop","id":138}
+6922 @nix {"action":"stop","id":133}
+6930 @nix {"action":"stop","id":128}
+6938 @nix {"action":"stop","id":123}
+7138 @nix {"action":"stop","id":137}
+7138 @nix {"action":"start","id":142,"level":3,"parent":0,"text":"building '/nix/store/267bg6095c65d4gggb70da11f60148d7-single-c-0.drv'","type":105,"fields":["/nix/store/267bg6095c65d4gggb70da11f60148d7-single-c-0.drv","",1,1]}
+8500 = small-again
+9679 @nix {"action":"stop","id":142}
+9679 @nix {"action":"start","id":143,"level":3,"parent":0,"text":"building '/nix/store/fa05f5b7cbg3f46ddf3b4d57f16f5f23-big-d-0.drv'","type":105,"fields":["/nix/store/fa05f5b7cbg3f46ddf3b4d57f16f5f23-big-d-0.drv","",1,1]}
+9694 @nix {"action":"start","id":144,"level":3,"parent":0,"text":"building '/nix/store/f1bd9765fb2024bgc964d8ba63508873-big-d-1.drv'","type":105,"fields":["/nix/store/f1bd9765fb2024bgc964d8ba63508873-big-d-1.drv","",1,1]}
+9709 @nix {"action":"start","id":145,"level":3,"parent":0,"text":"building '/nix/store/454gc5056gg75dd07d6905a79882410f-big-d-2.drv'","type":105,"fields":["/nix/store/454gc5056gg75dd07d6905a79882410f-big-d-2.drv","",1,1]}
+9724 @nix {"action":"start","id":146,"level":3,"parent":0,"text":"building '/nix/store/8fa7532a77g72793794c613a7agb3fb3-big-d-3.drv'","type":105,"fields":["/nix/store/8fa7532a77g72793794c613a7agb3fb3-big-d-3.drv","",1,1]}
+9739 @nix {"action":"start","id":147,"level":3,"parent":0,"text":"building '/nix/store/ga79676da60a5b46f513cc6b0399d2c8-big-d-4.drv'","type":105,"fields":["/nix/store/ga79676da60a5b46f513cc6b0399d2c8-big-d-4.drv","",1,1]}
+9754 @nix {"action":"start","id":148,"level":3,"parent":0,"text":"building '/nix/store/gd13cf95b4f0a963aa0837124858b42b-big-d-5.drv'","type":105,"fields":["/nix/store/gd13cf95b4f0a963aa0837124858b42b-big-d-5.drv","",1,1]}
+9769 @nix {"action":"start","id":149,"level":3,"parent":0,"text":"building '/nix/store/af93722703b9f083b314d5111a468927-big-d-6.drv'","type":105,"fields":["/nix/store/af93722703b9f083b314d5111a468927-big-d-6.drv","",1,1]}
+9784 @nix {"action":"start","id":150,"level":3,"parent":0,"text":"building '/nix/store/8cg995ff0bf7f1d998377812abf2dca0-big-d-7.drv'","type":105,"fields":["/nix/store/8cg995ff0bf7f1d998377812abf2dca0-big-d-7.drv","",1,1]}
+9799 @nix {"action":"start","id":151,"level":3,"parent":0,"text":"building '/nix/store/a0a7df78cg108ad9fb66b9fa1f252287-big-d-8.drv'","type":105,"fields":["/nix/store/a0a7df78cg108ad9fb66b9fa1f252287-big-d-8.drv","",1,1]}
+9814 @nix {"action":"start","id":152,"level":3,"parent":0,"text":"building '/nix/store/g828a659548cb365628a124gab140gd2-big-d-9.drv'","type":105,"fields":["/nix/store/g828a659548cb365628a124gab140gd2-big-d-9.drv","",1,1]}
+9829 @nix {"action":"start","id":153,"level":3,"parent":0,"text":"building '/nix/store/73acf8663d0a9cda69a95687584fg404-big-d-10.drv'","type":105,"fields":["/nix/store/73acf8663d0a9cda69a95687584fg404-big-d-10.drv","",1,1]}
+9844 @nix {"action":"start","id":154,"level":3,"parent":0,"text":"building '/nix/store/5gcd70b3c6ac5bc8684bb3c708d25g7f-big-d-11.drv'","type":105,"fields":["/nix/store/5gcd70b3c6ac5bc8684bb3c708d25g7f-big-d-11.drv","",1,1]}
+9859 @nix {"action":"start","id":155,"level":3,"parent":0,"text":"building '/nix/store/c53b704b777b6g9g6adc0753787a6533-big-d-12.drv'","type":105,"fields":["/nix/store/c53b704b777b6g9g6adc0753787a6533-big-d-12.drv","",1,1]}
+9874 @nix {"action":"start","id":156,"level":3,"parent":0,"text":"building '/nix/store/7c2d4f858109277d35bb1b3754bgfd53-big-d-13.drv'","type":105,"fields":["/nix/store/7c2d4f858109277d35bb1b3754bgfd53-big-d-13.drv","",1,1]}
+9889 @nix {"action":"start","id":157,"level":3,"parent":0,"text":"building '/nix/store/2gfc4112f6c6g002cc02839a37gdbd6a-big-d-14.drv'","type":105,"fields":["/nix/store/2gfc4112f6c6g002cc02839a37gdbd6a-big-d-14.drv","",1,1]}
+9904 @nix {"action":"start","id":158,"level":3,"parent":0,"text":"building '/nix/store/92031g5f182d08a796b043314cc82635-big-d-15.drv'","type":105,"fields":["/nix/store/92031g5f182d08a796b043314cc82635-big-d-15.drv","",1,1]}
+9919 @nix {"action":"start","id":159,"level":3,"parent":0,"text":"building '/nix/store/690d11c1db9g99d443ag7840281a15d0-big-d-16.drv'","type":105,"fields":["/nix/store/690d11c1db9g99d443ag7840281a15d0-big-d-16.drv","",1,1]}
+9934 @nix {"action":"start","id":160,"level":3,"parent":0,"text":"building '/nix/store/4959g98cga4a73c0c3c3f65bf7d00b02-big-d-17.drv'","type":105,"fields":["/nix/store/4959g98cga4a73c0c3c3f65bf7d00b02-big-d-17.drv","",1,1]}
+9949 @nix {"action":"start","id":161,"level":3,"parent":0,"text":"building '/nix/store/gc39d043da58600g59c74b89fa8304d6-big-d-18.drv'","type":105,"fields":["/nix/store/gc39d043da58600g59c74b89fa8304d6-big-d-18.drv","",1,1]}
+9964 @nix {"action":"start","id":162,"level":3,"parent":0,"text":"building '/nix/store/b4408727a86a4cb96f3209495bb50b7f-big-d-19.drv'","type":105,"fields":["/nix/store/b4408727a86a4cb96f3209495bb50b7f-big-d-19.drv","",1,1]}
+9979 @nix {"action":"start","id":163,"level":3,"parent":0,"text":"building '/nix/store/8f60f89d3daafaf01004a6092df4b2g6-big-d-20.drv'","type":105,"fields":["/nix/store/8f60f89d3daafaf01004a6092df4b2g6-big-d-20.drv","",1,1]}
+9994 @nix {"action":"start","id":164,"level":3,"parent":0,"text":"building '/nix/store/13435gdd4a7df072ddd1af2b79b4409c-big-d-21.drv'","type":105,"fields":["/nix/store/13435gdd4a7df072ddd1af2b79b4409c-big-d-21.drv","",1,1]}
+10009 @nix {"action":"start","id":165,"level":3,"parent":0,"text":"building '/nix/store/193a2cca6292a587g8gf4f3567d7c93c-big-d-22.drv'","type":105,"fields":["/nix/store/193a2cca6292a587g8gf4f3567d7c93c-big-d-22.drv","",1,1]}
+10024 @nix {"action":"start","id":166,"level":3,"parent":0,"text":"building '/nix/store/c73f6ad4729b271c65290ga4cg909c19-big-d-23.drv'","type":105,"fields":["/nix/store/c73f6ad4729b271c65290ga4cg909c19-big-d-23.drv","",1,1]}
+10039 @nix {"action":"start","id":167,"level":3,"parent":0,"text":"building '/nix/store/221c9b54a98f998631228bd6cc39d279-big-d-24.drv'","type":105,"fields":["/nix/store/221c9b54a98f998631228bd6cc39d279-big-d-24.drv","",1,1]}
+10054 @nix {"action":"start","id":168,"level":3,"parent":0,"text":"building '/nix/store/037b9g32aa0df3cfg53aa979g0cdf5b1-big-d-25.drv'","type":105,"fields":["/nix/store/037b9g32aa0df3cfg53aa979g0cdf5b1-big-d-25.drv","",1,1]}
+10069 @nix {"action":"start","id":169,"level":3,"parent":0,"text":"building '/nix/store/3d9f47a03ca4c99f4f8443c55c0fc3b8-big-d-26.drv'","type":105,"fields":["/nix/store/3d9f47a03ca4c99f4f8443c55c0fc3b8-big-d-26.drv","",1,1]}
+10084 @nix {"action":"start","id":170,"level":3,"parent":0,"text":"building '/nix/store/9fbf0f931g43gf696fd514cagdfd5fg3-big-d-27.drv'","type":105,"fields":["/nix/store/9fbf0f931g43gf696fd514cagdfd5fg3-big-d-27.drv","",1,1]}
+10099 @nix {"action":"start","id":171,"level":3,"parent":0,"text":"building '/nix/store/ggf3a3bd5gcafda102c9468d36916231-big-d-28.drv'","type":105,"fields":["/nix/store/ggf3a3bd5gcafda102c9468d36916231-big-d-28.drv","",1,1]}
+10114 @nix {"action":"start","id":172,"level":3,"parent":0,"text":"building '/nix/store/02ga5cg880ga58969a68bdg1f7gd7a8d-big-d-29.drv'","type":105,"fields":["/nix/store/02ga5cg880ga58969a68bdg1f7gd7a8d-big-d-29.drv","",1,1]}
+11300 = big-again
+11732 @nix {"action":"stop","id":145}
+11932 @nix {"action":"stop","id":159}
+11940 @nix {"action":"stop","id":154}
+11948 @nix {"action":"stop","id":149}
+11956 @nix {"action":"stop","id":144}
+12140 @nix {"action":"stop","id":168}
+12172 @nix {"action":"stop","id":171}
+12180 @nix {"action":"stop","id":166}
+12188 @nix {"action":"stop","id":161}
+12196 @nix {"action":"stop","id":156}
+12204 @nix {"action":"stop","id":151}
+12212 @nix {"action":"stop","id":146}
+12396 @nix {"action":"stop","id":170}
+12404 @nix {"action":"stop","id":165}
+12412 @nix {"action":"stop","id":160}
+12420 @nix {"action":"stop","id":155}
+12444 @nix {"action":"stop","id":163}
+12452 @nix {"action":"stop","id":158}
+12460 @nix {"action":"stop","id":153}
+12468 @nix {"action":"stop","id":148}
+12476 @nix {"action":"stop","id":143}
+12652 @nix {"action":"stop","id":172}
+12660 @nix {"action":"stop","id":167}
+12668 @nix {"action":"stop","id":162}
+12676 @nix {"action":"stop","id":157}
+12684 @nix {"action":"stop","id":152}
+12692 @nix {"action":"stop","id":147}
+12724 @nix {"action":"stop","id":150}
+12916 @nix {"action":"stop","id":169}
+12924 @nix {"action":"stop","id":164}
+12924 @nix {"action":"start","id":173,"level":3,"parent":0,"text":"building '/nix/store/016f12f989g1f7f28f6fa8183f904ad5-grow-shrink-root.drv'","type":105,"fields":["/nix/store/016f12f989g1f7f28f6fa8183f904ad5-grow-shrink-root.drv","",1,1]}
+14124 @nix {"action":"stop","id":173}

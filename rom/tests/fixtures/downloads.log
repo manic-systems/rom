@@ -1,0 +1,89 @@
+0 @nix {"action":"msg","level":3,"msg":"these 6 paths will be fetched (130.2 MiB download, 512.9 MiB unpacked):"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7f1a75d33353f821bd42f7gb503a0f32-openssl-3.0.15"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7g3a9a5739d123a401g997c3286g8d37-glibc-2.40"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c8b0fa4gb7daag366ca2a17815g1gg56-helix-25.07"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/cg6d890d8d338ada3a5073d9a1452394-python3-3.13.7"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d9ccfg5fb71178b197332ac53abdcba3-zlib-1.3.1"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f4c11c6b544dcfdc3266767095d94a53-llvm-19.1.7"}
+300 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"copying path '/nix/store/7f1a75d33353f821bd42f7gb503a0f32-openssl-3.0.15' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/7f1a75d33353f821bd42f7gb503a0f32-openssl-3.0.15","https://cache.nixos.org"]}
+300 @nix {"action":"start","id":11,"level":3,"parent":10,"text":"copying path '/nix/store/7f1a75d33353f821bd42f7gb503a0f32-openssl-3.0.15' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/7f1a75d33353f821bd42f7gb503a0f32-openssl-3.0.15","https://cache.nixos.org","local"]}
+320 @nix {"action":"start","id":12,"level":3,"parent":11,"text":"downloading 'https://cache.nixos.org/nar/7f1a75d33353f821bd42f7gb503a0f32-openssl-3.0.15.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/7f1a75d33353f821bd42f7gb503a0f32-openssl-3.0.15.nar.xz"]}
+350 @nix {"action":"start","id":20,"level":3,"parent":0,"text":"copying path '/nix/store/d9ccfg5fb71178b197332ac53abdcba3-zlib-1.3.1' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/d9ccfg5fb71178b197332ac53abdcba3-zlib-1.3.1","https://cache.nixos.org"]}
+350 @nix {"action":"start","id":21,"level":3,"parent":20,"text":"copying path '/nix/store/d9ccfg5fb71178b197332ac53abdcba3-zlib-1.3.1' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/d9ccfg5fb71178b197332ac53abdcba3-zlib-1.3.1","https://cache.nixos.org","local"]}
+370 @nix {"action":"start","id":22,"level":3,"parent":21,"text":"downloading 'https://cache.nixos.org/nar/d9ccfg5fb71178b197332ac53abdcba3-zlib-1.3.1.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/d9ccfg5fb71178b197332ac53abdcba3-zlib-1.3.1.nar.xz"]}
+400 @nix {"action":"start","id":30,"level":3,"parent":0,"text":"copying path '/nix/store/7g3a9a5739d123a401g997c3286g8d37-glibc-2.40' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/7g3a9a5739d123a401g997c3286g8d37-glibc-2.40","https://cache.nixos.org"]}
+400 @nix {"action":"start","id":31,"level":3,"parent":30,"text":"copying path '/nix/store/7g3a9a5739d123a401g997c3286g8d37-glibc-2.40' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/7g3a9a5739d123a401g997c3286g8d37-glibc-2.40","https://cache.nixos.org","local"]}
+420 @nix {"action":"start","id":32,"level":3,"parent":31,"text":"downloading 'https://cache.nixos.org/nar/7g3a9a5739d123a401g997c3286g8d37-glibc-2.40.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/7g3a9a5739d123a401g997c3286g8d37-glibc-2.40.nar.xz"]}
+450 @nix {"action":"start","id":40,"level":3,"parent":0,"text":"copying path '/nix/store/f4c11c6b544dcfdc3266767095d94a53-llvm-19.1.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/f4c11c6b544dcfdc3266767095d94a53-llvm-19.1.7","https://cache.nixos.org"]}
+450 @nix {"action":"start","id":41,"level":3,"parent":40,"text":"copying path '/nix/store/f4c11c6b544dcfdc3266767095d94a53-llvm-19.1.7' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/f4c11c6b544dcfdc3266767095d94a53-llvm-19.1.7","https://cache.nixos.org","local"]}
+470 @nix {"action":"start","id":42,"level":3,"parent":41,"text":"downloading 'https://cache.nixos.org/nar/f4c11c6b544dcfdc3266767095d94a53-llvm-19.1.7.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/f4c11c6b544dcfdc3266767095d94a53-llvm-19.1.7.nar.xz"]}
+600 @nix {"action":"start","id":50,"level":3,"parent":0,"text":"copying path '/nix/store/c8b0fa4gb7daag366ca2a17815g1gg56-helix-25.07' from 'https://nix-community.cachix.org'","type":108,"fields":["/nix/store/c8b0fa4gb7daag366ca2a17815g1gg56-helix-25.07","https://nix-community.cachix.org"]}
+600 @nix {"action":"start","id":51,"level":3,"parent":50,"text":"copying path '/nix/store/c8b0fa4gb7daag366ca2a17815g1gg56-helix-25.07' from 'https://nix-community.cachix.org'","type":100,"fields":["/nix/store/c8b0fa4gb7daag366ca2a17815g1gg56-helix-25.07","https://nix-community.cachix.org","local"]}
+620 @nix {"action":"start","id":52,"level":3,"parent":51,"text":"downloading 'https://nix-community.cachix.org/nar/c8b0fa4gb7daag366ca2a17815g1gg56-helix-25.07.nar.xz'","type":101,"fields":["https://nix-community.cachix.org/nar/c8b0fa4gb7daag366ca2a17815g1gg56-helix-25.07.nar.xz"]}
+700 @nix {"action":"start","id":60,"level":3,"parent":0,"text":"copying path '/nix/store/cg6d890d8d338ada3a5073d9a1452394-python3-3.13.7' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/cg6d890d8d338ada3a5073d9a1452394-python3-3.13.7","https://cache.nixos.org"]}
+728 @nix {"action":"result","id":11,"type":105,"fields":[1196775,8388608,1,0]}
+811 @nix {"action":"result","id":31,"type":105,"fields":[2462656,41943040,1,0]}
+855 @nix {"action":"result","id":41,"type":105,"fields":[2415203,62914560,1,0]}
+900 @nix {"action":"result","id":21,"type":105,"fields":[209715,209715,1,0]}
+900 @nix {"action":"stop","id":22}
+900 @nix {"action":"stop","id":21}
+900 @nix {"action":"stop","id":20}
+1000 @nix {"action":"result","id":51,"type":105,"fields":[1143901,12582912,1,0]}
+1157 @nix {"action":"result","id":11,"type":105,"fields":[2396346,8388608,1,0]}
+1223 @nix {"action":"result","id":31,"type":105,"fields":[4931303,41943040,1,0]}
+1261 @nix {"action":"result","id":41,"type":105,"fields":[4836370,62914560,1,0]}
+1400 @nix {"action":"result","id":51,"type":105,"fields":[2287802,12582912,1,0]}
+1500 = started
+1585 @nix {"action":"result","id":11,"type":105,"fields":[3593120,8388608,1,0]}
+1635 @nix {"action":"result","id":31,"type":105,"fields":[7399951,41943040,1,0]}
+1667 @nix {"action":"result","id":41,"type":105,"fields":[7257537,62914560,1,0]}
+1800 @nix {"action":"result","id":51,"type":105,"fields":[3431703,12582912,1,0]}
+2014 @nix {"action":"result","id":11,"type":105,"fields":[4792691,8388608,1,0]}
+2047 @nix {"action":"result","id":31,"type":105,"fields":[9868598,41943040,1,0]}
+2073 @nix {"action":"result","id":41,"type":105,"fields":[9678704,62914560,1,0]}
+2200 @nix {"action":"result","id":51,"type":105,"fields":[4575604,12582912,1,0]}
+2442 @nix {"action":"result","id":11,"type":105,"fields":[5989466,8388608,1,0]}
+2458 @nix {"action":"result","id":31,"type":105,"fields":[12331254,41943040,1,0]}
+2478 @nix {"action":"result","id":41,"type":105,"fields":[12093908,62914560,1,0]}
+2600 @nix {"action":"result","id":51,"type":105,"fields":[5719505,12582912,1,0]}
+2870 @nix {"action":"result","id":31,"type":105,"fields":[14799901,41943040,1,0]}
+2871 @nix {"action":"result","id":11,"type":105,"fields":[7189037,8388608,1,0]}
+2884 @nix {"action":"result","id":41,"type":105,"fields":[14515075,62914560,1,0]}
+3000 @nix {"action":"result","id":51,"type":105,"fields":[6863407,12582912,1,0]}
+3282 @nix {"action":"result","id":31,"type":105,"fields":[17268549,41943040,1,0]}
+3300 @nix {"action":"result","id":11,"type":105,"fields":[8388608,8388608,1,0]}
+3300 @nix {"action":"stop","id":12}
+3300 @nix {"action":"stop","id":11}
+3300 @nix {"action":"stop","id":10}
+3400 @nix {"action":"result","id":51,"type":105,"fields":[8007308,12582912,1,0]}
+3694 @nix {"action":"result","id":31,"type":105,"fields":[19737196,41943040,1,0]}
+3800 @nix {"action":"result","id":51,"type":105,"fields":[9151209,12582912,1,0]}
+4000 @nix {"action":"stop","id":60}
+4000 = midway
+4105 @nix {"action":"result","id":31,"type":105,"fields":[22199852,41943040,1,0]}
+4200 @nix {"action":"result","id":51,"type":105,"fields":[10295110,12582912,1,0]}
+4517 @nix {"action":"result","id":31,"type":105,"fields":[24668499,41943040,1,0]}
+4600 @nix {"action":"result","id":51,"type":105,"fields":[11439011,12582912,1,0]}
+4929 @nix {"action":"result","id":31,"type":105,"fields":[27137147,41943040,1,0]}
+5000 @nix {"action":"result","id":51,"type":105,"fields":[12582912,12582912,1,0]}
+5000 @nix {"action":"stop","id":52}
+5000 @nix {"action":"stop","id":51}
+5000 @nix {"action":"stop","id":50}
+5341 @nix {"action":"result","id":31,"type":105,"fields":[29605794,41943040,1,0]}
+5752 @nix {"action":"result","id":31,"type":105,"fields":[32068450,41943040,1,0]}
+6164 @nix {"action":"result","id":31,"type":105,"fields":[34537098,41943040,1,0]}
+6576 @nix {"action":"result","id":31,"type":105,"fields":[37005745,41943040,1,0]}
+6988 @nix {"action":"result","id":31,"type":105,"fields":[39474393,41943040,1,0]}
+7400 @nix {"action":"result","id":31,"type":105,"fields":[41943040,41943040,1,0]}
+7400 @nix {"action":"stop","id":32}
+7400 @nix {"action":"stop","id":31}
+7400 @nix {"action":"stop","id":30}
+8000 = stalled
+9376 @nix {"action":"result","id":41,"type":105,"fields":[53229892,62914560,1,0]}
+9782 @nix {"action":"result","id":41,"type":105,"fields":[55651059,62914560,1,0]}
+10188 @nix {"action":"result","id":41,"type":105,"fields":[58072226,62914560,1,0]}
+10594 @nix {"action":"result","id":41,"type":105,"fields":[60493393,62914560,1,0]}
+11000 @nix {"action":"result","id":41,"type":105,"fields":[62914560,62914560,1,0]}
+11000 @nix {"action":"stop","id":42}
+11000 @nix {"action":"stop","id":41}
+11000 @nix {"action":"stop","id":40}

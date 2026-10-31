@@ -1,0 +1,52 @@
+0 @nix {"action":"msg","level":3,"msg":"these 4 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/280513937abcf59ff86gbdd1c8f26483-fine-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/5604c6386460acb390221c8bf6d5724b-compiler-errors-2.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c4g99439052b156a42933c9654d33534-slow-tests-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f5961f1151f644g98fc011gcc91f9faf-source-1.2.3.drv"}
+100 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/f5961f1151f644g98fc011gcc91f9faf-source-1.2.3.drv'","type":105,"fields":["/nix/store/f5961f1151f644g98fc011gcc91f9faf-source-1.2.3.drv","",1,1]}
+150 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/c4g99439052b156a42933c9654d33534-slow-tests-1.0.drv'","type":105,"fields":["/nix/store/c4g99439052b156a42933c9654d33534-slow-tests-1.0.drv","",1,1]}
+200 @nix {"action":"result","id":11,"type":104,"fields":["checkPhase"]}
+200 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/5604c6386460acb390221c8bf6d5724b-compiler-errors-2.0.drv'","type":105,"fields":["/nix/store/5604c6386460acb390221c8bf6d5724b-compiler-errors-2.0.drv","",1,1]}
+250 @nix {"action":"result","id":12,"type":104,"fields":["buildPhase"]}
+250 @nix {"action":"start","id":13,"level":3,"parent":0,"text":"building '/nix/store/280513937abcf59ff86gbdd1c8f26483-fine-1.0.drv'","type":105,"fields":["/nix/store/280513937abcf59ff86gbdd1c8f26483-fine-1.0.drv","",1,1]}
+1500 = building
+1800 @nix {"action":"msg","level":0,"msg":"error: hash mismatch in fixed-output derivation '/nix/store/f5961f1151f644g98fc011gcc91f9faf-source-1.2.3.drv':\n         specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n            got:    sha256-1b4bqP0lTrLRqzYI1C2pd0mrYyq5Tv3OVfUbjXsTi3o="}
+1800 @nix {"action":"stop","id":10}
+2400 = hash-mismatch
+2500 @nix {"action":"result","id":12,"type":101,"fields":["src/module_1.rs:7:5: error[E0425]: cannot find value `item_1` in this scope"]}
+2520 @nix {"action":"result","id":12,"type":101,"fields":["src/module_2.rs:14:5: error[E0425]: cannot find value `item_2` in this scope"]}
+2540 @nix {"action":"result","id":12,"type":101,"fields":["src/module_3.rs:21:5: error[E0425]: cannot find value `item_3` in this scope"]}
+2560 @nix {"action":"result","id":12,"type":101,"fields":["src/module_4.rs:28:5: error[E0425]: cannot find value `item_4` in this scope"]}
+2580 @nix {"action":"result","id":12,"type":101,"fields":["src/module_5.rs:35:5: error[E0425]: cannot find value `item_5` in this scope"]}
+2600 @nix {"action":"result","id":12,"type":101,"fields":["src/module_6.rs:42:5: error[E0425]: cannot find value `item_6` in this scope"]}
+2620 @nix {"action":"result","id":12,"type":101,"fields":["src/module_7.rs:49:5: error[E0425]: cannot find value `item_7` in this scope"]}
+2640 @nix {"action":"result","id":12,"type":101,"fields":["src/module_8.rs:56:5: error[E0425]: cannot find value `item_8` in this scope"]}
+2660 @nix {"action":"result","id":12,"type":101,"fields":["src/module_9.rs:63:5: error[E0425]: cannot find value `item_9` in this scope"]}
+2680 @nix {"action":"result","id":12,"type":101,"fields":["src/module_10.rs:70:5: error[E0425]: cannot find value `item_10` in this scope"]}
+2700 @nix {"action":"result","id":12,"type":101,"fields":["src/module_11.rs:77:5: error[E0425]: cannot find value `item_11` in this scope"]}
+2720 @nix {"action":"result","id":12,"type":101,"fields":["src/module_12.rs:84:5: error[E0425]: cannot find value `item_12` in this scope"]}
+2740 @nix {"action":"result","id":12,"type":101,"fields":["src/module_13.rs:91:5: error[E0425]: cannot find value `item_13` in this scope"]}
+2760 @nix {"action":"result","id":12,"type":101,"fields":["src/module_14.rs:98:5: error[E0425]: cannot find value `item_14` in this scope"]}
+2780 @nix {"action":"result","id":12,"type":101,"fields":["src/module_15.rs:105:5: error[E0425]: cannot find value `item_15` in this scope"]}
+2800 @nix {"action":"result","id":12,"type":101,"fields":["src/module_16.rs:112:5: error[E0425]: cannot find value `item_16` in this scope"]}
+2820 @nix {"action":"result","id":12,"type":101,"fields":["src/module_17.rs:119:5: error[E0425]: cannot find value `item_17` in this scope"]}
+2840 @nix {"action":"result","id":12,"type":101,"fields":["src/module_18.rs:126:5: error[E0425]: cannot find value `item_18` in this scope"]}
+2860 @nix {"action":"result","id":12,"type":101,"fields":["src/module_19.rs:133:5: error[E0425]: cannot find value `item_19` in this scope"]}
+2880 @nix {"action":"result","id":12,"type":101,"fields":["src/module_20.rs:140:5: error[E0425]: cannot find value `item_20` in this scope"]}
+2900 @nix {"action":"result","id":12,"type":101,"fields":["src/module_21.rs:147:5: error[E0425]: cannot find value `item_21` in this scope"]}
+2920 @nix {"action":"result","id":12,"type":101,"fields":["src/module_22.rs:154:5: error[E0425]: cannot find value `item_22` in this scope"]}
+2940 @nix {"action":"result","id":12,"type":101,"fields":["src/module_23.rs:161:5: error[E0425]: cannot find value `item_23` in this scope"]}
+2960 @nix {"action":"result","id":12,"type":101,"fields":["src/module_24.rs:168:5: error[E0425]: cannot find value `item_24` in this scope"]}
+2980 @nix {"action":"result","id":12,"type":101,"fields":["src/module_25.rs:175:5: error[E0425]: cannot find value `item_25` in this scope"]}
+3000 @nix {"action":"result","id":12,"type":101,"fields":["src/module_26.rs:182:5: error[E0425]: cannot find value `item_26` in this scope"]}
+3020 @nix {"action":"result","id":12,"type":101,"fields":["src/module_27.rs:189:5: error[E0425]: cannot find value `item_27` in this scope"]}
+3040 @nix {"action":"result","id":12,"type":101,"fields":["src/module_28.rs:196:5: error[E0425]: cannot find value `item_28` in this scope"]}
+3060 @nix {"action":"result","id":12,"type":101,"fields":["src/module_29.rs:203:5: error[E0425]: cannot find value `item_29` in this scope"]}
+3080 @nix {"action":"result","id":12,"type":101,"fields":["src/module_30.rs:210:5: error[E0425]: cannot find value `item_30` in this scope"]}
+3200 @nix {"action":"msg","level":0,"msg":"error: Cannot build '/nix/store/5604c6386460acb390221c8bf6d5724b-compiler-errors-2.0.drv'.\n       Reason: builder failed with exit code 101.\n       Output paths:\n         /nix/store/5604c6386460acb390221c8bf6d5724b-compiler-errors-2.0\n       Last 10 log lines:\n       > src/module_21.rs:147:5: error[E0425]: cannot find value `item_21` in this scope\n       > src/module_22.rs:154:5: error[E0425]: cannot find value `item_22` in this scope\n       > src/module_23.rs:161:5: error[E0425]: cannot find value `item_23` in this scope\n       > src/module_24.rs:168:5: error[E0425]: cannot find value `item_24` in this scope\n       > src/module_25.rs:175:5: error[E0425]: cannot find value `item_25` in this scope\n       > src/module_26.rs:182:5: error[E0425]: cannot find value `item_26` in this scope\n       > src/module_27.rs:189:5: error[E0425]: cannot find value `item_27` in this scope\n       > src/module_28.rs:196:5: error[E0425]: cannot find value `item_28` in this scope\n       > src/module_29.rs:203:5: error[E0425]: cannot find value `item_29` in this scope\n       > src/module_30.rs:210:5: error[E0425]: cannot find value `item_30` in this scope"}
+3200 @nix {"action":"stop","id":12}
+3800 = compile-error
+4000 @nix {"action":"stop","id":13}
+5000 @nix {"action":"msg","level":0,"msg":"error: building of '/nix/store/c4g99439052b156a42933c9654d33534-slow-tests-1.0.drv' timed out after 5 seconds of silence"}
+5000 @nix {"action":"stop","id":11}
+5600 = timeout

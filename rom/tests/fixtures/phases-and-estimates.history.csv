@@ -1,0 +1,7 @@
+hostname,derivation_name,utc_time,build_seconds
+localhost,estimated-1.0,2026-10-01T12:00:00Z,4
+localhost,estimated-1.0,2026-10-01T12:00:00Z,4
+localhost,overrun-1.0,2026-10-01T12:00:00Z,2
+localhost,overrun-1.0,2026-10-01T12:00:00Z,2
+localhost,overrun-1.0,2026-10-01T12:00:00Z,2
+localhost,phased-1.0,2026-10-01T12:00:00Z,6

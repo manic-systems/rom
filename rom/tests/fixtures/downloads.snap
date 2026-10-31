@@ -1,0 +1,35 @@
+=== started @ 1500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m│  ╰─ \e[0;36m↓ llvm-19.1.7\e[0m             \e[0;36m━╸\e[0;90m─────────────────────\e[0;36m    7%\e[0;90m  4.6 MiB/60 MiB\e[0;35m  \e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 5       \e[0;32m↓ 1         \e[0;34m⏸ 0       \e[0m∑ 6
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== midway @ 4000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m│  ╰─ \e[0;36m↓ llvm-19.1.7\e[0m             \e[0;36m━━━━━\e[0;90m──────────────────\e[0;36m   23%\e[0;90m  14 MiB/60 MiB\e[0;35m  c\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 3       \e[0;32m↓ 3         \e[0;34m⏸ 0       \e[0m∑ 6
+\e[0;90m┗━ \e[0mElapsed ⏱ 4s
+=== stalled @ 8000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m│  ╰─ \e[0;36m↓ llvm-19.1.7\e[0m             \e[0;31m━━━━━\e[0;90m──────────────────\e[0;36m   23%\e[0;31m  stalled 5s\e[0;90m  14 M\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 1       \e[0;32m↓ 5         \e[0;34m⏸ 0       \e[0m∑ 6
+\e[0;90m┗━ \e[0mElapsed ⏱ 8s
+=== finished @ 11000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m┕━ \e[0;32mFinished after 11s\e[0m
+=== log ===
+these 6 paths will be fetched (130.2 MiB download, 512.9 MiB unpacked):\e[0m
+  /nix/store/7f1a75d33353f821bd42f7gb503a0f32-openssl-3.0.15\e[0m
+  /nix/store/7g3a9a5739d123a401g997c3286g8d37-glibc-2.40\e[0m
+  /nix/store/c8b0fa4gb7daag366ca2a17815g1gg56-helix-25.07\e[0m
+  /nix/store/cg6d890d8d338ada3a5073d9a1452394-python3-3.13.7\e[0m
+  /nix/store/d9ccfg5fb71178b197332ac53abdcba3-zlib-1.3.1\e[0m
+  /nix/store/f4c11c6b544dcfdc3266767095d94a53-llvm-19.1.7\e[0m

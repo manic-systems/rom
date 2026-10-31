@@ -1,0 +1,10 @@
+{
+  "derivations": {
+    "/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv": {
+      "sources": [
+        "/nix/store/33df1718bb4648c94ga063f30cd1c454-app-src",
+        "/nix/store/2gab02g31a3a84d6216g49g02135ga94-vendor-deps"
+      ]
+    }
+  }
+}

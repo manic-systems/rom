@@ -1,0 +1,37 @@
+=== producer @ 1500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ hello\e[0m                      \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;34m⏸ hello-wrapped-1.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 1       \e[0m∑ 2
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== units @ 3200ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ hello-wrapped-1.0\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ hello\e[0m
+\e[0;90m│     ├─ \e[0;33m⏵ main.o\e[0m               \e[0;90m─────────────\e[0;33m━━━╸\e[0;90m──────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│     ├─ \e[0;33m⏵ io.o\e[0m                 \e[0;90m─────────────\e[0;33m━━━╸\e[0;90m──────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│     ╰─ \e[0;33m⏵ cli.o\e[0m                \e[0;90m─────────────\e[0;33m━━━╸\e[0;90m──────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 3       \e[0;32m✔ 1         \e[0;34m⏸ 1       \e[0m∑ 5
+\e[0;90m┗━ \e[0mElapsed ⏱ 3s
+=== link @ 4600ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ hello-wrapped-1.0\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ hello\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 5         \e[0;34m⏸ 1       \e[0m∑ 7
+\e[0;90m┗━ \e[0mElapsed ⏱ 4s
+=== consumer @ 7400ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ hello-wrapped-1.0\e[0m          \e[0;90m─────────────────\e[0;33m━━━╸\e[0;90m──\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 7         \e[0;34m⏸ 0       \e[0m∑ 8
+\e[0;90m┗━ \e[0mElapsed ⏱ 7s
+=== finished @ 7500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m┕━ \e[0;32mFinished after 7s\e[0m
+=== log ===
+these 2 derivations will be built:\e[0m
+  /nix/store/9c79b527fg09d9ca1dfa85910b1c6364-hello-wrapped-1.0.drv\e[0m
+  /nix/store/g3ff46d65cd4fd39cf9706429d1d3f9b-hello.drv.drv\e[0m

@@ -1,0 +1,80 @@
+=== building @ 1500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ fine-1.0\e[0m                   \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ compiler-errors-2.0\e[0m        \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ slow-tests-1.0\e[0m             \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────  (checkPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ source-1.2.3\e[0m               \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 4       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== hash-mismatch @ 2400ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;31m✗ source-1.2.3  failed\e[0m
+\e[0;90m├─ \e[0;33m⏵ fine-1.0\e[0m                   \e[0;90m───────────────────\e[0;33m━━━╸\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m├─ \e[0;33m⏵ compiler-errors-2.0\e[0m        \e[0;90m───────────────────\e[0;33m━━━╸\e[0;90m  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m├─ \e[0;33m⏵ slow-tests-1.0\e[0m             \e[0;90m───────────────────\e[0;33m━━━╸\e[0;90m  (checkPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 3       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 1      \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 2s
+=== compile-error @ 3800ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;31m✗ compiler-errors-2.0  failed\e[0m
+\e[0;90m├─ \e[0;31m✗ source-1.2.3  failed\e[0m
+\e[0;90m├─ \e[0;33m⏵ fine-1.0\e[0m                   \e[0;90m────────\e[0;33m━━━╸\e[0;90m───────────\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m├─ \e[0;33m⏵ slow-tests-1.0\e[0m             \e[0;90m────────\e[0;33m━━━╸\e[0;90m───────────  (checkPhase)\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 2       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 2      \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 3s
+=== timeout @ 5600ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;31m✗ compiler-errors-2.0  failed\e[0m
+\e[0;90m├─ \e[0;31m✗ slow-tests-1.0  failed\e[0m
+\e[0;90m├─ \e[0;31m✗ source-1.2.3  failed\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 1         \e[0;34m⏸ 0       \e[0;31m✗ 3      \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 5s
+=== finished @ 5600ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;31m✗ compiler-errors-2.0  failed\e[0m
+\e[0;90m├─ \e[0;31m✗ slow-tests-1.0  failed\e[0m
+\e[0;90m├─ \e[0;31m✗ source-1.2.3  failed\e[0m
+\e[0;90m┕━ \e[0;31mExited with 3 failed build(s) after 5s\e[0m
+=== log ===
+these 4 derivations will be built:\e[0m
+  /nix/store/280513937abcf59ff86gbdd1c8f26483-fine-1.0.drv\e[0m
+  /nix/store/5604c6386460acb390221c8bf6d5724b-compiler-errors-2.0.drv\e[0m
+  /nix/store/c4g99439052b156a42933c9654d33534-slow-tests-1.0.drv\e[0m
+  /nix/store/f5961f1151f644g98fc011gcc91f9faf-source-1.2.3.drv\e[0m
+error: hash mismatch in fixed-output derivation '/nix/store/f5961f1151f644g98fc011gcc91f9faf-source-1.2.3.drv':         specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=            got:    sha256-1b4bqP0lTrLRqzYI1C2pd0mrYyq5Tv3OVfUbjXsTi3o=\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_1.rs:7:5: error[E0425]: cannot find value `item_1` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_2.rs:14:5: error[E0425]: cannot find value `item_2` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_3.rs:21:5: error[E0425]: cannot find value `item_3` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_4.rs:28:5: error[E0425]: cannot find value `item_4` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_5.rs:35:5: error[E0425]: cannot find value `item_5` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_6.rs:42:5: error[E0425]: cannot find value `item_6` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_7.rs:49:5: error[E0425]: cannot find value `item_7` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_8.rs:56:5: error[E0425]: cannot find value `item_8` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_9.rs:63:5: error[E0425]: cannot find value `item_9` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_10.rs:70:5: error[E0425]: cannot find value `item_10` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_11.rs:77:5: error[E0425]: cannot find value `item_11` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_12.rs:84:5: error[E0425]: cannot find value `item_12` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_13.rs:91:5: error[E0425]: cannot find value `item_13` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_14.rs:98:5: error[E0425]: cannot find value `item_14` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_15.rs:105:5: error[E0425]: cannot find value `item_15` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_16.rs:112:5: error[E0425]: cannot find value `item_16` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_17.rs:119:5: error[E0425]: cannot find value `item_17` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_18.rs:126:5: error[E0425]: cannot find value `item_18` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_19.rs:133:5: error[E0425]: cannot find value `item_19` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_20.rs:140:5: error[E0425]: cannot find value `item_20` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_21.rs:147:5: error[E0425]: cannot find value `item_21` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_22.rs:154:5: error[E0425]: cannot find value `item_22` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_23.rs:161:5: error[E0425]: cannot find value `item_23` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_24.rs:168:5: error[E0425]: cannot find value `item_24` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_25.rs:175:5: error[E0425]: cannot find value `item_25` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_26.rs:182:5: error[E0425]: cannot find value `item_26` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_27.rs:189:5: error[E0425]: cannot find value `item_27` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_28.rs:196:5: error[E0425]: cannot find value `item_28` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_29.rs:203:5: error[E0425]: cannot find value `item_29` in this scope\e[0m
+\e[0;38;5;67mcompiler-errors-2.0> \e[0msrc/module_30.rs:210:5: error[E0425]: cannot find value `item_30` in this scope\e[0m
+error: Cannot build '/nix/store/5604c6386460acb390221c8bf6d5724b-compiler-errors-2.0.drv'.       Reason: builder failed with exit code 101.       Output paths:         /nix/store/5604c6386460acb390221c8bf6d5724b-compiler-errors-2.0       Last 10 log lines:       > src/module_21.rs:147:5: error[E0425]: cannot find value `item_21` in this scope       > src/module_22.rs:154:5: error[E0425]: cannot find value `item_22` in this scope       > src/module_23.rs:161:5: error[E0425]: cannot find value `item_23` in this scope       > src/module_24.rs:168:5: error[E0425]: cannot find value `item_24` in this scope       > src/module_25.rs:175:5: error[E0425]: cannot find value `item_25` in this scope       > src/module_26.rs:182:5: error[E0425]: cannot find value `item_26` in this scope       > src/module_27.rs:189:5: error[E0425]: cannot find value `item_27` in this scope       > src/module_28.rs:196:5: error[E0425]: cannot find value `item_28` in this scope       > src/module_29.rs:203:5: error[E0425]: cannot find value `item_29` in this scope       > src/module_30.rs:210:5: error[E0425]: cannot find value `item_30` in this scope\e[0m
+error: building of '/nix/store/c4g99439052b156a42933c9654d33534-slow-tests-1.0.drv' timed out after 5 seconds of silence\e[0m

@@ -1,0 +1,15 @@
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/bd5af745cg3b4g2b969cfcd27a99384c-foo+bar=baz-1.0.drv'","type":105,"fields":["/nix/store/bd5af745cg3b4g2b969cfcd27a99384c-foo+bar=baz-1.0.drv","",1,1]}
+30 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/44061f7d915851700bd1g48dfc017cfb-_private-0.1.drv'","type":105,"fields":["/nix/store/44061f7d915851700bd1g48dfc017cfb-_private-0.1.drv","",1,1]}
+60 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/d0gg5974b6aa52cg562bfa5921840c03-1.0.drv'","type":105,"fields":["/nix/store/d0gg5974b6aa52cg562bfa5921840c03-1.0.drv","",1,1]}
+90 @nix {"action":"start","id":13,"level":3,"parent":0,"text":"building '/nix/store/ca978112ca1bbdcagac231b39a23dc4d-a.drv'","type":105,"fields":["/nix/store/ca978112ca1bbdcagac231b39a23dc4d-a.drv","",1,1]}
+120 @nix {"action":"start","id":14,"level":3,"parent":0,"text":"building '/nix/store/2d63cg8ad45038dd2a1c54119g3af72b-x86_64-unknown-linux-gnu-binutils-2.44.drv'","type":105,"fields":["/nix/store/2d63cg8ad45038dd2a1c54119g3af72b-x86_64-unknown-linux-gnu-binutils-2.44.drv","",1,1]}
+150 @nix {"action":"start","id":15,"level":3,"parent":0,"text":"building '/nix/store/g04g3b2bf60bdd57d95c53gf9f174afc-nixos-rebuild-ng-26.11pre-git.drv'","type":105,"fields":["/nix/store/g04g3b2bf60bdd57d95c53gf9f174afc-nixos-rebuild-ng-26.11pre-git.drv","",1,1]}
+180 @nix {"action":"start","id":16,"level":3,"parent":0,"text":"building '/nix/store/cd40c69dc9d0d9d644dc5b67a3414422-hello-2.12.3-dev.drv'","type":105,"fields":["/nix/store/cd40c69dc9d0d9d644dc5b67a3414422-hello-2.12.3-dev.drv","",1,1]}
+1500 = building
+2500 @nix {"action":"stop","id":10}
+2530 @nix {"action":"stop","id":11}
+2560 @nix {"action":"stop","id":12}
+2590 @nix {"action":"stop","id":13}
+2620 @nix {"action":"stop","id":14}
+2650 @nix {"action":"stop","id":15}
+2680 @nix {"action":"stop","id":16}
