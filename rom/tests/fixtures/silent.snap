@@ -1,20 +1,18 @@
-=== building @ 200ms ===
+=== chatting @ 1500ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ chatty-1.0\e[0m                 \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ quiet-1.0\e[0m                  \e[0;90m────────────\e[0;33m━━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 2       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 2
-\e[0;90m┗━ \e[0mElapsed ⏱ 0s
-=== failed @ 400ms ===
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== still-chatting @ 4000ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;31m✗ app-1.0  failed\e[0m
-\e[0;90m│  ╰─ \e[0;31m✗ lib-1.0  failed\e[0m
-\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0;31mFailed   \e[0mTotal
-\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0;31m✗ 2      \e[0m∑ 2
-\e[0;90m┗━ \e[0mElapsed ⏱ 0s
-=== finished @ 400ms ===
+\e[0;90m├─ \e[0;33m⏵ chatty-1.0\e[0m                 \e[0;90m──────\e[0;33m━━━╸\e[0;90m─────────────  (buildPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m├─ \e[0;33m⏵ quiet-1.0\e[0m                  \e[0;90m──────\e[0;33m━━━╸\e[0;90m─────────────\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 2       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 2
+\e[0;90m┗━ \e[0mElapsed ⏱ 4s
+=== finished @ 6000ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;31m✗ app-1.0  failed\e[0m
-\e[0;90m│  ╰─ \e[0;31m✗ lib-1.0  failed\e[0m
-\e[0;90m┕━ \e[0;31mExited with 2 failed build(s) after 0s\e[0m
+\e[0;90m┕━ \e[0;32mFinished after 6s\e[0m
 === log ===
-error: builder for '/nix/store/00000000000000000000000000000002-lib-1.0.drv' failed with exit code 2\e[0m
-error: 1 dependencies of derivation '/nix/store/00000000000000000000000000000001-app-1.0.drv' failed to build\e[0m

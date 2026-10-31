@@ -1,0 +1,35 @@
+0 @nix {"action":"msg","level":3,"msg":"these 8 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/04dg070g066925c65766bdb16g91946a-local-a-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/1db0gff3fca4f20g795d939a5c6c56b9-remote-d-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/33b9g44364a03079d8674g6084f5gf76-remote-e-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/3b5ac6fadd9459d64d45bg53975d6968-local-b-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/6b959ad8bdf277fb11af3ac411b4c013-locked-g-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7887g1955f75c5a785d2dcd27795cb6c-remote-f-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/b7bd55c11b781b0ccc43aa6f57g9dadg-deploy.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f6d8c78gd74fd6a8g9505743g5a9gb69-remote-c-1.0.drv"}
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/04dg070g066925c65766bdb16g91946a-local-a-1.0.drv'","type":105,"fields":["/nix/store/04dg070g066925c65766bdb16g91946a-local-a-1.0.drv","",1,1]}
+50 @nix {"action":"result","id":10,"type":104,"fields":["buildPhase"]}
+200 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/3b5ac6fadd9459d64d45bg53975d6968-local-b-1.0.drv'","type":105,"fields":["/nix/store/3b5ac6fadd9459d64d45bg53975d6968-local-b-1.0.drv","",1,1]}
+250 @nix {"action":"result","id":11,"type":104,"fields":["configurePhase"]}
+300 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/f6d8c78gd74fd6a8g9505743g5a9gb69-remote-c-1.0.drv' on 'ssh-ng://chariot'","type":105,"fields":["/nix/store/f6d8c78gd74fd6a8g9505743g5a9gb69-remote-c-1.0.drv","ssh-ng://chariot",1,1]}
+350 @nix {"action":"result","id":12,"type":104,"fields":["buildPhase"]}
+400 @nix {"action":"start","id":13,"level":3,"parent":0,"text":"building '/nix/store/1db0gff3fca4f20g795d939a5c6c56b9-remote-d-1.0.drv' on 'ssh-ng://chariot'","type":105,"fields":["/nix/store/1db0gff3fca4f20g795d939a5c6c56b9-remote-d-1.0.drv","ssh-ng://chariot",1,1]}
+450 @nix {"action":"result","id":13,"type":104,"fields":["checkPhase"]}
+500 @nix {"action":"start","id":14,"level":3,"parent":0,"text":"building '/nix/store/33b9g44364a03079d8674g6084f5gf76-remote-e-1.0.drv' on 'ssh://eu-builder.example.org'","type":105,"fields":["/nix/store/33b9g44364a03079d8674g6084f5gf76-remote-e-1.0.drv","ssh://eu-builder.example.org",1,1]}
+550 @nix {"action":"result","id":14,"type":104,"fields":["buildPhase"]}
+600 @nix {"action":"start","id":20,"level":3,"parent":0,"text":"waiting for a machine to build '/nix/store/7887g1955f75c5a785d2dcd27795cb6c-remote-f-1.0.drv'","type":111,"fields":[]}
+700 @nix {"action":"start","id":21,"level":3,"parent":0,"text":"waiting for lock on '/nix/store/6b959ad8bdf277fb11af3ac411b4c013-locked-g-1.0'","type":111,"fields":[]}
+1500 = mixed
+3000 @nix {"action":"stop","id":11}
+3500 @nix {"action":"stop","id":21}
+4000 = waiting
+4500 @nix {"action":"stop","id":13}
+4600 @nix {"action":"stop","id":20}
+4600 @nix {"action":"start","id":15,"level":3,"parent":0,"text":"building '/nix/store/7887g1955f75c5a785d2dcd27795cb6c-remote-f-1.0.drv' on 'ssh-ng://chariot'","type":105,"fields":["/nix/store/7887g1955f75c5a785d2dcd27795cb6c-remote-f-1.0.drv","ssh-ng://chariot",1,1]}
+5000 @nix {"action":"stop","id":10}
+6000 @nix {"action":"stop","id":12}
+6500 = draining
+7000 @nix {"action":"stop","id":14}
+7600 @nix {"action":"stop","id":15}
+7700 @nix {"action":"start","id":16,"level":3,"parent":0,"text":"building '/nix/store/b7bd55c11b781b0ccc43aa6f57g9dadg-deploy.drv'","type":105,"fields":["/nix/store/b7bd55c11b781b0ccc43aa6f57g9dadg-deploy.drv","",1,1]}
+8500 @nix {"action":"stop","id":16}

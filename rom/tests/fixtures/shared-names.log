@@ -1,0 +1,39 @@
+0 @nix {"action":"msg","level":3,"msg":"these 12 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/158673a4854c39c2b5cd8d2c52bfc4gd-lib-2.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/1f6fd65d77d6364ffafd5a745ba5c498-bundle.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2c4b303cdbag0dd7dfg127756797668b-source.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/48973630fc8562483241b67835398d5a-source.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/5fb595adc35a67431461abb85130aa7a-source.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/ada987408d4654f36gc691a5d4383ag8-source.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/agd7b38a6bd8d468c6a16c11a8d23bb8-source.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/c4g04fa6g5dg90609c290a62f254ad2b-hook.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/d2a37b56b4g7407096cfa661113ab09a-hook.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/g29fad2bgaa70a500g5f100871085a74-hook.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/gga6a744d78d28386438b4a8f8ff32g5-source.drv"}
+100 @nix {"action":"start","id":100,"level":3,"parent":0,"text":"building '/nix/store/gga6a744d78d28386438b4a8f8ff32g5-source.drv'","type":105,"fields":["/nix/store/gga6a744d78d28386438b4a8f8ff32g5-source.drv","",1,1]}
+115 @nix {"action":"start","id":101,"level":3,"parent":0,"text":"building '/nix/store/ada987408d4654f36gc691a5d4383ag8-source.drv'","type":105,"fields":["/nix/store/ada987408d4654f36gc691a5d4383ag8-source.drv","",1,1]}
+130 @nix {"action":"start","id":102,"level":3,"parent":0,"text":"building '/nix/store/agd7b38a6bd8d468c6a16c11a8d23bb8-source.drv'","type":105,"fields":["/nix/store/agd7b38a6bd8d468c6a16c11a8d23bb8-source.drv","",1,1]}
+145 @nix {"action":"start","id":103,"level":3,"parent":0,"text":"building '/nix/store/48973630fc8562483241b67835398d5a-source.drv'","type":105,"fields":["/nix/store/48973630fc8562483241b67835398d5a-source.drv","",1,1]}
+160 @nix {"action":"start","id":104,"level":3,"parent":0,"text":"building '/nix/store/2c4b303cdbag0dd7dfg127756797668b-source.drv'","type":105,"fields":["/nix/store/2c4b303cdbag0dd7dfg127756797668b-source.drv","",1,1]}
+175 @nix {"action":"start","id":105,"level":3,"parent":0,"text":"building '/nix/store/5fb595adc35a67431461abb85130aa7a-source.drv'","type":105,"fields":["/nix/store/5fb595adc35a67431461abb85130aa7a-source.drv","",1,1]}
+190 @nix {"action":"start","id":106,"level":3,"parent":0,"text":"building '/nix/store/d2a37b56b4g7407096cfa661113ab09a-hook.drv'","type":105,"fields":["/nix/store/d2a37b56b4g7407096cfa661113ab09a-hook.drv","",1,1]}
+205 @nix {"action":"start","id":107,"level":3,"parent":0,"text":"building '/nix/store/c4g04fa6g5dg90609c290a62f254ad2b-hook.drv'","type":105,"fields":["/nix/store/c4g04fa6g5dg90609c290a62f254ad2b-hook.drv","",1,1]}
+1500 = sources
+2300 @nix {"action":"stop","id":107}
+2300 @nix {"action":"start","id":108,"level":3,"parent":0,"text":"building '/nix/store/g29fad2bgaa70a500g5f100871085a74-hook.drv'","type":105,"fields":["/nix/store/g29fad2bgaa70a500g5f100871085a74-hook.drv","",1,1]}
+2341 @nix {"action":"stop","id":101}
+2524 @nix {"action":"stop","id":106}
+2597 @nix {"action":"stop","id":103}
+2853 @nix {"action":"stop","id":105}
+3077 @nix {"action":"stop","id":104}
+3860 @nix {"action":"stop","id":108}
+3860 @nix {"action":"start","id":109,"level":3,"parent":0,"text":"building '/nix/store/158673a4854c39c2b5cd8d2c52bfc4gd-lib-2.0.drv'","type":105,"fields":["/nix/store/158673a4854c39c2b5cd8d2c52bfc4gd-lib-2.0.drv","",1,1]}
+3861 @nix {"action":"stop","id":100}
+4117 @nix {"action":"stop","id":102}
+4117 @nix {"action":"start","id":110,"level":3,"parent":0,"text":"building '/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv'","type":105,"fields":["/nix/store/41gd04f97af65g82f23f3b9b6778a1a7-app-1.0.drv","",1,1]}
+5500 = consumers
+6360 @nix {"action":"stop","id":109}
+7117 @nix {"action":"stop","id":110}
+7117 @nix {"action":"start","id":111,"level":3,"parent":0,"text":"building '/nix/store/1f6fd65d77d6364ffafd5a745ba5c498-bundle.drv'","type":105,"fields":["/nix/store/1f6fd65d77d6364ffafd5a745ba5c498-bundle.drv","",1,1]}
+8317 @nix {"action":"stop","id":111}

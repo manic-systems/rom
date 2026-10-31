@@ -1,0 +1,208 @@
+{
+  "derivations": {
+    "/nix/store/c1554g5gb3407db35gadgc78g9a4g6ad-bash-tool-0.drv": {
+      "inputs": []
+    },
+    "/nix/store/b951dgbg4a0ff32108d8072fc5c13148-coreutils-tool-1.drv": {
+      "inputs": []
+    },
+    "/nix/store/b8bc5b9023f2g27c527420ff561g446g-gcc-tool-2.drv": {
+      "inputs": []
+    },
+    "/nix/store/44d6cfdg3bddb6g3324fc6560438d67d-glibc-tool-3.drv": {
+      "inputs": []
+    },
+    "/nix/store/14743cd5f722gcf57ggg7c9a62g3cf03-openssl-tool-4.drv": {
+      "inputs": []
+    },
+    "/nix/store/cf56gad36gbf48gfa43136c406c7865g-zlib-tool-5.drv": {
+      "inputs": []
+    },
+    "/nix/store/f3g124c15c4gcab66fgg7fc4fdg0b911-curl-tool-6.drv": {
+      "inputs": []
+    },
+    "/nix/store/g7f61b057943956b56c8ggbdcf0g15ga-python3-tool-7.drv": {
+      "inputs": []
+    },
+    "/nix/store/c34b9d6a082db384a2f09ad09508cb39-perl-tool-8.drv": {
+      "inputs": []
+    },
+    "/nix/store/f023a302757c0g8bb406c64a752a3c34-git-tool-9.drv": {
+      "inputs": []
+    },
+    "/nix/store/acd3g26825d0baf70ac7af94f635c641-ncurses-tool-10.drv": {
+      "inputs": []
+    },
+    "/nix/store/b976f9f65b401460aa0fcb6802464g0d-readline-tool-11.drv": {
+      "inputs": []
+    },
+    "/nix/store/8fc2c1a664353c002af3g19a93bd5c0f-sqlite-tool-12.drv": {
+      "inputs": []
+    },
+    "/nix/store/1a55837g4a70498d5b3d8ag5d4c39270-libffi-tool-13.drv": {
+      "inputs": []
+    },
+    "/nix/store/17gg8g17af5591f8b567a51ffg67a32f-xz-tool-14.drv": {
+      "inputs": []
+    },
+    "/nix/store/da119ff89g837ba5a84926966d0g47d0-gettext-tool-15.drv": {
+      "inputs": []
+    },
+    "/nix/store/7b7884fcb5f61c914c074357c7cc5ga5-systemd-tool-16.drv": {
+      "inputs": []
+    },
+    "/nix/store/836742c75543a61b03db8a3fc531bd52-dbus-tool-17.drv": {
+      "inputs": []
+    },
+    "/nix/store/9g54d977c88bc5a4bd912fb0gf7d9d2d-util-linux-tool-18.drv": {
+      "inputs": []
+    },
+    "/nix/store/b5851g2f5b2ggd5894616811cf61a9a6-linux-pam-tool-19.drv": {
+      "inputs": []
+    },
+    "/nix/store/18ga548f0g8181461140997202d8g88b-kmod-tool-20.drv": {
+      "inputs": []
+    },
+    "/nix/store/f439b34g36c9c04af72fa939528ggd1d-kbd-tool-21.drv": {
+      "inputs": []
+    },
+    "/nix/store/603ga7b075592a7f44fb8cdadf68g69d-nftables-tool-22.drv": {
+      "inputs": []
+    },
+    "/nix/store/5170d8808795b8gf5583c0451166b904-iproute2-tool-23.drv": {
+      "inputs": []
+    },
+    "/nix/store/8b75a0gdb5d429a1101ba51649g3b126-openssh-tool-24.drv": {
+      "inputs": []
+    },
+    "/nix/store/96g326a2dc8252aad42dd0b57796144d-shadow-tool-25.drv": {
+      "inputs": []
+    },
+    "/nix/store/72adc747d7d8648gda0a01gg35243748-sudo-tool-26.drv": {
+      "inputs": []
+    },
+    "/nix/store/257d8f9aa473g56b390agg617d3g5991-less-tool-27.drv": {
+      "inputs": []
+    },
+    "/nix/store/9g30ab934c726gc8a642fccf53dg8203-man-db-tool-28.drv": {
+      "inputs": []
+    },
+    "/nix/store/84acfa9c1c391857c9fc7bgb543db13g-pipewire-tool-29.drv": {
+      "inputs": []
+    },
+    "/nix/store/f757c711a32368d0ff40868068ffdb16-bash-tool-30.drv": {
+      "inputs": []
+    },
+    "/nix/store/04fgb15505d352c3cg3ffd951880dfaf-coreutils-tool-31.drv": {
+      "inputs": []
+    },
+    "/nix/store/44c29d07c53038a7964d8d5ab486dg74-gcc-tool-32.drv": {
+      "inputs": []
+    },
+    "/nix/store/994647c9a1g7c512f5f17c42ad4d1gf8-glibc-tool-33.drv": {
+      "inputs": []
+    },
+    "/nix/store/d6b3ggf61396946gbcb5gda150ggaf38-openssl-tool-34.drv": {
+      "inputs": []
+    },
+    "/nix/store/05611cc17d35129c577d3g02c27726b6-zlib-tool-35.drv": {
+      "inputs": []
+    },
+    "/nix/store/g1c9g1c9bf2a91dac5654cgd9100802a-curl-tool-36.drv": {
+      "inputs": []
+    },
+    "/nix/store/afc6aaca1f885b68840cga1bc81739gc-python3-tool-37.drv": {
+      "inputs": []
+    },
+    "/nix/store/171f97c3f085ggbcg81923ggc941adgd-perl-tool-38.drv": {
+      "inputs": []
+    },
+    "/nix/store/f5cccda204f54864d469af832663a22a-git-tool-39.drv": {
+      "inputs": []
+    },
+    "/nix/store/6989gba69b70f72720d3f988604d2a77-ncurses-tool-40.drv": {
+      "inputs": []
+    },
+    "/nix/store/bg240acc420ad45490ga249aa0815ccb-readline-tool-41.drv": {
+      "inputs": []
+    },
+    "/nix/store/a0a5410844295f9gf984f3ff7d72fga5-sqlite-tool-42.drv": {
+      "inputs": []
+    },
+    "/nix/store/53gg765d3d9g4a9c6751603b6aaf3d06-libffi-tool-43.drv": {
+      "inputs": []
+    },
+    "/nix/store/a4a1ggbagdfac7f9d2373a796gcg5g65-xz-tool-44.drv": {
+      "inputs": []
+    },
+    "/nix/store/b05206f320dfbad504fc93db31gbc122-gettext-tool-45.drv": {
+      "inputs": []
+    },
+    "/nix/store/4caa18983896fd43b8c05da693c2f3d0-systemd-tool-46.drv": {
+      "inputs": []
+    },
+    "/nix/store/75197d22490fg6g63903961f8f013dc7-dbus-tool-47.drv": {
+      "inputs": []
+    },
+    "/nix/store/f21bgbcdagfc7f1bg4g913f086d658d5-util-linux-tool-48.drv": {
+      "inputs": []
+    },
+    "/nix/store/045aada26056bg21aaa064f7gc988agc-linux-pam-tool-49.drv": {
+      "inputs": []
+    },
+    "/nix/store/ff89205476a26b96f87d6537b103823d-devshell-env.drv": {
+      "inputs": [
+        "/nix/store/c1554g5gb3407db35gadgc78g9a4g6ad-bash-tool-0.drv",
+        "/nix/store/b951dgbg4a0ff32108d8072fc5c13148-coreutils-tool-1.drv",
+        "/nix/store/b8bc5b9023f2g27c527420ff561g446g-gcc-tool-2.drv",
+        "/nix/store/44d6cfdg3bddb6g3324fc6560438d67d-glibc-tool-3.drv",
+        "/nix/store/14743cd5f722gcf57ggg7c9a62g3cf03-openssl-tool-4.drv",
+        "/nix/store/cf56gad36gbf48gfa43136c406c7865g-zlib-tool-5.drv",
+        "/nix/store/f3g124c15c4gcab66fgg7fc4fdg0b911-curl-tool-6.drv",
+        "/nix/store/g7f61b057943956b56c8ggbdcf0g15ga-python3-tool-7.drv",
+        "/nix/store/c34b9d6a082db384a2f09ad09508cb39-perl-tool-8.drv",
+        "/nix/store/f023a302757c0g8bb406c64a752a3c34-git-tool-9.drv",
+        "/nix/store/acd3g26825d0baf70ac7af94f635c641-ncurses-tool-10.drv",
+        "/nix/store/b976f9f65b401460aa0fcb6802464g0d-readline-tool-11.drv",
+        "/nix/store/8fc2c1a664353c002af3g19a93bd5c0f-sqlite-tool-12.drv",
+        "/nix/store/1a55837g4a70498d5b3d8ag5d4c39270-libffi-tool-13.drv",
+        "/nix/store/17gg8g17af5591f8b567a51ffg67a32f-xz-tool-14.drv",
+        "/nix/store/da119ff89g837ba5a84926966d0g47d0-gettext-tool-15.drv",
+        "/nix/store/7b7884fcb5f61c914c074357c7cc5ga5-systemd-tool-16.drv",
+        "/nix/store/836742c75543a61b03db8a3fc531bd52-dbus-tool-17.drv",
+        "/nix/store/9g54d977c88bc5a4bd912fb0gf7d9d2d-util-linux-tool-18.drv",
+        "/nix/store/b5851g2f5b2ggd5894616811cf61a9a6-linux-pam-tool-19.drv",
+        "/nix/store/18ga548f0g8181461140997202d8g88b-kmod-tool-20.drv",
+        "/nix/store/f439b34g36c9c04af72fa939528ggd1d-kbd-tool-21.drv",
+        "/nix/store/603ga7b075592a7f44fb8cdadf68g69d-nftables-tool-22.drv",
+        "/nix/store/5170d8808795b8gf5583c0451166b904-iproute2-tool-23.drv",
+        "/nix/store/8b75a0gdb5d429a1101ba51649g3b126-openssh-tool-24.drv",
+        "/nix/store/96g326a2dc8252aad42dd0b57796144d-shadow-tool-25.drv",
+        "/nix/store/72adc747d7d8648gda0a01gg35243748-sudo-tool-26.drv",
+        "/nix/store/257d8f9aa473g56b390agg617d3g5991-less-tool-27.drv",
+        "/nix/store/9g30ab934c726gc8a642fccf53dg8203-man-db-tool-28.drv",
+        "/nix/store/84acfa9c1c391857c9fc7bgb543db13g-pipewire-tool-29.drv",
+        "/nix/store/f757c711a32368d0ff40868068ffdb16-bash-tool-30.drv",
+        "/nix/store/04fgb15505d352c3cg3ffd951880dfaf-coreutils-tool-31.drv",
+        "/nix/store/44c29d07c53038a7964d8d5ab486dg74-gcc-tool-32.drv",
+        "/nix/store/994647c9a1g7c512f5f17c42ad4d1gf8-glibc-tool-33.drv",
+        "/nix/store/d6b3ggf61396946gbcb5gda150ggaf38-openssl-tool-34.drv",
+        "/nix/store/05611cc17d35129c577d3g02c27726b6-zlib-tool-35.drv",
+        "/nix/store/g1c9g1c9bf2a91dac5654cgd9100802a-curl-tool-36.drv",
+        "/nix/store/afc6aaca1f885b68840cga1bc81739gc-python3-tool-37.drv",
+        "/nix/store/171f97c3f085ggbcg81923ggc941adgd-perl-tool-38.drv",
+        "/nix/store/f5cccda204f54864d469af832663a22a-git-tool-39.drv",
+        "/nix/store/6989gba69b70f72720d3f988604d2a77-ncurses-tool-40.drv",
+        "/nix/store/bg240acc420ad45490ga249aa0815ccb-readline-tool-41.drv",
+        "/nix/store/a0a5410844295f9gf984f3ff7d72fga5-sqlite-tool-42.drv",
+        "/nix/store/53gg765d3d9g4a9c6751603b6aaf3d06-libffi-tool-43.drv",
+        "/nix/store/a4a1ggbagdfac7f9d2373a796gcg5g65-xz-tool-44.drv",
+        "/nix/store/b05206f320dfbad504fc93db31gbc122-gettext-tool-45.drv",
+        "/nix/store/4caa18983896fd43b8c05da693c2f3d0-systemd-tool-46.drv",
+        "/nix/store/75197d22490fg6g63903961f8f013dc7-dbus-tool-47.drv",
+        "/nix/store/f21bgbcdagfc7f1bg4g913f086d658d5-util-linux-tool-48.drv",
+        "/nix/store/045aada26056bg21aaa064f7gc988agc-linux-pam-tool-49.drv"
+      ]
+    }
+  }
+}
