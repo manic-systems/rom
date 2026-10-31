@@ -12,7 +12,7 @@ use crossterm::{
 };
 
 use crate::{
-  display::{MIN_TREE_WIDTH, render_frame, write_final},
+  display::{MIN_TREE_WIDTH, render_live_frame, write_final},
   state::{State, elapsed},
   types::{DisplayFormat, RenderConfig},
 };
@@ -172,11 +172,10 @@ impl<W: Write> LiveTerminal<W> {
         self.retire()?;
         return Ok(false);
       }
-      let frame =
-        render_frame(state, config, now, columns - 1, rows - 1, final_render);
       // A shorter frame would leave blank rows under it, lifting the graph off
       // the bottom of the screen. Keep the region's height until new log lines
-      // take over the freed rows; the final frame needs no anchoring.
+      // take over the freed rows; the final frame needs no anchoring. A tree
+      // fills the rows itself, other formats are padded above.
       let logs = &self.pending[..complete];
       let log_lines = count_lines(logs);
       let reserved = if final_render {
@@ -184,6 +183,14 @@ impl<W: Write> LiveTerminal<W> {
       } else {
         usize::from(self.graph_height).saturating_sub(log_lines)
       };
+      let frame = render_live_frame(
+        state,
+        config,
+        now,
+        columns - 1,
+        (u16::try_from(reserved).unwrap_or(u16::MAX), rows - 1),
+        final_render,
+      );
       let padding = reserved.saturating_sub(usize::from(frame.height));
       let mut text = "\r\n".repeat(padding);
       text.push_str(&frame.ansi_text().replace('\n', "\r\n"));
@@ -399,6 +406,7 @@ impl<W: Write> Write for LiveTerminal<W> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::display::render_frame;
 
   #[test]
   fn frame_commit_is_one_synchronized_full_repaint() {
