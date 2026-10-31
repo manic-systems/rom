@@ -1,194 +1,229 @@
-# ROM
+<!-- markdownlint-disable MD033 MD041 -->
+<div align="center">
+  <h1 id="header">rom</h1>
+  <a alt="CI" href="https://github.com/manic-systems/rom/actions">
+    <img
+      src="https://github.com/manic-systems/rom/actions/workflows/ci.yml/badge.svg"
+      alt="Build Status"
+    />
+  </a>
+  <a alt="Deps" href="https://deps.rs/repo/github/manic-systems/rom">
+    <img
+      src="https://deps.rs/repo/github/manic-systems/rom/status.svg"
+      alt="Dependency Status"
+    />
+  </a>
+  <a alt="License" href="https://github.com/manic-systems/rom/blob/master/LICENSE">
+    <img
+      src="https://img.shields.io/github/license/manic-systems/rom?label=License"
+      alt="License"
+    />
+  </a>
+  <br/>
+  <br/>
+  <a href="#what-does-it-do">Synopsis</a><br/>
+  <a href="#features">Features</a> | <a href="#usage">Usage</a><br/>
+  <a href="#hacking">Contributing</a>
+  <br/>
+</div>
 
-ROM turns Nix and Lix `internal-json` logs into a connected, real-time build
-graph. It is both an installable command and a synchronous Rust library.
+---
 
-ROM is under active development. Its Rust API and presentation are explicitly
-unstable and carry no compatibility guarantee yet.
+> **rom** /`rɒm`/ _noun_
+>
+> 1. A **Nix build output monitor** for hopeless **rom**antics.
+> 2. A flamboyant output monitor for your Nix builds.
 
-## Commands and streams
+---
 
-Wrap the evaluator directly:
+## What Does it Do?
 
-```console
+TL;DR: Nix in, nice output out.
+
+rom is the ultimate output monitor for your Nix builds. It does so by reading
+and parsing Nix's build logs and displaying them in a nice-to-look at graph!
+
+<!-- TODO: add a nice picture here -->
+
+To get started with rom, skip to the [Usage](#usage) section.
+
+## Features
+
+- **Dependency-tree visualization of builds and their inputs**: Great-looking
+  visualization of the whole build tree of a Nix build.
+- **Local and remote builders**: Remote builds show up nicely in rom, and you'll
+  get information about where your builds run, without compromises.
+- **Dynamic derivations and content-addressed derivations**: Both
+  content-addressed and dynamic derivations are explicitly supported, we display
+  all the extra information that Nix build logs give us on them to you too!
+- **Excellent Documentation**: Everything you can do with rom is documented.
+  Everything rom _does_ is documented. The user-facing and developer-facing
+  documentation is, and will always remain, up to date.
+- **Eye candy**: We aim to make rom look _amazing_. If you think anything does
+  not look _amazing_ and think you can do better, please refer to the
+  [Contributing][#hacking] section or tell us.
+- **Build phases, elapsed timers, and progress bars**
+- **Historical duration estimates**
+- **Linux cgroup CPU telemetry**.
+- **Download and upload tracking **. We track both downloads and upload stats
+  and give you byte counts, progress, remote hosts, _and_ aggregation of all of
+  these! How nice is that!
+
+## Status
+
+[update request]: https://github.com/NixOS/nixpkgs/issues
+
+<a href="https://repology.org/project/rom/versions">
+    <img
+      src="https://repology.org/badge/vertical-allrepos/rom.svg"
+      alt="Packaging status"
+      align="right"
+      style="padding-left: 20px"
+    >
+</a>
+
+Rom is packaged in nixpkgs, and is available only under nixpkgs unstable for
+now; nixpkgs-26.11 will be the first commit including it (but who needs stable
+anyways, those are for horses) Outside of extreme circumstances or breakign
+changes, all updates will be backported to the stable branch. Refer to the
+[installation](#installation) section for more details. Make sure you submit an
+[update request] in Nixpkgs if the package is outdated.
+
+### Installation
+
+The latest, tagged version is available in Nixpkgs as **rom stable**. This is
+recommended for most users, as tagged releases will usually undergo more
+testing. This repository also provides the latest development version of rom,
+which you can get from the flake outputs.
+
+```sh
+nix shell nixpkgs#rom # stable
+nix shell github:manic-systems/rom # dev
+```
+
+You _can_ of course try rom in a Nix shell today, no setup required!
+
+```sh
+nix develop
+cargo build
+```
+
+## Usage
+
+Put `rom` in place of the Nix command you would have run anyway:
+
+```sh
 rom build nixpkgs#hello
-rom shell nixpkgs#python3
-rom develop .#default
+rom build .#myPackage -- --no-link
+rom shell .#myShell
+rom develop . -- --impure
 ```
 
-Arguments following `--` are passed to Nix or Lix:
+Other than nice output, rom behaves exactly like Nix!
 
-```console
-rom build nixpkgs#hello -- --rebuild
+Arguments after `--` get forwarded and go to Nix untouched, `build` returns the exit
+status of the build it wraps, and `shell` and `develop` build the environment under
+rom first, then drop you into the real shell.
+
+Any other subcommand is monitored too:
+
+```sh
+rom eval .#version
+rom flake check
+rom run .#app -- --help
 ```
 
-ROM also accepts an existing stream. By default it decodes lines beginning with
-`@nix` and passes every other byte through exactly once:
+### Piping
 
-```console
-nix build nixpkgs#hello --log-format internal-json 2>&1 | rom
+Without a command, rom reads a log from standard input. Lines starting with
+`@nix` are drawn, and everything else passes through byte for byte:
+
+```sh
+nix build --log-format internal-json nixpkgs#hello 2>&1 | rom
 ```
 
-Use `--json` only for an unprefixed stream containing one internal-JSON object
-per record. A malformed record that claims to be structured input is an error.
-Syntactically valid future actions or numeric variants are ignored with a
-nonfatal diagnostic so newer protocol extensions do not break ROM. Stream I/O
-failures and oversized structured records remain errors.
+Use `--json` for a stream of bare internal-JSON records instead.
 
-ROM sends its presentation, decoded logs, passthrough, and diagnostics to
-stderr. A wrapped child's stdout is relayed concurrently and byte-for-byte to
-stdout, so store paths remain safe to pipe into another program.
+### Options
 
-On an interactive stderr, decoded log records retain their ANSI colors and
-attributes and ROM colors their activity prefixes. On a redirected stderr,
-decoded records are stripped of ANSI. Non-protocol passthrough is always
-byte-exact, so producer-supplied escape bytes in passthrough remain untouched.
+| Option                             | Default   | What it changes                            |
+| ---------------------------------- | --------- | ------------------------------------------ |
+| `--format tree\|plain\|dashboard`  | `tree`    | dependency graph, one line each, or totals |
+| `--legend compact\|table\|verbose` | `table`   | the status counts under the graph          |
+| `--summary concise\|table\|full`   | `concise` | the summary when the build ends            |
+| `--icons nerd\|unicode`            | `nerd`    | Nerd Font glyphs, or plain Unicode         |
+| `--log-prefix short\|full\|none`   | `short`   | what precedes each builder log line        |
+| `--log-lines N`                    | no limit  | builder log lines shown per build          |
+| `--platform nix\|lix`              | detected  | which evaluator to run                     |
+| `--silent`                         |           | hide logs and the graph, keep errors       |
+| `-v`, `-vv`, …                     |           | more diagnostics from Nix and rom          |
 
-## Presentations
+> [!NOTE]
+> [`FORMATS.md`](./FORMATS.md) shows you what each format looks like.
 
-The existing tree, plain, and dashboard formats remain available, along with
-compact/table/verbose legends, concise/table/full summaries, log-prefix modes,
-and timers. Icons use Nerd Fonts by default; for a terminal without a patched
-font, use `--icons=unicode` or set `icons = "unicode"` in the config file.
+### Configuration
 
-Downloads and uploads are first-class activities. Known-size transfers use a
-line bar, heavy `━╸` for the finished part and a light `─` track, with half-cell
-steps, colored by the active `Theme`. Unknown-size transfers show transferred
-bytes and a spinner rather than a fake percentage. Source downloads with no
-known producer appear beneath a consuming build, keeping that branch visible
-while the transfer is active. Shared sources appear once, prefer a running or
-planned consumer, and show how many builds use them; global transfer counts
-remain unique. Cached sources stay hidden, and completed transfers disappear
-after the existing one-second live grace period. Final frames omit completed
-transfer rows immediately while retaining their global completion totals.
-Unrelated transfers remain in the separate Transfers branch. A source edge
-expresses a dependency, not proof that Nix is currently blocked on that
-download.
-
-Like nix-output-monitor, ROM uses synchronized updates on every direct
-interactive terminal without a capability round trip. Pending logs and the
-complete connected graph are composed into one write; the previous graph is
-cleared line-by-line in that same transaction. ROM deliberately avoids a
-protected scrolling region. tmux and GNU Screen remain on the no-cursor path
-until their passthrough behavior is validated: one initial connected graph, then
-logs and the final summary. Redirected output remains logs plus the final
-summary. As in nix-output-monitor, producer controls are preserved without
-classification and are emitted with the pending logs inside the next atomic
-graph commit. ROM uses the normal screen and preserves scrollback.
-
-The live tree reserves its bottom rows for the selected legend and limits the
-dependency graph above it to two-thirds of the usable terminal height. It
-budgets connected activity branches before individual transfer details, so a
-source-heavy consumer cannot spend the rows reserved for another selected build.
-Direct live rendering requires at least 20 columns by 8 rows; smaller terminals
-use the append-only fallback rather than dropping legend rows or drawing a
-disconnected tree.
-
-## Configuration
-
-Flags that affect the rom CLI's output can be set persistently in
-`$XDG_CONFIG_HOME/rom/config.toml` (usually `~/.config/rom/config.toml`).
-The keys are the same as the command line options, e.g.:
+The display options above, from `--format` to `--log-lines`, can also live in
+`$XDG_CONFIG_HOME/rom/config.toml` (usually `~/.config/rom/config.toml`), under
+the same names:
 
 ```toml
-log-prefix = "short"
+format = "tree"
+icons = "unicode"
 log-lines = 20
 ```
 
-## Library
+> [!NOTE]
+> Flags on the command line win over the file.
 
-`Engine` is the deterministic reducer. It owns no terminal, threads, global
-clock, or async runtime:
+rom remembers how long your builds took in
+`$XDG_STATE_HOME/rom/build-reports-v1.csv`, keeping the last ten runs per
+derivation and host, and uses their median to estimate how long the next one
+will take.
 
-```rust
-use rom::{monitor::Engine, EngineConfig};
+## Hacking
 
-let mut engine = Engine::new(EngineConfig::default());
-let update = engine.process_record_at(
-    br#"@nix {"action":"msg","level":3,"msg":"hello"}"#,
-    0.0,
-)?;
-```
+Contributions are always welcome. To get started, just clone the repository and
+run `nix develop`. We also provide a `.envrc` for Direnv users, who may use
+`direnv allow` to enter a shell with the necessary dependencies.
 
-Library-only consumers can disable ROM's default `cli` feature to omit pound,
-the tracing subscriber, and Unix process-signal dependencies.
+### Structure
 
-`StreamEngine` adds incremental framing without accumulating arbitrarily long
-passthrough lines. `Monitor` is the append-only `BufRead`/`Write` convenience
-adapter. Build-history storage and `.drv` resolution are optional injected
-services; the CLI supplies filesystem-backed implementations.
+[cargo-xtask]: https://github.com/matklad/cargo-xtask
 
-## Reproducible visual fixtures
+rom is written in the Rust programming language, and consists of two crates,
+`cognos` and `rom` itself.
 
-Fixtures are timed raw Nix logs, one directory each under `rom/tests/fixtures`.
-Each line of a fixture's `build.log` is either `<ms> <raw line>`, written to ROM
-followed by a newline, or `<ms> = <checkpoint>`, which snapshots the frame at
-that time:
+### Submitting Changes
 
-```text
-0 @nix {"action":"start","id":10,...}
-100 = build-started
-```
+Once your changes are complete, please remember to run `nix flake check` to
+apply general formatter and linter rules that will be expected by the CI.
 
-`rom/tests/fixtures.rs` replays every fixture with a virtual clock into its
-`default.snap`: every checkpoint frame, the finished frame, and the decoded
-log, with exact SGR sequences stored as visible `\e` escapes. A fixture's
-`variants.toml` replays the same log under other settings, one table and one
-`<variant>.snap` each:
+You will also want to update the [changelog](/CHANGELOG.md) with sufficient
+amount of information to detail the new behaviour before you create your
+changes.
 
-```toml
-[narrow]
-terminal = { width = 40, height = 12 }
+This might seem daunting, but it isn't. Even if you _don't_ meet those
+requirements, you'll be gently nudged to make your changes. Friendly
+contributions are always welcome.
 
-[plain]
-format = "plain"
-```
+## Attributions
 
-A table takes anything `config.toml` does, plus `terminal` and `silent`. A
-`[default]` table changes the plain run. Plain output is not
-snapshotted; the harness asserts it equals the ANSI output with escapes removed.
+[nixos-output-monitor]: https://github.com/maralorn/nix-output-monitor
+[crates]: /Cargo.toml
 
-A PTY integration test additionally runs the real CLI and proves that the
-synchronized live path commits styled and over-width logs together with a
-complete graph, while the no-cursor multiplexer fallback still shows the first
-graph:
+[nous](https://git.atagen.co/atagen/nous)
 
-```console
-cargo test --test fixtures
-cargo test --test pty_live
-```
+rom initially started as a replacement for nixos-output-monitor (hereby further
+referred to as _nom_), and while it has expanded from there, we thank maralorn
+and the other nom contributors dearly. Comparing ourselves to and trying to
+match nom's quality has been a major part of the initial rom development.
 
-Snapshots are changed only through an explicit Miri-style blessing pass:
-
-```console
-ROM_BLESS=1 cargo test --test fixtures
-jj diff rom/tests/fixtures
-```
-
-The same log can be watched through the real binary:
-
-```console
-cargo build -p rom
-nu scripts/replay-fixture.nu unsized-download
-nu scripts/replay-fixture.nu overflow --speed 0.25
-nu scripts/replay-fixture.nu failed-build --step
-nu scripts/replay-fixture.nu big-graph --variant plain
-nu scripts/replay-fixture.nu overflow -- --format dashboard
-```
-
-Arguments after `--` are passed to ROM. Replays read the variant's settings
-instead of your own config file. The replay helper never builds ROM
-implicitly.
-
-## Attribution
-
-ROM is inspired by
-[nix-output-monitor](https://github.com/maralorn/nix-output-monitor). Cognos's
-ATerm and internal-JSON parser was inspired by
-[nous](https://git.atagen.co/atagen/nous).
+Conos's ATerm and internal-JSON parser were heavily inspired by
+[nous](https://git.atagen.co/atagen/nous)
 
 ## License
 
 ROM and Cognos are licensed under the European Union Public Licence v. 1.2
 ([EUPL-1.2](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)). See
-[`LICENSE`](../LICENSE).
+[`LICENSE`](./../LICENSE).
