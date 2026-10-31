@@ -101,6 +101,8 @@ struct Renderer<'a> {
   now:        f64,
   width:      u16,
   max_height: u16,
+  /// Rows a live tree fills by running its line down to the legend.
+  min_height: u16,
   seen:       HashSet<DerivationId>,
 }
 
@@ -120,6 +122,7 @@ impl<'a> Renderer<'a> {
       now,
       width,
       max_height,
+      min_height: 0,
       seen: HashSet::new(),
     }
   }
@@ -138,6 +141,12 @@ impl<'a> Renderer<'a> {
     let (tail, graph_budget) =
       self.tree_layout(tail, plan.line_count(), final_render);
     let mut lines = self.render_tree(&plan, graph_budget);
+    let short = usize::from(self.min_height.min(self.max_height))
+      .saturating_sub(lines.len() + tail.len());
+    if !final_render && !lines.is_empty() {
+      let trunk = Line::from(span("│", self.config.theme.connector));
+      lines.extend(std::iter::repeat_n(trunk, short));
+    }
     lines.extend(tail);
     lines
   }
@@ -417,15 +426,32 @@ pub fn render_frame(
   max_height: u16,
   final_render: bool,
 ) -> Frame {
-  let lines = Renderer::new(
+  render_live_frame(state, config, now, width, (0, max_height), final_render)
+}
+
+/// Renders a complete frame of `min_height` to `max_height` rows.
+///
+/// A live tree shorter than `min_height` extends its line down to the legend,
+/// so a shrinking graph keeps its rows until logs take them over.
+#[must_use]
+pub fn render_live_frame(
+  state: &State,
+  config: &RenderConfig,
+  now: f64,
+  width: u16,
+  (min_height, max_height): (u16, u16),
+  final_render: bool,
+) -> Frame {
+  let mut renderer = Renderer::new(
     state,
     config,
     crate::icons::select(config.icons),
     now,
     width.max(1),
     max_height.max(1),
-  )
-  .render(final_render);
+  );
+  renderer.min_height = min_height;
+  let lines = renderer.render(final_render);
   let height = u16::try_from(lines.len())
     .unwrap_or(u16::MAX)
     .max(1)
