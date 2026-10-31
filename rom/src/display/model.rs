@@ -117,7 +117,7 @@ pub(super) struct Builds<'a> {
 ///
 /// Evaluation copies many already-cached sources in milliseconds; showing each
 /// would flash rows in and out of the graph.
-const SOURCE_FETCH_DELAY: f64 = 1.0;
+pub(super) const SOURCE_FETCH_DELAY: f64 = 1.0;
 /// Unmatched transfers must last this long before entering the tree.
 pub(super) const TRANSFER_DISPLAY_DELAY: f64 = 1.0;
 

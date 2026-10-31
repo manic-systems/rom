@@ -1,6 +1,6 @@
 === building @ 1500ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;33m⏵ hello-2.12.3\e[0m               \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ hello-2.12.3\e[0m               \e[0;90m────\e[0;33m╺━━╸\e[0;90m───────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m├─ \e[0;36m↓ \e[0mfetching
 \e[0;90m│  ╰─ \e[0;36m↓ glibc-2.40\e[0m              \e[0;36m━━━━━╸\e[0;90m─────────────────\e[0;36m   25%\e[0;90m  10 MiB/40 MiB\e[0;35m  c\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
@@ -9,7 +9,7 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
 === finished @ 1500ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;33m⏵ hello-2.12.3\e[0m               \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ hello-2.12.3\e[0m               \e[0;90m────\e[0;33m╺━━╸\e[0;90m───────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m├─ \e[0;36m↓ \e[0mfetching
 \e[0;90m│  ╰─ \e[0;36m↓ glibc-2.40\e[0m              \e[0;36m━━━━━╸\e[0;90m─────────────────\e[0;36m   25%\e[0;90m  10 MiB/40 MiB\e[0;35m  c\e[0m
 \e[0;90m┕━ \e[0;33mInput ended with 2 unfinished activities after 1s\e[0m

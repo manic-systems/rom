@@ -3,7 +3,7 @@
 \e[0;90m├─ \e[0;33m⏵ estimated-1.0\e[0m              \e[0;33m━━━━━━━━╸\e[0;90m──────────────  (buildPhase)\e[0;37m  ⏱ 1s / 4\e[0m
 \e[0;90m├─ \e[0;33m⏵ overrun-1.0\e[0m                \e[0;33m━━━━━━━━━━━━━━━━╸\e[0;90m──────  (checkPhase)\e[0;37m  ⏱ 1s / 2\e[0m
 \e[0;90m├─ \e[0;33m⏵ phased-1.0\e[0m                 \e[0;33m━━━━━\e[0;90m──────────────────  (patchPhase)\e[0;37m  ⏱ 1s / 6\e[0m
-\e[0;90m├─ \e[0;33m⏵ fresh-1.0\e[0m                  \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ fresh-1.0\e[0m                  \e[0;90m──\e[0;33m╺━━╸\e[0;90m─────────────────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 4       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 4
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
@@ -12,7 +12,7 @@
 \e[0;90m├─ \e[0;33m⏵ estimated-1.0\e[0m              \e[0;33m━━━━━━━━━━━━━━╸\e[0;90m────────  (buildPhase)\e[0;37m  ⏱ 2s / 4\e[0m
 \e[0;90m├─ \e[0;33m⏵ overrun-1.0\e[0m                \e[0;33m━━━━━━━━━━━━━━━━━━━━━━━\e[0;90m  (checkPhase)\e[0;37m  ⏱ 2s / 2\e[0m
 \e[0;90m├─ \e[0;33m⏵ phased-1.0\e[0m                 \e[0;33m━━━━━━━━━╸\e[0;90m─────────────  (buildPhase)\e[0;37m  ⏱ 2s / 6\e[0m
-\e[0;90m├─ \e[0;33m⏵ fresh-1.0\e[0m                  \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m├─ \e[0;33m⏵ fresh-1.0\e[0m                  \e[0;90m───────────\e[0;33m╺━━╸\e[0;90m────────\e[0;37m  ⏱ 2s\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 4       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 4
 \e[0;90m┗━ \e[0mElapsed ⏱ 2s
