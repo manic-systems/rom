@@ -31,7 +31,7 @@
 
 > **rom** /`rɒm`/ _noun_
 >
-> 1. A **Nix build output monitor** for hopeless **rom**antics.
+> 1. A Nix build output monitor for hopeless **rom**antics.
 > 2. A flamboyant output monitor for your Nix builds.
 
 ---
@@ -61,11 +61,11 @@ To get started with rom, skip to the [Usage](#usage) section.
   documentation is, and will always remain, up to date.
 - **Eye candy**: We aim to make rom look _amazing_. If you think anything does
   not look _amazing_ and think you can do better, please refer to the
-  [Contributing][#hacking] section or tell us.
+  [Contributing](#hacking) section or tell us.
 - **Build phases, elapsed timers, and progress bars**
 - **Historical duration estimates**
 - **Linux cgroup CPU telemetry**.
-- **Download and upload tracking **. We track both downloads and upload stats
+- **Download and upload tracking**: We track both downloads and upload stats
   and give you byte counts, progress, remote hosts, _and_ aggregation of all of
   these! How nice is that!
 
@@ -121,9 +121,9 @@ rom develop . -- --impure
 
 Other than nice output, rom behaves exactly like Nix!
 
-Arguments after `--` get forwarded and go to Nix untouched, `build` returns the exit
-status of the build it wraps, and `shell` and `develop` build the environment under
-rom first, then drop you into the real shell.
+Arguments after `--` get forwarded and go to Nix untouched, `build` returns the
+exit status of the build it wraps, and `shell` and `develop` build the
+environment under rom first, then drop you into the real shell.
 
 Any other subcommand is monitored too:
 
@@ -189,8 +189,6 @@ run `nix develop`. We also provide a `.envrc` for Direnv users, who may use
 
 ### Structure
 
-[cargo-xtask]: https://github.com/matklad/cargo-xtask
-
 rom is written in the Rust programming language, and consists of two crates,
 `cognos` and `rom` itself.
 
@@ -210,17 +208,16 @@ contributions are always welcome.
 ## Attributions
 
 [nixos-output-monitor]: https://github.com/maralorn/nix-output-monitor
-[crates]: /Cargo.toml
+[nous]: https://git.atagen.co/atagen/nous
 
-[nous](https://git.atagen.co/atagen/nous)
-
-rom initially started as a replacement for nixos-output-monitor (hereby further
-referred to as _nom_), and while it has expanded from there, we thank maralorn
-and the other nom contributors dearly. Comparing ourselves to and trying to
-match nom's quality has been a major part of the initial rom development.
+rom initially started as a replacement for [nixos-output-monitor] (hereby
+further referred to as _nom_), and while it has expanded from there, we thank
+maralorn and the other nom contributors dearly for their great work. Comparing
+ourselves to and trying to match nom's quality has been a major part of initial
+rom development.
 
 Conos's ATerm and internal-JSON parser were heavily inspired by
-[nous](https://git.atagen.co/atagen/nous)
+[nous]. Thank you @atagen!
 
 ## License
 
