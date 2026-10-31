@@ -1,8 +1,9 @@
 //! Visual regression snapshots replayed from timed Nix logs.
 //!
-//! Each `fixtures/<log>.log` line is `<ms> <raw line>`, written to the stream
-//! followed by a newline, or `<ms> = <name>`, which snapshots the frame. The
-//! finished frame and the decoded log are always snapshotted last.
+//! Each fixture is a directory under `fixtures/`. Every `build.log` line is
+//! `<ms> <raw line>`, written to the stream followed by a newline, or
+//! `<ms> = <name>`, which snapshots the frame. The finished frame and the
+//! decoded log are always snapshotted last, into one `<variant>.snap` per view.
 
 #![expect(
   clippy::tests_outside_test_module,
@@ -35,9 +36,9 @@ struct View {
   engine: EngineConfig,
 }
 
-/// Replays `fixtures/<log>.log` into `fixtures/<snapshot>.snap` with a 79x23
-/// Unicode tree view, adjusted by `configure`.
-fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
+/// Replays `fixtures/<fixture>/build.log` into `<variant>.snap` beside it with
+/// a 79x23 Unicode tree view, adjusted by `configure`.
+fn replay(fixture: &str, variant: &str, configure: impl FnOnce(&mut View)) {
   let mut view = View {
     width:  79,
     height: 23,
@@ -48,8 +49,10 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
     engine: EngineConfig::default(),
   };
   configure(&mut view);
-  let fixtures = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
-  let log_path = fixtures.join(format!("{log}.log"));
+  let directory = Path::new(env!("CARGO_MANIFEST_DIR"))
+    .join("tests/fixtures")
+    .join(fixture);
+  let log_path = directory.join("build.log");
   let input = fs::read_to_string(&log_path).unwrap();
   let ansi = RenderConfig {
     ansi: true,
@@ -61,13 +64,13 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
   };
 
   let mut stream = StreamEngine::new(view.engine);
-  let derivations = fixtures.join(format!("{log}.drvs.json"));
+  let derivations = directory.join("derivations.json");
   if derivations.exists() {
     stream
       .engine_mut()
       .set_resolver(FixtureResolver::load(&derivations).unwrap());
   }
-  let history = fixtures.join(format!("{log}.history.csv"));
+  let history = directory.join("history.csv");
   if history.exists() {
     stream
       .engine_mut()
@@ -87,7 +90,11 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
     let styled = frame.ansi_text();
     let unstyled = strip_ansi(&styled);
     let unstyled = unstyled.lines().map(str::trim_end).collect::<Vec<&str>>();
-    assert_eq!(unstyled.join("\n"), frame.text(), "{snapshot}: {name}");
+    assert_eq!(
+      unstyled.join("\n"),
+      frame.text(),
+      "{fixture}/{variant}: {name}"
+    );
     writeln!(actual, "=== {name} @ {at_ms}ms ===").unwrap();
     actual.push_str(&visible_escapes(&styled));
     actual.push('\n');
@@ -103,7 +110,7 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
       )
     });
     let time = time.parse::<u64>().unwrap();
-    assert!(time >= at_ms, "{log}: timestamps must be monotonic");
+    assert!(time >= at_ms, "{fixture}: timestamps must be monotonic");
     at_ms = time;
     let now = Duration::from_millis(at_ms).as_secs_f64();
     if let Some(name) = rest.strip_prefix("= ") {
@@ -136,7 +143,7 @@ fn replay(snapshot: &str, log: &str, configure: impl FnOnce(&mut View)) {
   actual.push_str("=== log ===\n");
   actual.push_str(&visible_escapes(&styled_log));
 
-  assert_or_bless(&fixtures.join(format!("{snapshot}.snap")), &actual);
+  assert_or_bless(&directory.join(format!("{variant}.snap")), &actual);
 }
 
 fn render_output(output: &[Output], render: &RenderConfig) -> String {
@@ -213,272 +220,272 @@ fn simple_diff(expected: &str, actual: &str) -> String {
 
 #[test]
 fn big_graph() {
-  replay("big-graph", "big-graph", |_| {});
+  replay("big-graph", "default", |_| {});
 }
 
 #[test]
 fn deep_chain() {
-  replay("deep-chain", "deep-chain", |_| {});
+  replay("deep-chain", "default", |_| {});
 }
 
 #[test]
 fn wide_fanout() {
-  replay("wide-fanout", "wide-fanout", |_| {});
+  replay("wide-fanout", "default", |_| {});
 }
 
 #[test]
 fn grow_shrink() {
-  replay("grow-shrink", "grow-shrink", |_| {});
+  replay("grow-shrink", "default", |_| {});
 }
 
 #[test]
 fn shared_names() {
-  replay("shared-names", "shared-names", |_| {});
+  replay("shared-names", "default", |_| {});
 }
 
 #[test]
 fn planned_lifecycle() {
-  replay("planned-lifecycle", "planned-lifecycle", |_| {});
+  replay("planned-lifecycle", "default", |_| {});
 }
 
 #[test]
 fn sub_second_builds() {
-  replay("sub-second-builds", "sub-second-builds", |_| {});
+  replay("sub-second-builds", "default", |_| {});
 }
 
 #[test]
 fn phases_and_estimates() {
-  replay("phases-and-estimates", "phases-and-estimates", |_| {});
+  replay("phases-and-estimates", "default", |_| {});
 }
 
 #[test]
 fn failed_build() {
-  replay("failed-build", "failed-build", |_| {});
+  replay("failed-build", "default", |_| {});
 }
 
 #[test]
 fn dependency_failure() {
-  replay("dependency-failure", "dependency-failure", |_| {});
+  replay("dependency-failure", "default", |_| {});
 }
 
 #[test]
 fn multiple_failures() {
-  replay("multiple-failures", "multiple-failures", |_| {});
+  replay("multiple-failures", "default", |_| {});
 }
 
 #[test]
 fn packages_and_units() {
-  replay("packages-and-units", "packages-and-units", |_| {});
+  replay("packages-and-units", "default", |_| {});
 }
 
 #[test]
 fn ca_and_dynamic() {
-  replay("ca-and-dynamic", "ca-and-dynamic", |_| {});
+  replay("ca-and-dynamic", "default", |_| {});
 }
 
 #[test]
 fn downloads() {
-  replay("downloads", "downloads", |_| {});
+  replay("downloads", "default", |_| {});
 }
 
 #[test]
 fn unsized_download() {
-  replay("unsized-download", "unsized-download", |_| {});
+  replay("unsized-download", "default", |_| {});
 }
 
 #[test]
 fn mixed_transfers() {
-  replay("mixed-transfers", "mixed-transfers", |_| {});
+  replay("mixed-transfers", "default", |_| {});
 }
 
 #[test]
 fn substitution_heavy() {
-  replay("substitution-heavy", "substitution-heavy", |_| {});
+  replay("substitution-heavy", "default", |_| {});
 }
 
 #[test]
 fn source_fetches() {
-  replay("source-fetches", "source-fetches", |_| {});
+  replay("source-fetches", "default", |_| {});
 }
 
 #[test]
 fn fetch_to_store() {
-  replay("fetch-to-store", "fetch-to-store", |_| {});
+  replay("fetch-to-store", "default", |_| {});
 }
 
 #[test]
 fn remote_build() {
-  replay("remote-build", "remote-build", |_| {});
+  replay("remote-build", "default", |_| {});
 }
 
 #[test]
 fn remote_mix() {
-  replay("remote-mix", "remote-mix", |_| {});
+  replay("remote-mix", "default", |_| {});
 }
 
 #[test]
 fn chatty_build() {
-  replay("chatty-build", "chatty-build", |_| {});
+  replay("chatty-build", "default", |_| {});
 }
 
 #[test]
 fn hostile_logs() {
-  replay("hostile-logs", "hostile-logs", |_| {});
+  replay("hostile-logs", "default", |_| {});
 }
 
 #[test]
 fn passthrough() {
-  replay("passthrough", "passthrough", |_| {});
+  replay("passthrough", "default", |_| {});
 }
 
 #[test]
 fn unsupported_record() {
-  replay("unsupported-record", "unsupported-record", |_| {});
+  replay("unsupported-record", "default", |_| {});
 }
 
 #[test]
 fn nix_error() {
-  replay("nix-error", "nix-error", |_| {});
+  replay("nix-error", "default", |_| {});
 }
 
 #[test]
 fn long_names() {
-  replay("long-names", "long-names", |_| {});
+  replay("long-names", "default", |_| {});
 }
 
 #[test]
 fn odd_names() {
-  replay("odd-names", "odd-names", |_| {});
+  replay("odd-names", "default", |_| {});
 }
 
 #[test]
 fn overflow() {
-  replay("overflow", "overflow", |_| {});
+  replay("overflow", "default", |_| {});
 }
 
 #[test]
 fn empty_run() {
-  replay("empty-run", "empty-run", |_| {});
+  replay("empty-run", "default", |_| {});
 }
 
 #[test]
 fn instant_finish() {
-  replay("instant-finish", "instant-finish", |_| {});
+  replay("instant-finish", "default", |_| {});
 }
 
 #[test]
 fn interrupted() {
-  replay("interrupted", "interrupted", |_| {});
+  replay("interrupted", "default", |_| {});
 }
 
 #[test]
 fn long_run() {
-  replay("long-run", "long-run", |_| {});
+  replay("long-run", "default", |_| {});
 }
 
 // Variants replay a fixture above under another view.
 
 #[test]
 fn log_line_limit() {
-  replay("log-line-limit", "log-line-limit", |view| {
+  replay("log-line-limit", "default", |view| {
     view.engine.log_line_limit = Some(2);
   });
 }
 
 #[test]
 fn fetch_to_store_plain() {
-  replay("fetch-to-store-plain", "fetch-to-store", |view| {
+  replay("fetch-to-store", "plain", |view| {
     view.render.format = DisplayFormat::Plain;
   });
 }
 
 #[test]
 fn big_graph_narrow() {
-  replay("big-graph-narrow", "big-graph", |view| {
+  replay("big-graph", "narrow", |view| {
     (view.width, view.height) = (40, 12);
   });
 }
 
 #[test]
 fn big_graph_tall() {
-  replay("big-graph-tall", "big-graph", |view| {
+  replay("big-graph", "tall", |view| {
     view.height = 60;
   });
 }
 
 #[test]
 fn deep_chain_narrow() {
-  replay("deep-chain-narrow", "deep-chain", |view| {
+  replay("deep-chain", "narrow", |view| {
     (view.width, view.height) = (40, 12);
   });
 }
 
 #[test]
 fn overflow_narrow() {
-  replay("overflow-narrow", "overflow", |view| {
+  replay("overflow", "narrow", |view| {
     (view.width, view.height) = (40, 12);
   });
 }
 
 #[test]
 fn format_dashboard() {
-  replay("format-dashboard", "big-graph", |view| {
+  replay("big-graph", "dashboard", |view| {
     view.render.format = DisplayFormat::Dashboard;
   });
 }
 
 #[test]
 fn format_plain() {
-  replay("format-plain", "big-graph", |view| {
+  replay("big-graph", "plain", |view| {
     view.render.format = DisplayFormat::Plain;
   });
 }
 
 #[test]
 fn legend_compact() {
-  replay("legend-compact", "dependency-failure", |view| {
+  replay("dependency-failure", "legend-compact", |view| {
     view.render.legend_style = LegendStyle::Compact;
   });
 }
 
 #[test]
 fn legend_verbose() {
-  replay("legend-verbose", "dependency-failure", |view| {
+  replay("dependency-failure", "legend-verbose", |view| {
     view.render.legend_style = LegendStyle::Verbose;
   });
 }
 
 #[test]
 fn summary_table() {
-  replay("summary-table", "dependency-failure", |view| {
+  replay("dependency-failure", "summary-table", |view| {
     view.render.summary_style = SummaryStyle::Table;
   });
 }
 
 #[test]
 fn summary_full() {
-  replay("summary-full", "dependency-failure", |view| {
+  replay("dependency-failure", "summary-full", |view| {
     view.render.summary_style = SummaryStyle::Full;
   });
 }
 
 #[test]
 fn icons_nerd() {
-  replay("icons-nerd", "mixed-transfers", |view| {
+  replay("mixed-transfers", "nerd-icons", |view| {
     view.render.icons = IconMode::Nerd;
   });
 }
 
 #[test]
 fn silent() {
-  replay("silent", "chatty-build", |view| {
+  replay("chatty-build", "silent", |view| {
     view.engine.silent = true;
   });
 }
 
 #[test]
 fn log_prefix_none() {
-  replay("log-prefix-none", "chatty-build", |view| {
+  replay("chatty-build", "no-log-prefix", |view| {
     view.engine.log_prefix_style = LogPrefixStyle::None;
   });
 }

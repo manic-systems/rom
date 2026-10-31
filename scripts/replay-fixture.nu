@@ -6,16 +6,17 @@ const root = path self | path dirname | path dirname
 #
 # Arguments after `--` are passed to ROM. ROM is never built implicitly.
 def main [
-  fixture: string                # fixture name or path to a `.log` file
+  fixture: string                # fixture name or path to a fixture directory
   --rom: path                    # ROM binary (default: target/debug/rom)
   --speed: float = 1.0           # playback speed multiplier
   --instant                      # ignore timestamps
   --step                         # wait for a key at each checkpoint
   ...rom_args: string            # arguments passed to ROM
 ] {
-  let log = if ($fixture | path exists) { $fixture } else {
-    $root | path join rom tests fixtures $"($fixture).log"
+  let directory = if ($fixture | path exists) { $fixture } else {
+    $root | path join rom tests fixtures $fixture
   }
+  let log = $directory | path join build.log
   if not ($log | path exists) { error make { msg: $"fixture not found: ($fixture)" } }
   let rom = $rom | default ($root | path join target debug rom)
   if not ($rom | path exists) {
@@ -38,10 +39,9 @@ def main [
   # Fixture derivations are not in the store, so their edges come from a
   # sidecar. A scratch state directory keeps the replay's build times out of
   # the real history and supplies the fixture's own.
-  let stem = $log | path parse | update extension "" | path join
-  let derivations = $"($stem).drvs.json"
+  let derivations = $directory | path join derivations.json
   let state = mktemp --directory
-  let history = $"($stem).history.csv"
+  let history = $directory | path join history.csv
   if ($history | path exists) {
     mkdir ($state | path join rom)
     cp $history ($state | path join rom build-reports-v1.csv)

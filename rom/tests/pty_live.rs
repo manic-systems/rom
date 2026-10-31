@@ -116,7 +116,7 @@ fn undersized_terminal_falls_back_without_live_control_artifacts() {
   reason = "semicolon_outside_block asks for the opposite"
 )]
 fn replay_fixture(
-  log: &str,
+  fixture: &str,
   multiplexer: bool,
   columns: u16,
   rows: u16,
@@ -166,7 +166,8 @@ fn replay_fixture(
   let fixture = std::fs::read_to_string(
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
       .join("tests/fixtures")
-      .join(format!("{log}.log")),
+      .join(fixture)
+      .join("build.log"),
   )
   .unwrap();
   let mut stdin = child.stdin.take().unwrap();
