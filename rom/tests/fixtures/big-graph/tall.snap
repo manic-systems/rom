@@ -2,28 +2,28 @@
 \e[0;90m╭─ \e[0mBuilds
 \e[0;90m├─ \e[0;34m⏸ nixos-system-rom-26.11.20261031.abcdef0\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ etc\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ bash-1.0.0\e[0m           \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ coreutils-1.1.1\e[0m      \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ gcc-1.2.2\e[0m            \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ glibc-1.3.3\e[0m          \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ openssl-1.4.4\e[0m        \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ zlib-1.5.0\e[0m           \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ curl-1.6.1\e[0m           \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ python3-1.0.2\e[0m        \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ perl-1.1.3\e[0m           \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ git-1.2.4\e[0m            \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ ncurses-1.3.0\e[0m        \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ readline-1.4.1\e[0m       \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ bash-1.0.0\e[0m           \e[0;90m──\e[0;33m╺━━╸\e[0;90m─────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ coreutils-1.1.1\e[0m      \e[0;90m──\e[0;33m╺━━╸\e[0;90m─────────────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ gcc-1.2.2\e[0m            \e[0;90m──\e[0;33m╺━━╸\e[0;90m─────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ glibc-1.3.3\e[0m          \e[0;90m──\e[0;33m╺━━╸\e[0;90m─────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ openssl-1.4.4\e[0m        \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ zlib-1.5.0\e[0m           \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ curl-1.6.1\e[0m           \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ python3-1.0.2\e[0m        \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ perl-1.1.3\e[0m           \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ git-1.2.4\e[0m            \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ ncurses-1.3.0\e[0m        \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ readline-1.4.1\e[0m       \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ system-path\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ sqlite-1.5.2\e[0m         \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ libffi-1.6.3\e[0m         \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ xz-1.0.4\e[0m             \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ gettext-1.1.0\e[0m        \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ systemd-1.2.1\e[0m        \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ dbus-1.3.2\e[0m           \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ util-linux-1.4.3\e[0m     \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ linux-pam-1.5.4\e[0m      \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ kmod-1.6.0\e[0m           \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ sqlite-1.5.2\e[0m         \e[0;33m╺━━╸\e[0;90m───────────────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ libffi-1.6.3\e[0m         \e[0;33m╺━━╸\e[0;90m───────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ xz-1.0.4\e[0m             \e[0;33m╺━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ gettext-1.1.0\e[0m        \e[0;33m╺━━╸\e[0;90m───────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ systemd-1.2.1\e[0m        \e[0;33m╺━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ dbus-1.3.2\e[0m           \e[0;33m╺━━╸\e[0;90m───────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ util-linux-1.4.3\e[0m     \e[0;33m╺━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ linux-pam-1.5.4\e[0m      \e[0;33m╺━━╸\e[0;90m───────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ kmod-1.6.0\e[0m           \e[0;33m╺━━╸\e[0;90m───────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ user-units\e[0m
 \e[0;90m│  │  ├─ \e[0;34m⏸ gcc-2.4.2\e[0m
 \e[0;90m│  │  ├─ \e[0;34m⏸ glibc-2.5.3\e[0m
@@ -46,28 +46,28 @@
 \e[0;90m╭─ \e[0mBuilds
 \e[0;90m├─ \e[0;34m⏸ nixos-system-rom-26.11.20261031.abcdef0\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ user-units\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ gcc-2.4.2\e[0m            \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ openssl-2.6.4\e[0m        \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ gcc-2.4.2\e[0m            \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ openssl-2.6.4\e[0m        \e[0;90m──────────────\e[0;33m╺━━╸\e[0;90m─────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ system-units\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ curl-2.1.1\e[0m           \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (buildPhase)\e[0;37m  ⏱ 3s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ git-2.4.4\e[0m            \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 3s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ readline-2.6.1\e[0m       \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 3s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ libffi-2.1.3\e[0m         \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (buildPhase)\e[0;37m  ⏱ 3s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ gettext-2.3.0\e[0m        \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ systemd-2.4.1\e[0m        \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ dbus-2.5.2\e[0m           \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ curl-2.1.1\e[0m           \e[0;90m───────────────\e[0;33m╺━━╸\e[0;90m────  (buildPhase)\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ git-2.4.4\e[0m            \e[0;90m─────────────────\e[0;33m╺━━╸\e[0;90m──  (installPhase)\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ readline-2.6.1\e[0m       \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ libffi-2.1.3\e[0m         \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ gettext-2.3.0\e[0m        \e[0;90m─────────────\e[0;33m╺━━╸\e[0;90m──────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ systemd-2.4.1\e[0m        \e[0;90m───────────\e[0;33m╺━━╸\e[0;90m────────  (installPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ dbus-2.5.2\e[0m           \e[0;90m───────────\e[0;33m╺━━╸\e[0;90m────────  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ initrd\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ util-linux-2.6.3\e[0m     \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ linux-pam-2.0.4\e[0m      \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ kmod-2.1.0\e[0m           \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ nftables-2.3.2\e[0m       \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ iproute2-2.4.3\e[0m       \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ openssh-2.5.4\e[0m        \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ shadow-2.6.0\e[0m         \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ sudo-2.0.1\e[0m           \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ less-2.1.2\e[0m           \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ man-db-2.2.3\e[0m         \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ pipewire-2.3.4\e[0m       \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ linux-pam-2.0.4\e[0m      \e[0;90m─────────\e[0;33m╺━━╸\e[0;90m──────────  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ kmod-2.1.0\e[0m           \e[0;90m─────────\e[0;33m╺━━╸\e[0;90m──────────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ nftables-2.3.2\e[0m       \e[0;90m────────\e[0;33m╺━━╸\e[0;90m───────────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ iproute2-2.4.3\e[0m       \e[0;90m──────\e[0;33m╺━━╸\e[0;90m─────────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ openssh-2.5.4\e[0m        \e[0;90m──────\e[0;33m╺━━╸\e[0;90m─────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ shadow-2.6.0\e[0m         \e[0;90m──────\e[0;33m╺━━╸\e[0;90m─────────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ sudo-2.0.1\e[0m           \e[0;90m────\e[0;33m╺━━╸\e[0;90m───────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ less-2.1.2\e[0m           \e[0;90m───\e[0;33m╺━━╸\e[0;90m────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ man-db-2.2.3\e[0m         \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ pipewire-2.3.4\e[0m       \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ etc\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ system-path\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ firmware\e[0m
@@ -90,34 +90,34 @@
 \e[0;90m╭─ \e[0mBuilds
 \e[0;90m├─ \e[0;34m⏸ nixos-system-rom-26.11.20261031.abcdef0\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ fonts\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ gettext-3.5.0\e[0m        \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 5s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ kmod-3.3.0\e[0m           \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 4s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ nftables-3.5.2\e[0m       \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ gettext-3.5.0\e[0m        \e[0;90m──\e[0;33m╺━━╸\e[0;90m─────────────────  (installPhase)\e[0;37m  ⏱ 5s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ kmod-3.3.0\e[0m           \e[0;90m───────\e[0;33m╺━━╸\e[0;90m────────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ nftables-3.5.2\e[0m       \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ man-pages\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ openssh-3.0.4\e[0m        \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 4s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ sudo-3.2.1\e[0m           \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 4s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ pipewire-3.5.4\e[0m       \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ openssh-3.0.4\e[0m        \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ sudo-3.2.1\e[0m           \e[0;90m─────────────\e[0;33m╺━━╸\e[0;90m──────  (buildPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ pipewire-3.5.4\e[0m       \e[0;90m────────────────\e[0;33m╺━━╸\e[0;90m───  (installPhase)\e[0;37m  ⏱ 3s\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ coreutils-4.0.1\e[0m      \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 3s\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ glibc-4.2.3\e[0m          \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 3s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ zlib-4.4.0\e[0m           \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ zlib-4.4.0\e[0m           \e[0;90m───────────────\e[0;33m╺━━╸\e[0;90m────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ locale\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ curl-4.5.1\e[0m           \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ python3-4.6.2\e[0m        \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ perl-4.0.3\e[0m           \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ git-4.1.4\e[0m            \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ ncurses-4.2.0\e[0m        \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ sqlite-4.4.2\e[0m         \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ libffi-4.5.3\e[0m         \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ xz-4.6.4\e[0m             \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ gettext-4.0.0\e[0m        \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (installPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ systemd-4.1.1\e[0m        \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ dbus-4.2.2\e[0m           \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ curl-4.5.1\e[0m           \e[0;90m─────────────\e[0;33m╺━━╸\e[0;90m──────  (installPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ python3-4.6.2\e[0m        \e[0;90m─────────────\e[0;33m╺━━╸\e[0;90m──────  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ perl-4.0.3\e[0m           \e[0;90m─────────────\e[0;33m╺━━╸\e[0;90m──────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ git-4.1.4\e[0m            \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ ncurses-4.2.0\e[0m        \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (buildPhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ sqlite-4.4.2\e[0m         \e[0;90m────────\e[0;33m╺━━╸\e[0;90m───────────  (configurePhase)\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ libffi-4.5.3\e[0m         \e[0;90m───────\e[0;33m╺━━╸\e[0;90m────────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ xz-4.6.4\e[0m             \e[0;90m───────\e[0;33m╺━━╸\e[0;90m────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ gettext-4.0.0\e[0m        \e[0;90m───────\e[0;33m╺━━╸\e[0;90m────────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ systemd-4.1.1\e[0m        \e[0;90m─────\e[0;33m╺━━╸\e[0;90m──────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ dbus-4.2.2\e[0m           \e[0;90m────\e[0;33m╺━━╸\e[0;90m───────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ udev-rules\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ util-linux-4.3.3\e[0m     \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ linux-pam-4.4.4\e[0m      \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ kmod-4.5.0\e[0m           \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ├─ \e[0;33m⏵ kbd-4.6.1\e[0m            \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ nftables-4.0.2\e[0m       \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ util-linux-4.3.3\e[0m     \e[0;90m───\e[0;33m╺━━╸\e[0;90m────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ linux-pam-4.4.4\e[0m      \e[0;90m───\e[0;33m╺━━╸\e[0;90m────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ kmod-4.5.0\e[0m           \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ kbd-4.6.1\e[0m            \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ nftables-4.0.2\e[0m       \e[0;33m╺━━╸\e[0;90m───────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ etc\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ system-path\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ user-units\e[0m
@@ -132,7 +132,7 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 12s
 === system @ 22406ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;33m⏵ nixos-system-rom-….abcdef0\e[0m \e[0;90m───────────\e[0;33m╺━━╸\e[0;90m────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ nixos-system-rom-….abcdef0\e[0m \e[0;33m╺━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 156       \e[0;34m⏸ 0       \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 22s
