@@ -262,6 +262,12 @@ impl Renderer<'_> {
     for (&id, info) in self.snapshot.derivations {
       let priority = match info.build_status {
         BuildStatus::Failed { .. } => 4,
+        // Like transfers, builds earn a row once they have a timer to show.
+        BuildStatus::Building(ref build)
+          if elapsed(build.start, self.now) < MIN_TIMER_SECONDS =>
+        {
+          0
+        },
         BuildStatus::Building(_) => 3,
         // Dependency failures are useful context, but must not displace
         // builds that are still running.
