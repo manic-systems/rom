@@ -15,14 +15,14 @@ const unpreviewed = [long-run]
 
 def main [] { help main }
 
-# Records every fixture log in `fixtures` through `rom` into `out`.
+# Records every fixture directory in `fixtures` through `rom` into `out`.
 #
 # Each fixture gets a real-time `<name>.gif` and an instant-replay
 # `<name>.txt`, whose bytes decide whether the output changed.
 def "main record" [
   --rom: path                    # ROM binary
   --replay: path                 # `replay-fixture.nu` matching `rom`
-  --fixtures: path               # directory of `.log` fixtures
+  --fixtures: path               # directory of fixture directories
   --out: path                    # output directory
 ] {
   let fonts = $env.ROM_PREVIEW_FONTS? | default ""
@@ -31,15 +31,15 @@ def "main record" [
   let scratch = mktemp --directory
   # An empty config dir keeps a local `rom/config.toml` out of the recordings.
   with-env { XDG_CONFIG_HOME: ($scratch | path join config) } {
-    ls ($fixtures | path join "*.log" | into glob) | get name | sort | each {|log|
-      let name = $log | path parse | get stem
+    ls $fixtures | where type == dir | get name | sort | each {|fixture|
+      let name = $fixture | path basename
       if $name in $unpreviewed { return }
       if $name !~ $name_pattern { error make { msg: $"fixture name ($name) must match ($name_pattern)" } }
       print --stderr $"recording ($name)"
       let instant = $scratch | path join $"($name)-instant.cast"
       let timed = $scratch | path join $"($name).cast"
-      record $instant $"nu '($replay)' '($log)' --rom '($rom)' --instant"
-      record $timed $"nu '($replay)' '($log)' --rom '($rom)'"
+      record $instant $"nu '($replay)' '($fixture)' --rom '($rom)' --instant"
+      record $timed $"nu '($replay)' '($fixture)' --rom '($rom)'"
       cast-output $instant | save --raw --force ($out | path join $"($name).txt")
       (^agg --quiet --font-dir $fonts --font-family "JetBrainsMono Nerd Font Mono"
         --theme dracula --last-frame-duration 3 $timed ($out | path join $"($name).gif"))

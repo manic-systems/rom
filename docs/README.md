@@ -120,9 +120,10 @@ services; the CLI supplies filesystem-backed implementations.
 
 ## Reproducible visual fixtures
 
-Fixtures are timed raw Nix logs. Each line of `rom/tests/fixtures/<log>.log` is
-either `<ms> <raw line>`, written to ROM followed by a newline, or
-`<ms> = <checkpoint>`, which snapshots the frame at that time:
+Fixtures are timed raw Nix logs, one directory each under `rom/tests/fixtures`.
+Each line of a fixture's `build.log` is either `<ms> <raw line>`, written to ROM
+followed by a newline, or `<ms> = <checkpoint>`, which snapshots the frame at
+that time:
 
 ```text
 0 @nix {"action":"start","id":10,...}
@@ -130,9 +131,10 @@ either `<ms> <raw line>`, written to ROM followed by a newline, or
 ```
 
 `rom/tests/fixtures.rs` replays a log with a virtual clock and writes one
-`<snapshot>.snap` per test: every checkpoint frame, the finished frame, and the
-decoded log, with exact SGR sequences stored as visible `\e` escapes. One log
-can back several snapshots at different sizes or formats. Plain output is not
+`<variant>.snap` per test into the fixture's directory: every checkpoint frame,
+the finished frame, and the decoded log, with exact SGR sequences stored as
+visible `\e` escapes. One log can back several variants at different sizes or
+formats; the plain run is `default.snap`. Plain output is not
 snapshotted; the harness asserts it equals the ANSI output with escapes removed.
 
 A PTY integration test additionally runs the real CLI and proves that the
@@ -156,7 +158,7 @@ The same log can be watched through the real binary:
 
 ```console
 cargo build -p rom
-nu scripts/replay-fixture.nu download-progress
+nu scripts/replay-fixture.nu unsized-download
 nu scripts/replay-fixture.nu overflow --speed 0.25
 nu scripts/replay-fixture.nu failed-build --step
 nu scripts/replay-fixture.nu overflow -- --format dashboard

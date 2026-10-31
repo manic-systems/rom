@@ -1,7 +1,8 @@
 #!/usr/bin/env nu
 
-# Generates the timed fixture logs under `rom/tests/fixtures`, along with the
-# `.drvs.json` and `.history.csv` sidecars some of them need.
+# Generates the fixture directories under `rom/tests/fixtures`: each timed
+# `build.log`, along with the `derivations.json` and `history.csv` sidecars
+# some of them need.
 #
 # Every fixture is defined here, so retiming or extending one means editing
 # this file and running it again, then blessing the snapshots with
@@ -75,21 +76,22 @@ def run-fixture [name: string] {
 
 # Saves a fixture's log and sidecars, removing sidecars it no longer has.
 def write-fixture [name: string, fixture: record] {
-  let base = $fixtures | path join $name
+  let directory = $fixtures | path join $name
+  mkdir $directory
   $fixture.events
     | flatten
     | sort-by ms
     | each {|event| $"($event.ms) ($event.line)" }
     | str join "\n"
     | $in + "\n"
-    | save --raw --force $"($base).log"
-  let drvs = $"($base).drvs.json"
+    | save --raw --force ($directory | path join build.log)
+  let drvs = $directory | path join derivations.json
   if ($fixture.drvs? | is-empty) {
     rm --force $drvs
   } else {
     $fixture.drvs | to json --indent 2 | $in + "\n" | save --raw --force $drvs
   }
-  let history = $"($base).history.csv"
+  let history = $directory | path join history.csv
   if ($fixture.history? | is-empty) {
     rm --force $history
   } else {
