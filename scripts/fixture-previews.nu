@@ -10,9 +10,8 @@ const marker = "<!-- rom-fixture-previews -->"
 const max_gif_bytes = 10MB
 const max_fixtures = 100
 const name_pattern = '^[a-z0-9][a-z0-9-]{0,63}$'
-# Fixtures span well under a second, shorter than ROM's delay before showing
-# a build or transfer, so recordings replay them slowed down.
-const replay_speed = 0.2
+# Fixtures whose timeline is too long to record in real time.
+const unpreviewed = [long-run]
 
 def main [] { help main }
 
@@ -34,12 +33,13 @@ def "main record" [
   with-env { XDG_CONFIG_HOME: ($scratch | path join config) } {
     ls ($fixtures | path join "*.log" | into glob) | get name | sort | each {|log|
       let name = $log | path parse | get stem
+      if $name in $unpreviewed { return }
       if $name !~ $name_pattern { error make { msg: $"fixture name ($name) must match ($name_pattern)" } }
       print --stderr $"recording ($name)"
       let instant = $scratch | path join $"($name)-instant.cast"
       let timed = $scratch | path join $"($name).cast"
       record $instant $"nu '($replay)' '($log)' --rom '($rom)' --instant"
-      record $timed $"nu '($replay)' '($log)' --rom '($rom)' --speed ($replay_speed)"
+      record $timed $"nu '($replay)' '($log)' --rom '($rom)'"
       cast-output $instant | save --raw --force ($out | path join $"($name).txt")
       (^agg --quiet --font-dir $fonts --font-family "JetBrainsMono Nerd Font Mono"
         --theme dracula --last-frame-duration 3 $timed ($out | path join $"($name).gif"))
