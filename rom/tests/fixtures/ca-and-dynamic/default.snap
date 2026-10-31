@@ -9,8 +9,8 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
 === resolved @ 3500ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;33m⏵ ca-tool-1.0\e[0m                \e[0;90m──────────\e[0;33m━━━╸\e[0;90m─────────\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m├─ \e[0;33m⏵ ca-app-1.0\e[0m                 \e[0;90m──────────\e[0;33m━━━╸\e[0;90m─────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ ca-tool-1.0\e[0m                \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ ca-app-1.0\e[0m                 \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m├─ \e[0;34m⏸ uses-gen-1.0\e[0m
 \e[0;90m├─ … 1 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
@@ -18,7 +18,7 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 3s
 === dynamic @ 6800ms ===
 \e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;33m⏵ uses-gen-1.0\e[0m               \e[0;90m────────────────\e[0;33m━━━╸\e[0;90m───\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ uses-gen-1.0\e[0m               \e[0;90m────────────────\e[0;33m╺━━╸\e[0;90m───\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 6         \e[0;34m⏸ 0       \e[0m∑ 7
 \e[0;90m┗━ \e[0mElapsed ⏱ 6s
