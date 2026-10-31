@@ -112,6 +112,25 @@ pub struct DisplayOptions {
 }
 
 impl DisplayOptions {
+  /// Sets the options given here on `config`, keeping the others.
+  pub fn apply(self, config: &mut Config) {
+    let Self {
+      format,
+      legend,
+      summary,
+      icons,
+      log_prefix,
+      log_lines,
+    } = self;
+    let (engine, render) = (&mut config.engine, &mut config.render);
+    render.format = format.unwrap_or(render.format);
+    render.legend_style = legend.unwrap_or(render.legend_style);
+    render.summary_style = summary.unwrap_or(render.summary_style);
+    render.icons = icons.unwrap_or(render.icons);
+    engine.log_prefix_style = log_prefix.unwrap_or(engine.log_prefix_style);
+    engine.log_line_limit = log_lines.or(engine.log_line_limit);
+  }
+
   /// Fills the flags left unset from `file`.
   fn or(self, file: Self) -> Self {
     Self {
@@ -238,7 +257,7 @@ pub fn run() -> misstep::Result<ExitCode> {
     .with(filter)
     .init();
 
-  let monitor = Config {
+  let mut monitor = Config {
     engine: EngineConfig {
       silent: cli.silent,
       verbosity: match cli.verbose {
@@ -253,19 +272,14 @@ pub fn run() -> misstep::Result<ExitCode> {
       } else {
         InputMode::Auto
       },
-      log_prefix_style: cli.display.log_prefix.unwrap_or_default(),
-      log_line_limit: cli.display.log_lines,
       ..EngineConfig::default()
     },
     render: RenderConfig {
       ansi: io::stderr().is_terminal(),
-      format: cli.display.format.unwrap_or_default(),
-      legend_style: cli.display.legend.unwrap_or_default(),
-      summary_style: cli.display.summary.unwrap_or_default(),
-      icons: cli.display.icons.unwrap_or_default(),
       ..RenderConfig::default()
     },
   };
+  cli.display.apply(&mut monitor);
   let config = WrapperConfig {
     platform: cli.platform.unwrap_or_else(cognos::Platform::detect),
     verbose: cli.verbose,

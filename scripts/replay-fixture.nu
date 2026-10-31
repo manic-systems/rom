@@ -7,6 +7,7 @@ const root = path self | path dirname | path dirname
 # Arguments after `--` are passed to ROM. ROM is never built implicitly.
 def main [
   fixture: string                # fixture name or path to a fixture directory
+  --variant: string = "default"  # table of the fixture's `variants.toml`
   --rom: path                    # ROM binary (default: target/debug/rom)
   --speed: float = 1.0           # playback speed multiplier
   --instant                      # ignore timestamps
@@ -39,14 +40,29 @@ def main [
   # Fixture derivations are not in the store, so their edges come from a
   # sidecar. A scratch state directory keeps the replay's build times out of
   # the real history and supplies the fixture's own.
+  let variants_file = $directory | path join variants.toml
+  let variants = if ($variants_file | path exists) { open $variants_file } else { {} }
+  if $variant != "default" and $variant not-in ($variants | columns) {
+    error make { msg: $"($fixture) has no variant ($variant)" }
+  }
+  let settings = $variants | get --optional $variant | default {}
+
   let derivations = $directory | path join derivations.json
-  let state = mktemp --directory
+  let scratch = mktemp --directory
+  let state = $scratch | path join state
   let history = $directory | path join history.csv
   if ($history | path exists) {
     mkdir ($state | path join rom)
     cp $history ($state | path join rom build-reports-v1.csv)
   }
+  # The variant's settings stand in for the real config file. The terminal
+  # size is the caller's to set, and `silent` is a flag.
+  let config = $scratch | path join config
+  mkdir ($config | path join rom)
+  $settings | reject --optional terminal silent | to toml | save ($config | path join rom config.toml)
+  let rom_args = if ($settings.silent? | default false) { [--silent ...$rom_args] } else { $rom_args }
   let fixture_env = {
+    XDG_CONFIG_HOME: $config
     XDG_STATE_HOME: $state
     ROM_FIXTURE_DERIVATIONS: (if ($derivations | path exists) { $derivations | path expand } else { null })
   } | compact
@@ -72,9 +88,9 @@ def main [
     | with-env $fixture_env { ^$rom ...$rom_args }
   } catch {
     do $restore
-    rm --recursive $state
+    rm --recursive $scratch
     exit 1
   }
   do $restore
-  rm --recursive $state
+  rm --recursive $scratch
 }

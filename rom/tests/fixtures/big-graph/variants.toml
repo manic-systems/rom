@@ -1,0 +1,11 @@
+[narrow]
+terminal = { width = 40, height = 12 }
+
+[tall]
+terminal = { height = 60 }
+
+[dashboard]
+format = "dashboard"
+
+[plain]
+format = "plain"

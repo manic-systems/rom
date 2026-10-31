@@ -2,7 +2,7 @@
 
 # Generates the fixture directories under `rom/tests/fixtures`: each timed
 # `build.log`, along with the `derivations.json` and `history.csv` sidecars
-# some of them need.
+# some of them need. Each `variants.toml` is written by hand and left alone.
 #
 # Every fixture is defined here, so retiming or extending one means editing
 # this file and running it again, then blessing the snapshots with

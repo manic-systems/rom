@@ -1,0 +1,5 @@
+[silent]
+silent = true
+
+[no-log-prefix]
+log-prefix = "none"
