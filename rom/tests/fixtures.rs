@@ -3,7 +3,12 @@
 //! Each fixture is a directory under `fixtures/`. Every `build.log` line is
 //! `<ms> <raw line>`, written to the stream followed by a newline, or
 //! `<ms> = <name>`, which snapshots the frame. The finished frame and the
-//! decoded log are always snapshotted last, into one `<variant>.snap` per view.
+//! decoded log are always snapshotted last.
+//!
+//! A fixture replays once into `default.snap`, plus once into `<name>.snap`
+//! for every table in its `variants.toml`. A table holds `config.toml`
+//! settings, along with `terminal = { width, height }` and `silent`, which
+//! are not settings; a `[default]` table changes the plain run.
 
 #![expect(
   clippy::tests_outside_test_module,
@@ -15,55 +20,137 @@ use std::{fmt::Write as _, fs, path::Path, time::Duration};
 
 use rom::{
   cache::BuildReportCache,
+  cli::DisplayOptions,
   display::{format_log, render_frame},
   fixture::FixtureResolver,
   monitor::{Output, StreamEngine},
-  types::{
-    DisplayFormat,
-    EngineConfig,
-    IconMode,
-    LegendStyle,
-    LogPrefixStyle,
-    RenderConfig,
-    SummaryStyle,
-  },
+  types::{Config, IconMode, RenderConfig},
 };
+use serde::Deserialize;
 
-struct View {
-  width:  u16,
-  height: u16,
-  render: RenderConfig,
-  engine: EngineConfig,
+/// A fixture variant's settings that are not ROM's to read.
+#[derive(Default, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+struct Terminal {
+  width:  Option<u16>,
+  height: Option<u16>,
 }
 
-/// Replays `fixtures/<fixture>/build.log` into `<variant>.snap` beside it with
-/// a 79x23 Unicode tree view, adjusted by `configure`.
-fn replay(fixture: &str, variant: &str, configure: impl FnOnce(&mut View)) {
-  let mut view = View {
-    width:  79,
-    height: 23,
+#[test]
+fn fixtures() {
+  let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
+  let mut fixtures = fs::read_dir(&root)
+    .unwrap()
+    .map(|entry| entry.unwrap().path())
+    .filter(|path| path.is_dir())
+    .collect::<Vec<_>>();
+  fixtures.sort();
+  let failures = fixtures
+    .iter()
+    .flat_map(|directory| replay_variants(directory))
+    .collect::<Vec<String>>();
+  assert!(failures.is_empty(), "{}", failures.join("\n\n"));
+}
+
+/// Replays every variant of the fixture in `directory`, returning failures.
+fn replay_variants(directory: &Path) -> Vec<String> {
+  let variants_path = directory.join("variants.toml");
+  let mut variants = if variants_path.exists() {
+    toml::from_str::<toml::Table>(&fs::read_to_string(&variants_path).unwrap())
+      .unwrap_or_else(|error| panic!("{}: {error}", variants_path.display()))
+  } else {
+    toml::Table::new()
+  };
+  variants
+    .entry("default")
+    .or_insert_with(|| toml::Value::Table(toml::Table::new()));
+
+  let mut failures = Vec::new();
+  for (name, settings) in &variants {
+    let toml::Value::Table(settings) = settings else {
+      panic!("{}: [{name}] must be a table", variants_path.display());
+    };
+    let actual = replay(directory, name, settings.clone());
+    let path = directory.join(format!("{name}.snap"));
+    if blessing() {
+      fs::write(&path, actual).unwrap();
+    } else if let Err(failure) = compare(&path, &actual) {
+      failures.push(failure);
+    }
+  }
+  // Snapshots of removed variants would otherwise linger unchecked.
+  for entry in fs::read_dir(directory).unwrap() {
+    let path = entry.unwrap().path();
+    let stale = path
+      .extension()
+      .is_some_and(|extension| extension == "snap")
+      && path
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .is_none_or(|stem| !variants.contains_key(stem));
+    if stale {
+      if blessing() {
+        fs::remove_file(&path).unwrap();
+      } else {
+        failures.push(format!(
+          "stale snapshot {}; run ROM_BLESS=1 cargo test --test fixtures",
+          path.display()
+        ));
+      }
+    }
+  }
+  failures
+}
+
+/// Replays a fixture's `build.log` into a snapshot, with a 79x23 Unicode tree
+/// view changed by `settings`.
+fn replay(
+  directory: &Path,
+  variant: &str,
+  mut settings: toml::Table,
+) -> String {
+  let fixture = directory.file_name().unwrap().to_string_lossy();
+  let fixture = format!("{fixture}/{variant}");
+  let terminal =
+    settings
+      .remove("terminal")
+      .map_or_else(Terminal::default, |terminal| {
+        terminal
+          .try_into()
+          .unwrap_or_else(|error| panic!("{fixture}: terminal: {error}"))
+      });
+  let silent = settings.remove("silent").is_some_and(|silent| {
+    silent
+      .as_bool()
+      .unwrap_or_else(|| panic!("{fixture}: silent must be a boolean"))
+  });
+  let mut config = Config {
     render: RenderConfig {
       icons: IconMode::Unicode,
       ..RenderConfig::default()
     },
-    engine: EngineConfig::default(),
+    ..Config::default()
   };
-  configure(&mut view);
-  let directory = Path::new(env!("CARGO_MANIFEST_DIR"))
-    .join("tests/fixtures")
-    .join(fixture);
+  config.engine.silent = silent;
+  toml::Value::Table(settings)
+    .try_into::<DisplayOptions>()
+    .unwrap_or_else(|error| panic!("{fixture}: {error}"))
+    .apply(&mut config);
+  let (width, height) =
+    (terminal.width.unwrap_or(79), terminal.height.unwrap_or(23));
+
   let log_path = directory.join("build.log");
   let input = fs::read_to_string(&log_path).unwrap();
   let ansi = RenderConfig {
     ansi: true,
-    ..view.render
+    ..config.render
   };
   let plain = RenderConfig {
     ansi: false,
     ..ansi
   };
 
-  let mut stream = StreamEngine::new(view.engine);
+  let mut stream = StreamEngine::new(config.engine);
   let derivations = directory.join("derivations.json");
   if derivations.exists() {
     stream
@@ -83,18 +170,14 @@ fn replay(fixture: &str, variant: &str, configure: impl FnOnce(&mut View)) {
       stream.engine().state(),
       &ansi,
       Duration::from_millis(at_ms).as_secs_f64(),
-      view.width,
-      view.height,
+      width,
+      height,
       done,
     );
     let styled = frame.ansi_text();
     let unstyled = strip_ansi(&styled);
     let unstyled = unstyled.lines().map(str::trim_end).collect::<Vec<&str>>();
-    assert_eq!(
-      unstyled.join("\n"),
-      frame.text(),
-      "{fixture}/{variant}: {name}"
-    );
+    assert_eq!(unstyled.join("\n"), frame.text(), "{fixture}: {name}");
     writeln!(actual, "=== {name} @ {at_ms}ms ===").unwrap();
     actual.push_str(&visible_escapes(&styled));
     actual.push('\n');
@@ -143,7 +226,7 @@ fn replay(fixture: &str, variant: &str, configure: impl FnOnce(&mut View)) {
   actual.push_str("=== log ===\n");
   actual.push_str(&visible_escapes(&styled_log));
 
-  assert_or_bless(&directory.join(format!("{variant}.snap")), &actual);
+  actual
 }
 
 fn render_output(output: &[Output], render: &RenderConfig) -> String {
@@ -177,23 +260,25 @@ fn visible_escapes(value: &str) -> String {
   value.replace('\x1b', "\\e")
 }
 
-fn assert_or_bless(path: &Path, actual: &str) {
-  if std::env::var_os("ROM_BLESS").is_some() {
-    fs::write(path, actual).unwrap();
-    return;
-  }
-  let expected = fs::read_to_string(path).unwrap_or_else(|_| {
-    panic!(
+fn blessing() -> bool {
+  std::env::var_os("ROM_BLESS").is_some()
+}
+
+fn compare(path: &Path, actual: &str) -> Result<(), String> {
+  let Ok(expected) = fs::read_to_string(path) else {
+    return Err(format!(
       "missing snapshot {}; run ROM_BLESS=1 cargo test --test fixtures",
       path.display()
-    )
-  });
-  assert!(
-    expected == actual,
+    ));
+  };
+  if expected == actual {
+    return Ok(());
+  }
+  Err(format!(
     "snapshot mismatch for {}\n{}",
     path.display(),
     simple_diff(&expected, actual),
-  );
+  ))
 }
 
 fn simple_diff(expected: &str, actual: &str) -> String {
@@ -216,276 +301,4 @@ fn simple_diff(expected: &str, actual: &str) -> String {
     }
   }
   diff
-}
-
-#[test]
-fn big_graph() {
-  replay("big-graph", "default", |_| {});
-}
-
-#[test]
-fn deep_chain() {
-  replay("deep-chain", "default", |_| {});
-}
-
-#[test]
-fn wide_fanout() {
-  replay("wide-fanout", "default", |_| {});
-}
-
-#[test]
-fn grow_shrink() {
-  replay("grow-shrink", "default", |_| {});
-}
-
-#[test]
-fn shared_names() {
-  replay("shared-names", "default", |_| {});
-}
-
-#[test]
-fn planned_lifecycle() {
-  replay("planned-lifecycle", "default", |_| {});
-}
-
-#[test]
-fn sub_second_builds() {
-  replay("sub-second-builds", "default", |_| {});
-}
-
-#[test]
-fn phases_and_estimates() {
-  replay("phases-and-estimates", "default", |_| {});
-}
-
-#[test]
-fn failed_build() {
-  replay("failed-build", "default", |_| {});
-}
-
-#[test]
-fn dependency_failure() {
-  replay("dependency-failure", "default", |_| {});
-}
-
-#[test]
-fn multiple_failures() {
-  replay("multiple-failures", "default", |_| {});
-}
-
-#[test]
-fn packages_and_units() {
-  replay("packages-and-units", "default", |_| {});
-}
-
-#[test]
-fn ca_and_dynamic() {
-  replay("ca-and-dynamic", "default", |_| {});
-}
-
-#[test]
-fn downloads() {
-  replay("downloads", "default", |_| {});
-}
-
-#[test]
-fn unsized_download() {
-  replay("unsized-download", "default", |_| {});
-}
-
-#[test]
-fn mixed_transfers() {
-  replay("mixed-transfers", "default", |_| {});
-}
-
-#[test]
-fn substitution_heavy() {
-  replay("substitution-heavy", "default", |_| {});
-}
-
-#[test]
-fn source_fetches() {
-  replay("source-fetches", "default", |_| {});
-}
-
-#[test]
-fn fetch_to_store() {
-  replay("fetch-to-store", "default", |_| {});
-}
-
-#[test]
-fn remote_build() {
-  replay("remote-build", "default", |_| {});
-}
-
-#[test]
-fn remote_mix() {
-  replay("remote-mix", "default", |_| {});
-}
-
-#[test]
-fn chatty_build() {
-  replay("chatty-build", "default", |_| {});
-}
-
-#[test]
-fn hostile_logs() {
-  replay("hostile-logs", "default", |_| {});
-}
-
-#[test]
-fn passthrough() {
-  replay("passthrough", "default", |_| {});
-}
-
-#[test]
-fn unsupported_record() {
-  replay("unsupported-record", "default", |_| {});
-}
-
-#[test]
-fn nix_error() {
-  replay("nix-error", "default", |_| {});
-}
-
-#[test]
-fn long_names() {
-  replay("long-names", "default", |_| {});
-}
-
-#[test]
-fn odd_names() {
-  replay("odd-names", "default", |_| {});
-}
-
-#[test]
-fn overflow() {
-  replay("overflow", "default", |_| {});
-}
-
-#[test]
-fn empty_run() {
-  replay("empty-run", "default", |_| {});
-}
-
-#[test]
-fn instant_finish() {
-  replay("instant-finish", "default", |_| {});
-}
-
-#[test]
-fn interrupted() {
-  replay("interrupted", "default", |_| {});
-}
-
-#[test]
-fn long_run() {
-  replay("long-run", "default", |_| {});
-}
-
-// Variants replay a fixture above under another view.
-
-#[test]
-fn log_line_limit() {
-  replay("log-line-limit", "default", |view| {
-    view.engine.log_line_limit = Some(2);
-  });
-}
-
-#[test]
-fn fetch_to_store_plain() {
-  replay("fetch-to-store", "plain", |view| {
-    view.render.format = DisplayFormat::Plain;
-  });
-}
-
-#[test]
-fn big_graph_narrow() {
-  replay("big-graph", "narrow", |view| {
-    (view.width, view.height) = (40, 12);
-  });
-}
-
-#[test]
-fn big_graph_tall() {
-  replay("big-graph", "tall", |view| {
-    view.height = 60;
-  });
-}
-
-#[test]
-fn deep_chain_narrow() {
-  replay("deep-chain", "narrow", |view| {
-    (view.width, view.height) = (40, 12);
-  });
-}
-
-#[test]
-fn overflow_narrow() {
-  replay("overflow", "narrow", |view| {
-    (view.width, view.height) = (40, 12);
-  });
-}
-
-#[test]
-fn format_dashboard() {
-  replay("big-graph", "dashboard", |view| {
-    view.render.format = DisplayFormat::Dashboard;
-  });
-}
-
-#[test]
-fn format_plain() {
-  replay("big-graph", "plain", |view| {
-    view.render.format = DisplayFormat::Plain;
-  });
-}
-
-#[test]
-fn legend_compact() {
-  replay("dependency-failure", "legend-compact", |view| {
-    view.render.legend_style = LegendStyle::Compact;
-  });
-}
-
-#[test]
-fn legend_verbose() {
-  replay("dependency-failure", "legend-verbose", |view| {
-    view.render.legend_style = LegendStyle::Verbose;
-  });
-}
-
-#[test]
-fn summary_table() {
-  replay("dependency-failure", "summary-table", |view| {
-    view.render.summary_style = SummaryStyle::Table;
-  });
-}
-
-#[test]
-fn summary_full() {
-  replay("dependency-failure", "summary-full", |view| {
-    view.render.summary_style = SummaryStyle::Full;
-  });
-}
-
-#[test]
-fn icons_nerd() {
-  replay("mixed-transfers", "nerd-icons", |view| {
-    view.render.icons = IconMode::Nerd;
-  });
-}
-
-#[test]
-fn silent() {
-  replay("chatty-build", "silent", |view| {
-    view.engine.silent = true;
-  });
-}
-
-#[test]
-fn log_prefix_none() {
-  replay("chatty-build", "no-log-prefix", |view| {
-    view.engine.log_prefix_style = LogPrefixStyle::None;
-  });
 }

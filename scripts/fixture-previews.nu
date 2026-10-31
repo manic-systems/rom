@@ -9,7 +9,8 @@
 const marker = "<!-- rom-fixture-previews -->"
 const max_gif_bytes = 10MB
 const max_fixtures = 100
-const name_pattern = '^[a-z0-9][a-z0-9-]{0,63}$'
+# `<fixture>` or `<fixture>.<variant>`.
+const name_pattern = '^[a-z0-9][a-z0-9-]{0,63}(\.[a-z0-9][a-z0-9-]{0,63})?$'
 # Fixtures whose timeline is too long to record in real time.
 const unpreviewed = [long-run]
 
@@ -17,8 +18,9 @@ def main [] { help main }
 
 # Records every fixture directory in `fixtures` through `rom` into `out`.
 #
-# Each fixture gets a real-time `<name>.gif` and an instant-replay
-# `<name>.txt`, whose bytes decide whether the output changed.
+# Each fixture and each of its variants gets a real-time `<name>.gif` and an
+# instant-replay `<name>.txt`, whose bytes decide whether the output changed.
+# Variants are named `<fixture>.<variant>`.
 def "main record" [
   --rom: path                    # ROM binary
   --replay: path                 # `replay-fixture.nu` matching `rom`
@@ -31,26 +33,39 @@ def "main record" [
   let scratch = mktemp --directory
   # An empty config dir keeps a local `rom/config.toml` out of the recordings.
   with-env { XDG_CONFIG_HOME: ($scratch | path join config) } {
-    ls $fixtures | where type == dir | get name | sort | each {|fixture|
-      let name = $fixture | path basename
-      if $name in $unpreviewed { return }
-      if $name !~ $name_pattern { error make { msg: $"fixture name ($name) must match ($name_pattern)" } }
-      print --stderr $"recording ($name)"
-      let instant = $scratch | path join $"($name)-instant.cast"
-      let timed = $scratch | path join $"($name).cast"
-      record $instant $"nu '($replay)' '($fixture)' --rom '($rom)' --instant"
-      record $timed $"nu '($replay)' '($fixture)' --rom '($rom)'"
-      cast-output $instant | save --raw --force ($out | path join $"($name).txt")
-      (^agg --quiet --font-dir $fonts --font-family "JetBrainsMono Nerd Font Mono"
-        --theme dracula --last-frame-duration 3 $timed ($out | path join $"($name).gif"))
+    ls $fixtures | where type == dir | get name | where { $in | path join build.log | path exists } | sort | each {|fixture|
+      let base_name = $fixture | path basename
+      if $base_name in $unpreviewed { return }
+      let variants_file = $fixture | path join variants.toml
+      let variants = if ($variants_file | path exists) { open $variants_file } else { {} }
+      ["default" ...($variants | columns | where $it != "default")] | each {|variant|
+        let name = if $variant == "default" { $base_name } else { $"($base_name).($variant)" }
+        if $name !~ $name_pattern { error make { msg: $"fixture name ($name) must match ($name_pattern)" } }
+        print --stderr $"recording ($name)"
+        let terminal = $variants | get --optional $variant | get --optional terminal | default {}
+        let size = $"($terminal.width? | default 100)x($terminal.height? | default 30)"
+        # Replays from before variants existed take no `--variant`.
+        let selected = if $variant == "default" { "" } else { $" --variant '($variant)'" }
+        let replay_command = $"nu '($replay)' '($fixture)'($selected) --rom '($rom)'"
+        let instant = $scratch | path join $"($name)-instant.cast"
+        let timed = $scratch | path join $"($name).cast"
+        record $instant $size $"($replay_command) --instant"
+        let output = cast-output $instant
+        # agg cannot draw a recording without output, and there is nothing to see.
+        if $output == "" { print --stderr $"skipping ($name), which prints nothing"; return }
+        record $timed $size $replay_command
+        $output | save --raw --force ($out | path join $"($name).txt")
+        (^agg --quiet --font-dir $fonts --font-family "JetBrainsMono Nerd Font Mono"
+          --theme dracula --last-frame-duration 3 $timed ($out | path join $"($name).gif"))
+      }
     }
   }
   rm --recursive $scratch
   null
 }
 
-def record [cast: path, command: string] {
-  ^asciinema rec --quiet --headless --window-size 100x30 --overwrite --command $command $cast
+def record [cast: path, size: string, command: string] {
+  ^asciinema rec --quiet --headless --window-size $size --overwrite --command $command $cast
 }
 
 # Concatenates a cast's output events, dropping their timing.

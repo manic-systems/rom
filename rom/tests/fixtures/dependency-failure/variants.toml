@@ -1,0 +1,11 @@
+[legend-compact]
+legend = "compact"
+
+[legend-verbose]
+legend = "verbose"
+
+[summary-table]
+summary = "table"
+
+[summary-full]
+summary = "full"

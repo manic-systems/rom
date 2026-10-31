@@ -130,11 +130,22 @@ that time:
 100 = build-started
 ```
 
-`rom/tests/fixtures.rs` replays a log with a virtual clock and writes one
-`<variant>.snap` per test into the fixture's directory: every checkpoint frame,
-the finished frame, and the decoded log, with exact SGR sequences stored as
-visible `\e` escapes. One log can back several variants at different sizes or
-formats; the plain run is `default.snap`. Plain output is not
+`rom/tests/fixtures.rs` replays every fixture with a virtual clock into its
+`default.snap`: every checkpoint frame, the finished frame, and the decoded
+log, with exact SGR sequences stored as visible `\e` escapes. A fixture's
+`variants.toml` replays the same log under other settings, one table and one
+`<variant>.snap` each:
+
+```toml
+[narrow]
+terminal = { width = 40, height = 12 }
+
+[plain]
+format = "plain"
+```
+
+A table takes anything `config.toml` does, plus `terminal` and `silent`. A
+`[default]` table changes the plain run. Plain output is not
 snapshotted; the harness asserts it equals the ANSI output with escapes removed.
 
 A PTY integration test additionally runs the real CLI and proves that the
@@ -161,10 +172,12 @@ cargo build -p rom
 nu scripts/replay-fixture.nu unsized-download
 nu scripts/replay-fixture.nu overflow --speed 0.25
 nu scripts/replay-fixture.nu failed-build --step
+nu scripts/replay-fixture.nu big-graph --variant plain
 nu scripts/replay-fixture.nu overflow -- --format dashboard
 ```
 
-Arguments after `--` are passed to ROM. The replay helper never builds ROM
+Arguments after `--` are passed to ROM. Replays read the variant's settings
+instead of your own config file. The replay helper never builds ROM
 implicitly.
 
 ## Attribution
