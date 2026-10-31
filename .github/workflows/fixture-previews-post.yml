@@ -1,0 +1,120 @@
+name: Fixture Previews Post
+
+# Publishes the GIFs recorded by `fixture-previews.yml` to the `pr-previews`
+# branch and keeps one comment per pull request up to date. It runs the
+# default branch's scripts and treats the artifact purely as data.
+
+on:
+  workflow_run: # zizmor: ignore[dangerous-triggers] never checks out or runs pull request code
+    workflows: [Fixture Previews]
+    types: [completed]
+
+permissions: {}
+
+# Serializes every write to the `pr-previews` branch.
+concurrency:
+  group: fixture-previews-branch
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  post:
+    name: Post
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: fixture-previews
+          path: artifact
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      # Fork runs carry no pull request in the event, so the number comes from
+      # the artifact and must name an open pull request still at the recorded
+      # head. Matching the head repository and branch too keeps a fork that
+      # pushes another pull request's commit from posting on it.
+      - name: Verify pull request
+        id: pr
+        env:
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          pr=$(head -c 16 artifact/pr.txt | tr -d '\n')
+          [[ $pr =~ ^[0-9]{1,9}$ ]] || { echo "::error::invalid pull request number"; exit 1; }
+          info=$(gh api "repos/$REPO/pulls/$pr")
+          if ! jq -e --arg sha "$HEAD_SHA" --arg repo "$HEAD_REPO" --arg branch "$HEAD_BRANCH" \
+            '.state == "open" and .head.sha == $sha and .head.repo.full_name == $repo and .head.ref == $branch' \
+            <<< "$info" > /dev/null; then
+            echo "::notice::#$pr does not match this run's open head; skipping stale previews"
+            exit 0
+          fi
+          echo "number=$pr" >> "$GITHUB_OUTPUT"
+
+      - name: Install Nix
+        if: steps.pr.outputs.number
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          github_access_token: ${{ github.token }}
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: Fetch previews branch
+        if: steps.pr.outputs.number
+        run: |
+          gh auth setup-git
+          # Exit code 2 means the branch is missing; anything else is an error.
+          status=0
+          git ls-remote --exit-code --heads "https://github.com/$REPO.git" pr-previews || status=$?
+          if [[ $status == 0 ]]; then
+            git clone --depth 1 --branch pr-previews "https://github.com/$REPO.git" previews
+          elif [[ $status == 2 ]]; then
+            git init --initial-branch pr-previews previews
+            git -C previews remote add origin "https://github.com/$REPO.git"
+          else
+            exit "$status"
+          fi
+
+      - name: Write previews
+        if: steps.pr.outputs.number
+        env:
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          rm -rf "previews/pr-$PR"
+          nix develop .#previews -c nu scripts/fixture-previews.nu comment \
+            --artifact artifact --dest "previews/pr-$PR/$HEAD_SHA" \
+            --url "https://raw.githubusercontent.com/$REPO/pr-previews/pr-$PR/$HEAD_SHA" > body.md
+
+      # One squashed commit keeps the branch from growing with every push.
+      - name: Push previews branch
+        if: steps.pr.outputs.number
+        env:
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          cd previews
+          git checkout --orphan squashed
+          git add -A
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit --allow-empty --quiet -m "previews: update #$PR"
+          git push --force origin squashed:pr-previews
+
+      - name: Comment
+        if: steps.pr.outputs.number
+        env:
+          PR: ${{ steps.pr.outputs.number }}
+        run: >-
+          nix develop .#previews -c nu scripts/fixture-previews.nu post
+          --repo "$REPO" --pr "$PR" --body body.md

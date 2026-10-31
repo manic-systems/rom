@@ -15,6 +15,7 @@
 
     devShells = forEachSystem (system: {
       default = pkgsForEach.${system}.callPackage ./nix/shell.nix {};
+      previews = pkgsForEach.${system}.callPackage ./nix/previews.nix {};
     });
 
     hydraJobs = self.packages;
