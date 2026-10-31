@@ -425,7 +425,7 @@ mod tests {
     let frame = render_frame(
       stream.engine().state(),
       &RenderConfig::default(),
-      0.0,
+      1.0,
       79,
       23,
       false,
