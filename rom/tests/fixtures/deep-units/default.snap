@@ -1,0 +1,25 @@
+=== deep @ 3000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ gh-wrapped-1.0\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ gh\e[0m
+\e[0;90m│     ╰─ \e[0;34m⏸ github.com-cli-cli-v2-cmd-repo\e[0m
+\e[0;90m│        ╰─ \e[0;34m⏸ github.com-cli-cli-v2-cmd-factory\e[0m
+\e[0;90m│           ╰─ \e[0;34m⏸ github.com-cli-cli-v2-pkg-cmdutil\e[0m
+\e[0;90m│              ╰─ \e[0;34m⏸ github.com-cli-cli-v2-context\e[0;90m  (0/2)\e[0m
+\e[0;90m│                 ├─ \e[0;34m⏸ github.com-cli-cli-v2-api\e[0m
+\e[0;90m│                 │  ╰─ \e[0;34m⏸ github.com-cli-cli-v2-internal-ghrepo\e[0m
+\e[0;90m│                 │     ╰─ \e[0;34m⏸ github.com-cli-go-gh-v2-pkg-repository\e[0;90m  (0/2)\e[0m
+\e[0;90m│                 │        ├─ \e[0;33m⏵ github.com-cli-go-gh-v2-pkg-ssh\e[0m \e[0;90m───\e[0;33m╺╸\e[0;90m────\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│                 │        ╰─ \e[0;33m⏵ github.com-cli-safeexec\e[0m         \e[0;90m───\e[0;33m╺╸\e[0;90m────\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m│                 ╰─ \e[0;33m⏵ github.com-cli-cli-v2-pkg-iostreams\e[0m      \e[0;90m───\e[0;33m╺╸\e[0;90m────\e[0;37m  ⏱ 2s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 3       \e[0;32m✔ 1         \e[0;34m⏸ 1       \e[0m∑ 5
+\e[0;90m┗━ \e[0mElapsed ⏱ 3s
+=== finished @ 4000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ gh-wrapped-1.0\e[0m
+\e[0;90m┕━ \e[0;34mInput ended with 1 planned build after 4s\e[0m
+=== log ===
+these 2 derivations will be built:\e[0m
+  /nix/store/124768c6ag6gc8fb47680d92b99fg6da-gh.drv.drv\e[0m
+  /nix/store/bgd9b7576921f04f7890f048126d6g7b-gh-wrapped-1.0.drv\e[0m
