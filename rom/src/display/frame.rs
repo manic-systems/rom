@@ -153,10 +153,6 @@ pub fn format_log(log: &LogLine, config: &RenderConfig) -> String {
 
 /// Removes controls a log line could use to move the cursor, keeping SGR
 /// styling when `keep_sgr` is set.
-///
-/// Build output is printed above the live graph, which is erased by moving up
-/// a counted number of rows. A cursor movement, scroll, or vertical control in
-/// a log line would shift that count and leave the graph's top behind.
 fn strip_controls(value: &str, keep_sgr: bool) -> String {
   let bytes = value.as_bytes();
   let mut output = String::with_capacity(value.len());
@@ -165,7 +161,8 @@ fn strip_controls(value: &str, keep_sgr: bool) -> String {
   while index < bytes.len() {
     let byte = bytes[index];
     if byte != 0x1B {
-      if (byte < 0x20 && !matches!(byte, b'\t' | b'\r')) || byte == 0x7F {
+      if (byte < 0x20 && !matches!(byte, b'\t' | b'\n' | b'\r')) || byte == 0x7F
+      {
         output.push_str(&value[plain_start..index]);
         plain_start = index + 1;
       }
