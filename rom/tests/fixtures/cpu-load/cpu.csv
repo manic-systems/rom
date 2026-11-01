@@ -1,0 +1,6 @@
+after_ms,drv,cores
+0,/nix/store/dgd0d68b645d22bcf8229c3af50g809b-steady-1.0.drv,2.0
+0,/nix/store/83d3a2f9c3d9894a403b5b83bbbg8033-serial-1.0.drv,2.0
+0,/nix/store/bc479f81781df130d076f01ab6cgb035-idle-1.0.drv,0.0
+0,/nix/store/6c8d89aa046f98gccg3a2g4fd6b94836-heavy-1.0.drv,4.5
+3000,/nix/store/83d3a2f9c3d9894a403b5b83bbbg8033-serial-1.0.drv,1.0

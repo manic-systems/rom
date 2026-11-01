@@ -1,4 +1,5 @@
-//! CPU use of local builds, read from the cgroups Nix gives them.
+//! CPU use of local builds, read from the cgroups Nix gives them or from a
+//! replayed fixture's sidecar.
 
 use std::{
   fs,
@@ -9,7 +10,10 @@ use std::{
 
 use foldhash::{HashMap, HashMapExt};
 
-use crate::state::{BuildCpu, BuildLoad, DerivationId};
+use crate::{
+  fixture::{FIXTURE_CORES, FixtureCpu},
+  state::{BuildCpu, BuildLoad, DerivationId},
+};
 
 /// Seconds a local build may run without a matching cgroup before it is no
 /// longer looked for.
@@ -34,15 +38,22 @@ pub(crate) struct Usage {
   pub machine: Option<f32>,
 }
 
-/// Samples the CPU time of local builds from their cgroups.
-///
-/// Nix names a sandboxed build's cgroup `nix-build@<hash>-<owner>`.
+/// Samples the CPU time of local builds and judges how they use it.
 #[derive(Debug)]
-pub struct CgroupUsage {
-  roots:   Vec<PathBuf>,
-  builds:  HashMap<DerivationId, Sample>,
-  matched: bool,
-  cores:   f32,
+pub struct CpuUsage {
+  source: Source,
+  builds: HashMap<DerivationId, Sample>,
+  cores:  f32,
+}
+
+#[derive(Debug)]
+enum Source {
+  /// Nix names a sandboxed build's cgroup `nix-build@<hash>-<owner>`.
+  Cgroups {
+    roots:   Vec<PathBuf>,
+    matched: bool,
+  },
+  Fixture(FixtureCpu),
 }
 
 #[derive(Debug)]
@@ -62,7 +73,7 @@ enum Cgroup {
   Missing,
 }
 
-impl CgroupUsage {
+impl CpuUsage {
   /// Finds the cgroups Nix creates build cgroups under.
   ///
   /// Returns [`None`] off Linux or when none exists.
@@ -96,12 +107,24 @@ impl CgroupUsage {
       let cores =
         thread::available_parallelism().map_or(1, NonZeroUsize::get) as f32;
       Self {
-        roots,
+        source: Source::Cgroups {
+          roots,
+          matched: false,
+        },
         builds: HashMap::new(),
-        matched: false,
         cores,
       }
     })
+  }
+
+  /// Samples a replayed fixture's builds from its CPU sidecar.
+  #[must_use]
+  pub fn fixture(cpu: FixtureCpu) -> Self {
+    Self {
+      source: Source::Fixture(cpu),
+      builds: HashMap::new(),
+      cores:  FIXTURE_CORES,
+    }
   }
 
   /// Returns each build's CPU use since the previous sample, and all of
@@ -111,7 +134,8 @@ impl CgroupUsage {
     running: &[(DerivationId, &Path, f64)],
     now: f64,
   ) -> Usage {
-    if self.roots.is_empty() {
+    if matches!(&self.source, Source::Cgroups { roots, .. } if roots.is_empty())
+    {
       return Usage {
         builds:  Vec::new(),
         machine: None,
@@ -136,26 +160,38 @@ impl CgroupUsage {
         heavy_since: None,
       });
 
-      if matches!(sample.cgroup, Cgroup::Searching) {
-        let entries = listing.get_or_insert_with(|| list(&self.roots));
-        match find(entries, drv) {
-          Some(cgroup) => {
-            sample.cgroup = Cgroup::Found(cgroup);
-            self.matched = true;
-          },
-          None if now - sample.seen < GIVE_UP => searching = true,
-          None => {
-            tracing::debug!("no build cgroup for {}", drv.display());
-            sample.cgroup = Cgroup::Missing;
-          },
-        }
-      }
-
-      let Cgroup::Found(cgroup) = &sample.cgroup else {
-        continue;
+      let usec = match &mut self.source {
+        Source::Cgroups { roots, matched } => {
+          if matches!(sample.cgroup, Cgroup::Searching) {
+            let entries = listing.get_or_insert_with(|| list(roots));
+            match find(entries, drv) {
+              Some(cgroup) => {
+                sample.cgroup = Cgroup::Found(cgroup);
+                *matched = true;
+              },
+              None if now - sample.seen < GIVE_UP => searching = true,
+              None => {
+                tracing::debug!("no build cgroup for {}", drv.display());
+                sample.cgroup = Cgroup::Missing;
+              },
+            }
+          }
+          let Cgroup::Found(cgroup) = &sample.cgroup else {
+            continue;
+          };
+          read_usage(cgroup)
+        },
+        // A build the sidecar leaves out shows no CPU use, like one without
+        // a cgroup.
+        Source::Fixture(cpu) => {
+          let Some(usec) = cpu.usage_usec(drv, now - start) else {
+            continue;
+          };
+          Some(usec)
+        },
       };
 
-      let Some(usec) = read_usage(cgroup) else {
+      let Some(usec) = usec else {
         builds.push((id, None));
         continue;
       };
@@ -197,8 +233,12 @@ impl CgroupUsage {
       sample.last = Some((usec, now));
     }
 
-    if !self.matched && !searching && !running.is_empty() {
-      self.roots.clear();
+    if let Source::Cgroups { roots, matched } = &mut self.source
+      && !*matched
+      && !searching
+      && !running.is_empty()
+    {
+      roots.clear();
     }
 
     let machine = total.map(|total| total / self.cores);

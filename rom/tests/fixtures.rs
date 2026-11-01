@@ -22,9 +22,10 @@ use rom::{
   cache::BuildReportCache,
   cli::DisplayOptions,
   display::{format_log, render_frame},
-  fixture::FixtureResolver,
+  fixture::{FixtureCpu, FixtureResolver},
   monitor::{Output, StreamEngine},
   types::{Config, IconMode, RenderConfig},
+  usage::CpuUsage,
 };
 use serde::Deserialize;
 
@@ -163,6 +164,12 @@ fn replay(
       .engine_mut()
       .load_history(&BuildReportCache::new(history));
   }
+  let cpu = directory.join("cpu.csv");
+  if cpu.exists() {
+    stream
+      .engine_mut()
+      .set_usage(CpuUsage::fixture(FixtureCpu::load(&cpu).unwrap()));
+  }
   let mut output = Vec::new();
   let mut actual = String::new();
   let mut snap = |stream: &StreamEngine, name: &str, at_ms: u64, done: bool| {
@@ -184,6 +191,7 @@ fn replay(
   };
 
   let mut at_ms = 0;
+  let mut sampled_ms = 0;
   for (index, line) in input.lines().enumerate() {
     let (time, rest) = line.split_once(' ').unwrap_or_else(|| {
       panic!(
@@ -196,6 +204,13 @@ fn replay(
     assert!(time >= at_ms, "{fixture}: timestamps must be monotonic");
     at_ms = time;
     let now = Duration::from_millis(at_ms).as_secs_f64();
+    // The CLI samples CPU use about once a second while builds run.
+    while sampled_ms + 1000 <= at_ms {
+      sampled_ms += 1000;
+      stream
+        .engine_mut()
+        .sample_usage(Duration::from_millis(sampled_ms).as_secs_f64());
+    }
     if let Some(name) = rest.strip_prefix("= ") {
       // The CLI polls while idle, so answers to lookups asked during the
       // last poll have arrived by the time a frame is drawn.
