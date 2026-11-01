@@ -1057,7 +1057,15 @@ impl Renderer<'_> {
           .is_none_or(|parent| !selection.rows.contains(&parent))
     }));
     selection.roots.sort_by_key(|root| {
-      (*root == RowId::TransferGroup, !anchored.contains(root))
+      (
+        *root == RowId::TransferGroup,
+        !anchored.contains(root),
+        plan
+          .roots
+          .iter()
+          .position(|candidate| candidate == root)
+          .unwrap_or(usize::MAX),
+      )
     });
     selection
   }
