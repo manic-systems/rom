@@ -136,7 +136,7 @@ impl Renderer<'_> {
       builds.total(),
     )];
     let downloads = counts.downloads;
-    if !downloads.is_empty() {
+    if self.snapshot.summary.downloads_announced || !downloads.is_empty() {
       rows.push(row(
         "Downloads",
         [
