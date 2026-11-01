@@ -733,7 +733,7 @@ impl Presenter {
     Ok(())
   }
 
-  fn frame_interval(&self) -> Duration {
+  const fn frame_interval(&self) -> Duration {
     match self {
       Self::Live(terminal) => terminal.frame_interval(),
       Self::Fallback { .. } | Self::Append(_) => Duration::from_millis(50),
@@ -838,6 +838,7 @@ impl Presenter {
 }
 
 const LOG_INTERVAL: Duration = Duration::from_millis(50);
+const POLL_INTERVAL: Duration = Duration::from_millis(25);
 
 /// Feeds Nix's output to `stream` and redraws the live frame until the output
 /// ends.
@@ -857,7 +858,18 @@ fn watch(
   let mut last_logs = started;
   let mut dirty = false;
   loop {
-    match receiver.recv_timeout(Duration::from_millis(25)) {
+    // Wake early only when a frame is waiting on the interval.
+    let pending = dirty || stream.engine().state().has_unfinished();
+    let wait = match last_frame {
+      Some(frame) if pending => {
+        presenter
+          .frame_interval()
+          .saturating_sub(frame.elapsed())
+          .min(POLL_INTERVAL)
+      },
+      _ => POLL_INTERVAL,
+    };
+    match receiver.recv_timeout(wait) {
       Ok(Ok(bytes)) => {
         let Processed { changed, output } =
           stream.push_at(&bytes, current_time())?;
