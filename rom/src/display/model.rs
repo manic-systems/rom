@@ -214,11 +214,7 @@ impl<'a> RenderSnapshot<'a> {
       {
         let counts = packages.entry(package).or_default();
         counts.total += 1;
-        let producer = info
-          .name
-          .name
-          .rsplit_once('.')
-          .is_some_and(|(_, extension)| extension == "drv");
+        let producer = info.writes.is_some();
         let started = match &info.build_status {
           BuildStatus::Unknown | BuildStatus::Planned => None,
           BuildStatus::Available => {
