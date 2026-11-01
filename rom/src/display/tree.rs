@@ -1396,7 +1396,7 @@ impl Renderer<'_> {
     let waiting = self.hidden_waiting(id, selection);
     if waiting > 0 {
       suffix.push(span(
-        format!("  (+{waiting} waiting)"),
+        format!("  (blocks {waiting})"),
         self.config.theme.planned,
       ));
     }
