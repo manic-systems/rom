@@ -1,8 +1,9 @@
 #!/usr/bin/env nu
 
 # Generates the fixture directories under `rom/tests/fixtures`: each timed
-# `build.log`, along with the `derivations.json` and `history.csv` sidecars
-# some of them need. Each `variants.toml` is written by hand and left alone.
+# `build.log`, along with the `derivations.json`, `history.csv` and `cpu.csv`
+# sidecars some of them need. Each `variants.toml` is written by hand and left
+# alone.
 #
 # Every fixture is defined here, so retiming or extending one means editing
 # this file and running it again, then blessing the snapshots with
@@ -48,6 +49,7 @@ def run-fixture [name: string] {
     "planned-lifecycle" => { fixture planned-lifecycle }
     "sub-second-builds" => { fixture sub-second-builds }
     "phases-and-estimates" => { fixture phases-and-estimates }
+    "cpu-load" => { fixture cpu-load }
     "failed-build" => { fixture failed-build }
     "dependency-failure" => { fixture dependency-failure }
     "multiple-failures" => { fixture multiple-failures }
@@ -97,6 +99,12 @@ def write-fixture [name: string, fixture: record] {
     rm --force $history
   } else {
     $fixture.history | to csv | save --raw --force $history
+  }
+  let cpu = $directory | path join cpu.csv
+  if ($fixture.cpu? | is-empty) {
+    rm --force $cpu
+  } else {
+    $fixture.cpu | to csv | save --raw --force $cpu
   }
 }
 
@@ -489,6 +497,31 @@ def "fixture phases-and-estimates" [] {
       (report "overrun-1.0" 2) (report "overrun-1.0" 2) (report "overrun-1.0" 2)
       (report "phased-1.0" 6)
     ]
+  }
+}
+
+# Local builds whose CPU use earns each load label: steady, serial, idle
+# and heavy. Labels need their use to last, up to a minute, and once the
+# serial build settles the builds fit in the 8 cores fixtures assume.
+def "fixture cpu-load" [] {
+  let builds = [
+    [name cores];
+    [steady-1.0 2.0] [serial-1.0 2.0] [idle-1.0 0.0] [heavy-1.0 4.5]
+  ] | insert drv {|build| drv $build.name }
+  {
+    events: [
+      (plan-builds 0 ($builds | get drv))
+      ($builds | enumerate | each {|build| build 200 (10 + $build.index) $build.item.drv })
+      (check 5000 starting)
+      (check 40000 idle)
+      (check 70000 serial-and-heavy)
+      ($builds | enumerate | each {|build| stop 71000 (10 + $build.index) })
+    ]
+    # The serial build starts out parallel, which its label waits out.
+    cpu: (
+      $builds | each {|build| { after_ms: 0, drv: $build.drv, cores: $build.cores } }
+      | append { after_ms: 3000, drv: (drv serial-1.0), cores: 1.0 }
+    )
   }
 }
 

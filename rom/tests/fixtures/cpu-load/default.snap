@@ -1,0 +1,36 @@
+=== starting @ 5000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ heavy-1.0\e[0m                  \e[0;90m────────────────\e[0;33m╺━━━╸\e[0;90m───────\e[0;37m  ⏱ 4s  ⚙ 4.5\e[0m
+\e[0;90m├─ \e[0;33m⏵ serial-1.0\e[0m                 \e[0;90m────────────────\e[0;33m╺━━━╸\e[0;90m───────\e[0;37m  ⏱ 4s  ⚙ 1.0\e[0m
+\e[0;90m├─ \e[0;33m⏵ idle-1.0\e[0m                   \e[0;90m────────────────\e[0;33m╺━━━╸\e[0;90m───────\e[0;37m  ⏱ 4s  ⚙ 0.0\e[0m
+\e[0;90m├─ \e[0;33m⏵ steady-1.0\e[0m                 \e[0;90m────────────────\e[0;33m╺━━━╸\e[0;90m───────\e[0;37m  ⏱ 4s  ⚙ 2.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 4       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 5s\e[0;37m  ⚙ 94%\e[0m
+=== idle @ 40000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ heavy-1.0\e[0m                  \e[0;90m────────────\e[0;33m╺━━━╸\e[0;90m───────────\e[0;37m  ⏱ 39s  ⚙ 4.5\e[0m
+\e[0;90m├─ \e[0;33m⏵ serial-1.0\e[0m                 \e[0;90m────────────\e[0;33m╺━━━╸\e[0;90m───────────\e[0;37m  ⏱ 39s  ⚙ 1.0\e[0m
+\e[0;90m├─ \e[0;33m⏵ idle-1.0\e[0m                   \e[0;90m────────────\e[0;33m╺━━━╸\e[0;90m───────────\e[0;37m  ⏱ 39s\e[0;31m  ⚙ 0.0 idle\e[0m
+\e[0;90m├─ \e[0;33m⏵ steady-1.0\e[0m                 \e[0;90m────────────\e[0;33m╺━━━╸\e[0;90m───────────\e[0;37m  ⏱ 39s  ⚙ 2.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 4       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 40s\e[0;37m  ⚙ 94%\e[0m
+=== serial-and-heavy @ 70000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ heavy-1.0\e[0m                  \e[0;90m──────────\e[0;33m╺━━━╸\e[0;90m──────────\e[0;37m  ⏱ 1m9s\e[0;35m  ⚙ 4.5 heavy\e[0m
+\e[0;90m├─ \e[0;33m⏵ serial-1.0\e[0m                 \e[0;90m──────────\e[0;33m╺━━━╸\e[0;90m──────────\e[0;37m  ⏱ 1m9s\e[0;33m  ⚙ 1.0 serial\e[0m
+\e[0;90m├─ \e[0;33m⏵ idle-1.0\e[0m                   \e[0;90m──────────\e[0;33m╺━━━╸\e[0;90m──────────\e[0;37m  ⏱ 1m9s\e[0;31m  ⚙ 0.0 idle\e[0m
+\e[0;90m├─ \e[0;33m⏵ steady-1.0\e[0m                 \e[0;90m──────────\e[0;33m╺━━━╸\e[0;90m──────────\e[0;37m  ⏱ 1m9s  ⚙ 2.0\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 4       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 1m10s\e[0;37m  ⚙ 94%\e[0m
+=== finished @ 71000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m┕━ \e[0;32mFinished after 1m11s\e[0m
+=== log ===
+these 4 derivations will be built:\e[0m
+  /nix/store/6c8d89aa046f98gccg3a2g4fd6b94836-heavy-1.0.drv\e[0m
+  /nix/store/83d3a2f9c3d9894a403b5b83bbbg8033-serial-1.0.drv\e[0m
+  /nix/store/bc479f81781df130d076f01ab6cgb035-idle-1.0.drv\e[0m
+  /nix/store/dgd0d68b645d22bcf8229c3af50g809b-steady-1.0.drv\e[0m

@@ -32,7 +32,7 @@ use crate::{
   state::{BuildStatus, Derivation, DerivationId, State, current_time},
   types::{Config, EngineConfig, InputMode, LogLine, RenderConfig},
   update::{self, LogEffect},
-  usage::CgroupUsage,
+  usage::CpuUsage,
 };
 
 /// Optional source of `.drv` metadata.
@@ -840,7 +840,7 @@ pub struct Engine {
   /// Realisation checks waiting out [`REALISED_DELAY`].
   realising:            Vec<(DerivationId, f64)>,
   resolver:             Option<Box<dyn DerivationResolver>>,
-  usage:                Option<CgroupUsage>,
+  usage:                Option<CpuUsage>,
   next_sample:          f64,
 }
 
@@ -1072,7 +1072,7 @@ impl Engine {
   }
 
   /// Opts into sampling the CPU use of local builds.
-  pub fn set_usage(&mut self, usage: CgroupUsage) {
+  pub fn set_usage(&mut self, usage: CpuUsage) {
     self.usage = Some(usage);
   }
 
