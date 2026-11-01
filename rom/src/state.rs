@@ -295,6 +295,8 @@ impl DerivationInfo {
 pub struct DependencySummary {
   /// Downloads that have not started yet.
   pub planned_downloads:   BTreeSet<StorePathId>,
+  /// Whether one or more downloads have been announced.
+  pub downloads_announced: bool,
   /// Finished downloads.
   pub completed_downloads: BTreeMap<StorePathId, CompletedTransferInfo>,
   /// Finished uploads.
@@ -1015,6 +1017,7 @@ impl State {
   }
 
   pub(crate) fn plan_store_path(&mut self, path: StorePath) -> bool {
+    self.full_summary.downloads_announced = true;
     let id = self.get_or_create_store_path_id(path);
     if self.full_summary.running_downloads.contains_key(&id)
       || self.full_summary.completed_downloads.contains_key(&id)
