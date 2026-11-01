@@ -3,8 +3,8 @@
 # Before/after GIF previews of every fixture, which are posted on pull
 # requests.
 #
-# NOTE: `record` and `compare` run on untrusted pull request code, we
-# have to be careful with that.
+# NOTE: `compare` and `animate` run on untrusted pull request code, we have
+# to be careful with that.
 
 const marker = "<!-- rom-fixture-previews -->"
 const max_gif_bytes = 10MB
@@ -13,79 +13,28 @@ const max_fixtures = 100
 const name_pattern = '^[a-z0-9][a-z0-9-]{0,63}(\.[a-z0-9][a-z0-9-]{0,63})?$'
 # Fixtures whose timeline is too long to record in real time.
 const unpreviewed = [long-run]
+# Real-time recordings at once. They mostly sleep, but `agg` does not.
+const animate_threads = 4
 
 def main [] { help main }
 
-# Records every fixture directory in `fixtures` through `rom` into `out`.
+# Compares the fixtures in `base` and `head` into `out/manifest.json`.
 #
-# Each fixture and each of its variants gets a real-time `<name>.gif` and an
-# instant-replay `<name>.txt`, whose bytes decide whether the output changed.
-# Variants are named `<fixture>.<variant>`.
-def "main record" [
-  --rom: path                    # ROM binary
-  --replay: path                 # `replay-fixture.nu` matching `rom`
-  --fixtures: path               # directory of fixture directories
-  --out: path                    # output directory
-] {
-  let fonts = $env.ROM_PREVIEW_FONTS? | default ""
-  if $fonts == "" { error make { msg: "ROM_PREVIEW_FONTS is unset; run inside `nix develop .#previews`" } }
-  mkdir $out
-  let scratch = mktemp --directory
-  # An empty config dir keeps a local `rom/config.toml` out of the recordings.
-  with-env { XDG_CONFIG_HOME: ($scratch | path join config) } {
-    ls $fixtures | where type == dir | get name | where { $in | path join build.log | path exists } | sort | each {|fixture|
-      let base_name = $fixture | path basename
-      if $base_name in $unpreviewed { return }
-      let variants_file = $fixture | path join variants.toml
-      let variants = if ($variants_file | path exists) { open $variants_file } else { {} }
-      ["default" ...($variants | columns | where $it != "default")] | each {|variant|
-        let name = if $variant == "default" { $base_name } else { $"($base_name).($variant)" }
-        if $name !~ $name_pattern { error make { msg: $"fixture name ($name) must match ($name_pattern)" } }
-        print --stderr $"recording ($name)"
-        let terminal = $variants | get --optional $variant | get --optional terminal | default {}
-        let size = $"($terminal.width? | default 100)x($terminal.height? | default 30)"
-        # Replays from before variants existed take no `--variant`.
-        let selected = if $variant == "default" { "" } else { $" --variant '($variant)'" }
-        let replay_command = $"nu '($replay)' '($fixture)'($selected) --rom '($rom)'"
-        let instant = $scratch | path join $"($name)-instant.cast"
-        let timed = $scratch | path join $"($name).cast"
-        record $instant $size $"($replay_command) --instant"
-        let output = cast-output $instant
-        # agg cannot draw a recording without output, and there is nothing to see.
-        if $output == "" { print --stderr $"skipping ($name), which prints nothing"; return }
-        record $timed $size $replay_command
-        $output | save --raw --force ($out | path join $"($name).txt")
-        (^agg --quiet --font-dir $fonts --font-family "JetBrainsMono Nerd Font Mono"
-          --theme dracula --last-frame-duration 3 $timed ($out | path join $"($name).gif"))
-      }
-    }
-  }
-  rm --recursive $scratch
-  null
-}
-
-def record [cast: path, size: string, command: string] {
-  ^asciinema rec --quiet --headless --window-size $size --overwrite --command $command $cast
-}
-
-# Concatenates a cast's output events, dropping their timing.
-def cast-output [cast: path] {
-  open --raw $cast | lines | skip 1 | each { from json } | where {|event| $event.1 == "o" } | each { get 2 } | str join
-}
-
-# Compares `base` and `head` recordings into `out/manifest.json` plus the GIFs
-# the comment needs.
+# A variant changed when its `.snap` did, which the fixture tests keep in
+# step with ROM. Variants are named `<fixture>.<variant>`.
 def "main compare" [
-  --base: path                   # base recordings, missing if the base failed
-  --head: path                   # head recordings
+  --base: path                   # base fixtures, missing if the base failed
+  --head: path                   # head fixtures
   --out: path                    # artifact directory
 ] {
   let base_failed = not ($base | path exists)
-  let names = {|dir| if ($dir | path exists) { ls ($dir | path join "*.txt" | into glob) | get name | each { path parse | get stem } } else { [] } }
-  let base_names = do $names $base
-  let head_names = do $names $head
+  let base_variants = if $base_failed { [] } else { variants $base }
+  let head_variants = variants $head
+  let base_names = $base_variants | get --optional name | default []
+  let head_names = $head_variants | get --optional name | default []
+  let snap = {|variants, name| $variants | where name == $name | first | get snap | if ($in | path exists) { open --raw $in } else { "" } }
+  let differs = {|name| (do $snap $base_variants $name) != (do $snap $head_variants $name) }
   let shared = $head_names | where $it in $base_names
-  let differs = {|name| (open --raw ($base | path join $"($name).txt")) != (open --raw ($head | path join $"($name).txt")) }
   let manifest = {
     base_failed: $base_failed
     changed: ($shared | where {|name| do $differs $name })
@@ -94,14 +43,98 @@ def "main compare" [
     removed: ($base_names | where $it not-in $head_names)
   }
   mkdir $out
-  for name in $manifest.changed {
-    cp ($base | path join $"($name).gif") ($out | path join $"($name).base.gif")
-    cp ($head | path join $"($name).gif") ($out | path join $"($name).head.gif")
-  }
-  for name in $manifest.added {
-    cp ($head | path join $"($name).gif") ($out | path join $"($name).head.gif")
-  }
   $manifest | to json | save --force ($out | path join manifest.json)
+}
+
+# Records the fixtures the comment shows for one `side` of `manifest` in real
+# time, as `<name>.<side>.gif` in `out`.
+#
+# That is every changed fixture, plus the added ones on the head side.
+# Fixtures that print nothing in a terminal have nothing to show, so they move
+# to the manifest's unchanged ones instead.
+def "main animate" [
+  --rom: path                    # ROM binary
+  --replay: path                 # `replay-fixture.nu` matching `rom`
+  --fixtures: path               # directory of fixture directories
+  --manifest: path               # `manifest.json` written by `compare`
+  --side: string                 # `base` or `head`
+  --out: path                    # artifact directory
+] {
+  let fonts = $env.ROM_PREVIEW_FONTS? | default ""
+  if $fonts == "" { error make { msg: "ROM_PREVIEW_FONTS is unset; run inside `nix develop .#previews`" } }
+  let path = $manifest
+  let manifest = open --raw $path | from json
+  let shown = match $side {
+    "base" => $manifest.changed
+    "head" => ($manifest.changed ++ $manifest.added)
+    _ => { error make { msg: "--side must be base or head" } }
+  }
+  mkdir $out
+  let blank = in-scratch {|scratch|
+    variants $fixtures | where name in $shown | par-each --threads $animate_threads {|variant|
+      print --stderr $"recording ($variant.name)"
+      let cast = $scratch | path join $"($variant.name).cast"
+      record $cast $variant.size (replay-command $replay $rom $variant)
+      # agg cannot draw a recording without output.
+      if not (has-output $cast) { print --stderr $"skipping ($variant.name), which prints nothing"; return $variant.name }
+      (^agg --quiet --font-dir $fonts --font-family "JetBrainsMono Nerd Font Mono"
+        --theme dracula --last-frame-duration 3 $cast ($out | path join $"($variant.name).($side).gif"))
+      null
+    } | compact
+  }
+  for name in $blank { rm --force ($out | path join $"($name).base.gif") }
+  $manifest
+    | update changed { where $it not-in $blank }
+    | update added { where $it not-in $blank }
+    | update unchanged { append $blank | sort }
+    | to json
+    | save --force $path
+}
+
+# Every previewed fixture and variant in `fixtures`, `default` first.
+def variants [fixtures: path] {
+  ls $fixtures | where type == dir | get name | where { $in | path join build.log | path exists } | sort | each {|fixture|
+    let base_name = $fixture | path basename
+    if $base_name in $unpreviewed { return [] }
+    let variants_file = $fixture | path join variants.toml
+    let variants = if ($variants_file | path exists) { open $variants_file } else { {} }
+    ["default" ...($variants | columns | where $it != "default")] | each {|variant|
+      let name = if $variant == "default" { $base_name } else { $"($base_name).($variant)" }
+      if $name !~ $name_pattern { error make { msg: $"fixture name ($name) must match ($name_pattern)" } }
+      let terminal = $variants | get --optional $variant | get --optional terminal | default {}
+      {
+        name: $name
+        fixture: $fixture
+        variant: $variant
+        snap: ($fixture | path join $"($variant).snap")
+        size: $"($terminal.width? | default 100)x($terminal.height? | default 30)"
+      }
+    }
+  } | flatten
+}
+
+# Runs `body` with a scratch directory, which also holds an empty config dir
+# that keeps a local `rom/config.toml` out of the recordings.
+def in-scratch [body: closure] {
+  let scratch = mktemp --directory
+  let result = with-env { XDG_CONFIG_HOME: ($scratch | path join config) } { do $body $scratch }
+  rm --recursive $scratch
+  $result
+}
+
+def replay-command [replay: path, rom: path, variant: record] {
+  # Replays from before variants existed take no `--variant`.
+  let selected = if $variant.variant == "default" { "" } else { $" --variant '($variant.variant)'" }
+  $"nu '($replay)' '($variant.fixture)'($selected) --rom '($rom)'"
+}
+
+def record [cast: path, size: string, command: string] {
+  ^asciinema rec --quiet --headless --window-size $size --overwrite --command $command $cast
+}
+
+# Whether a cast has any output events.
+def has-output [cast: path] {
+  open --raw $cast | lines | skip 1 | each { from json } | any {|event| $event.1 == "o" and $event.2 != "" }
 }
 
 # Validates an untrusted artifact, copies its GIFs into `dest` and prints the

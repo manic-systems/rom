@@ -1,7 +1,7 @@
 name: Fixture Previews
 
-# Records before/after GIFs of every fixture. This runs untrusted pull request
-# code, so it only uploads an artifact. We have another workflow caleld
+# Records before/after GIFs of every changed fixture. This runs untrusted pull
+# request code, so it only uploads an artifact. We have another workflow caleld
 # `fixture-previews-post.yml` which actually posts the comment afterwards.
 # _Kinda_ sketchy, but I want nice previews for this.
 
@@ -52,30 +52,45 @@ jobs:
           git worktree add --detach base-src HEAD^1
           nix build -L ./base-src --out-link base-rom
 
-      - name: Record head
-        run: >-
-          nix develop .#previews -c nu scripts/fixture-previews.nu record
-          --rom head-rom/bin/rom --replay scripts/replay-fixture.nu
-          --fixtures rom/tests/fixtures --out recordings/head
-
-      # A partial base would read as one or more removed fixtures, so we
-      # need to drop it on failure.
-      - name: Record base
-        if: steps.base.outcome == 'success'
-        continue-on-error: true
-        run: >-
-          nix develop .#previews -c nu scripts/fixture-previews.nu record
-          --rom base-rom/bin/rom --replay base-src/scripts/replay-fixture.nu
-          --fixtures base-src/rom/tests/fixtures --out recordings/base
-          || { rm -rf recordings/base; exit 1; }
-
+      # The fixture tests keep every variant's `.snap` current, so comparing
+      # them decides what changed without running anything.
       - name: Compare
+        id: compare
         env:
-          PR: ${{ github.event.pull_request.number }}
+          BASE: ${{ steps.base.outcome == 'success' && 'base-src/rom/tests/fixtures' || 'missing' }}
         run: |
           nix develop .#previews -c nu scripts/fixture-previews.nu compare \
-            --base recordings/base --head recordings/head --out preview
-          echo "$PR" > preview/pr.txt
+            --base "$BASE" --head rom/tests/fixtures --out preview
+          echo "base=$(jq '.changed | length > 0' preview/manifest.json)" >> "$GITHUB_OUTPUT"
+
+      # Without its base GIFs, the comparison falls back to showing the head
+      # alone.
+      - name: Animate base
+        if: steps.compare.outputs.base == 'true'
+        continue-on-error: true
+        run: |
+          nix develop .#previews -c nu scripts/fixture-previews.nu animate \
+            --rom base-rom/bin/rom --replay base-src/scripts/replay-fixture.nu \
+            --fixtures base-src/rom/tests/fixtures \
+            --manifest preview/manifest.json --side base --out preview \
+          || {
+            rm -rf preview
+            nix develop .#previews -c nu scripts/fixture-previews.nu compare \
+              --base missing --head rom/tests/fixtures --out preview
+            exit 1
+          }
+
+      - name: Animate head
+        run: >-
+          nix develop .#previews -c nu scripts/fixture-previews.nu animate
+          --rom head-rom/bin/rom --replay scripts/replay-fixture.nu
+          --fixtures rom/tests/fixtures
+          --manifest preview/manifest.json --side head --out preview
+
+      - name: Name pull request
+        env:
+          PR: ${{ github.event.pull_request.number }}
+        run: echo "$PR" > preview/pr.txt
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
