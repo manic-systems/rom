@@ -350,14 +350,10 @@ impl<'a> RenderSnapshot<'a> {
         );
       }
     }
-    // Stable detail order, with active work ahead of completion-grace rows.
+    // Stable detail order, regardless of completion-grace state.
     self.placed_transfers.sort_by(|left, right| {
-      let key = |item: &PresentedTransfer| {
-        (
-          item.transfer.completed,
-          item.transfer.direction == Direction::Upload,
-        )
-      };
+      let key =
+        |item: &PresentedTransfer| item.transfer.direction == Direction::Upload;
       key(left)
         .cmp(&key(right))
         .then_with(|| left.transfer.name.cmp(&right.transfer.name))
