@@ -8,15 +8,18 @@
 2000 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/1b6f2807f8fc54392652a50ff2ff2077-hello-main.o.drv'","type":105,"fields":["/nix/store/1b6f2807f8fc54392652a50ff2ff2077-hello-main.o.drv","",1,1]}
 2050 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/ca37b983c09666fb917b27b8bgfg12d9-hello-io.o.drv'","type":105,"fields":["/nix/store/ca37b983c09666fb917b27b8bgfg12d9-hello-io.o.drv","",1,1]}
 2100 @nix {"action":"start","id":13,"level":3,"parent":0,"text":"building '/nix/store/bg3g6afa92g574g28fac4a3ad078a212-hello-cli.o.drv'","type":105,"fields":["/nix/store/bg3g6afa92g574g28fac4a3ad078a212-hello-cli.o.drv","",1,1]}
+2150 @nix {"action":"start","id":14,"level":3,"parent":0,"text":"building '/nix/store/cg8d49a1533f5g1gdd84cf746796bf03-scan.drv.drv'","type":105,"fields":["/nix/store/cg8d49a1533f5g1gdd84cf746796bf03-scan.drv.drv","",1,1]}
 3200 = units
 3300 @nix {"action":"stop","id":13}
 3500 @nix {"action":"stop","id":11}
 4000 @nix {"action":"stop","id":12}
-4100 @nix {"action":"start","id":14,"level":3,"parent":0,"text":"building '/nix/store/b51dgad90gafb8g55g440c785f91cb75-hello-link.drv'","type":105,"fields":["/nix/store/b51dgad90gafb8g55g440c785f91cb75-hello-link.drv","",1,1]}
+4050 @nix {"action":"stop","id":14}
+4050 = scan-done
+4100 @nix {"action":"start","id":15,"level":3,"parent":0,"text":"building '/nix/store/b51dgad90gafb8g55g440c785f91cb75-hello-link.drv'","type":105,"fields":["/nix/store/b51dgad90gafb8g55g440c785f91cb75-hello-link.drv","",1,1]}
 4600 = link
-5300 @nix {"action":"stop","id":14}
-5400 @nix {"action":"start","id":15,"level":3,"parent":0,"text":"building '/nix/store/2cg24dba5gb0a30f26f83b2ac5b9f29f-hello.drv'","type":105,"fields":["/nix/store/2cg24dba5gb0a30f26f83b2ac5b9f29f-hello.drv","",1,1]}
-6200 @nix {"action":"stop","id":15}
-6300 @nix {"action":"start","id":16,"level":3,"parent":0,"text":"building '/nix/store/9c79b527fg09d9ca1dfa85910b1c6364-hello-wrapped-1.0.drv'","type":105,"fields":["/nix/store/9c79b527fg09d9ca1dfa85910b1c6364-hello-wrapped-1.0.drv","",1,1]}
+5300 @nix {"action":"stop","id":15}
+5400 @nix {"action":"start","id":16,"level":3,"parent":0,"text":"building '/nix/store/2cg24dba5gb0a30f26f83b2ac5b9f29f-hello.drv'","type":105,"fields":["/nix/store/2cg24dba5gb0a30f26f83b2ac5b9f29f-hello.drv","",1,1]}
+6200 @nix {"action":"stop","id":16}
+6300 @nix {"action":"start","id":17,"level":3,"parent":0,"text":"building '/nix/store/9c79b527fg09d9ca1dfa85910b1c6364-hello-wrapped-1.0.drv'","type":105,"fields":["/nix/store/9c79b527fg09d9ca1dfa85910b1c6364-hello-wrapped-1.0.drv","",1,1]}
 7400 = consumer
-7500 @nix {"action":"stop","id":16}
+7500 @nix {"action":"stop","id":17}

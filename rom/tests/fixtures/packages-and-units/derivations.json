@@ -23,7 +23,8 @@
         "/nix/store/1b6f2807f8fc54392652a50ff2ff2077-hello-main.o.drv",
         "/nix/store/g3f634799bgb07c21dcg1ag35f1f47d5-hello-util.o.drv",
         "/nix/store/ca37b983c09666fb917b27b8bgfg12d9-hello-io.o.drv",
-        "/nix/store/bg3g6afa92g574g28fac4a3ad078a212-hello-cli.o.drv"
+        "/nix/store/bg3g6afa92g574g28fac4a3ad078a212-hello-cli.o.drv",
+        "/nix/store/cg8d49a1533f5g1gdd84cf746796bf03-scan.drv.drv"
       ],
       "outputs": {
         "out": ""
@@ -45,6 +46,11 @@
       }
     },
     "/nix/store/bg3g6afa92g574g28fac4a3ad078a212-hello-cli.o.drv": {
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/cg8d49a1533f5g1gdd84cf746796bf03-scan.drv.drv": {
       "outputs": {
         "out": ""
       }

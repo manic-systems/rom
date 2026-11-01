@@ -623,7 +623,12 @@ def "fixture packages-and-units" [] {
   let package = drv "hello"
   let wrapped = drv "hello-wrapped-1.0"
   let unit = {|name| drv $"hello-($name)" }
-  let objects = [main.o util.o io.o cli.o] | each {|o| do $unit $o }
+  let scan = drv "scan.drv"
+  let objects = (
+    [main.o util.o io.o cli.o]
+    | each {|o| do $unit $o }
+    | append $scan
+  )
   let link = do $unit "link"
   let floating = { out: "" }
   {
@@ -636,18 +641,21 @@ def "fixture packages-and-units" [] {
       (build 2000 11 ($objects | get 0))
       (build 2050 12 ($objects | get 2))
       (build 2100 13 ($objects | get 3))
+      (build 2150 14 $scan)
       (check 3200 units)
       (stop 3300 13)
       (stop 3500 11)
       (stop 4000 12)
-      (build 4100 14 $link)
+      (stop 4050 14)
+      (check 4050 scan-done)
+      (build 4100 15 $link)
       (check 4600 link)
-      (stop 5300 14)
-      (build 5400 15 $package)
-      (stop 6200 15)
-      (build 6300 16 $wrapped)
+      (stop 5300 15)
+      (build 5400 16 $package)
+      (stop 6200 16)
+      (build 6300 17 $wrapped)
       (check 7400 consumer)
-      (stop 7500 16)
+      (stop 7500 17)
     ]
     drvs: {
       derivations: (
