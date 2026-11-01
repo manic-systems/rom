@@ -1,0 +1,26 @@
+=== hidden-group @ 1500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ consumer\e[0;90m  (20 source downloads hidden)\e[0m
+\e[0;90m├─ \e[0;33m⏵ active\e[0m                     \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ … 20 active\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 1       \e[0m∑ 2
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 20      \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0m∑ 20
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== still-hidden @ 3000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;34m⏸ consumer\e[0;90m  (20 source downloads hidden)\e[0m
+\e[0;90m├─ \e[0;33m⏵ active\e[0m                     \e[0;90m────────────────\e[0;33m╺━━━╸\e[0;90m───────\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m├─ … 20 active\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 0         \e[0;34m⏸ 1       \e[0m∑ 2
+\e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 20      \e[0;32m↓ 0         \e[0;34m⏸ 0       \e[0m∑ 20
+\e[0;90m┗━ \e[0mElapsed ⏱ 3s
+=== finished @ 6500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ consumer\e[0;90m  1s\e[0m
+\e[0;90m┕━ \e[0;32mFinished after 6s\e[0m
+=== log ===
+these 2 derivations will be built:\e[0m
+  /nix/store/236b624ac44g776cccb7cb08037dggf1-consumer.drv\e[0m
+  /nix/store/975g5f70f55a837c8b0c33b90gb0c4dd-active.drv\e[0m

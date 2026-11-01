@@ -64,6 +64,7 @@ def run-fixture [name: string] {
     "mixed-transfers" => { fixture mixed-transfers }
     "substitution-heavy" => { fixture substitution-heavy }
     "source-fetches" => { fixture source-fetches }
+    "source-overflow" => { fixture source-overflow }
     "remote-build" => { fixture remote-build }
     "remote-mix" => { fixture remote-mix }
     "chatty-build" => { fixture chatty-build }
@@ -951,6 +952,37 @@ def "fixture source-fetches" [] {
         $lib: { sources: [$shared] }
         $tool: { sources: [$shared] }
         $bundle: { inputs: [$app $lib $tool] }
+      }
+    }
+  }
+}
+
+# A source-fetch group hidden by an unrelated active build at a short height.
+def "fixture source-overflow" [] {
+  let active = drv "active" "source-overflow-active"
+  let consumer = drv "consumer" "source-overflow-consumer"
+  let paths = 0..19 | each {|index|
+    out $"source-($index)" $"source-overflow-($index)"
+  }
+  let transfers = $paths
+    | enumerate
+    | each {|entry|
+      substitution (20 + $entry.index * 3) $entry.item (10 * $mib) 200 5000
+    }
+  {
+    events: ([
+      (plan-builds 0 [$active $consumer])
+      (build 0 10 $active)
+    ] ++ $transfers ++ [
+      (check 1500 hidden-group)
+      (check 3000 still-hidden)
+      (stop 5000 10)
+      (build 5500 11 $consumer)
+      (stop 6500 11)
+    ])
+    drvs: {
+      derivations: {
+        $consumer: { sources: $paths }
       }
     }
   }
