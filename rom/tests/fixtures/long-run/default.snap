@@ -18,5 +18,6 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 1h1m
 === finished @ 3900000ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ chromium-140.0.7339.80\e[0;90m  1h5m\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 1h5m\e[0m
 === log ===

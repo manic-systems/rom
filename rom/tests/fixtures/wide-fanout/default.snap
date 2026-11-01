@@ -32,7 +32,7 @@
 \e[0;90m│  ├─ \e[0;33m⏵ xz-tool-14\e[0m              \e[0;90m─────────────────────\e[0;33m╺━━━╸\e[0;90m──\e[0;37m  ⏱ 3s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ gettext-tool-15\e[0m         \e[0;90m─────────────────────\e[0;33m╺━━━╸\e[0;90m──\e[0;37m  ⏱ 3s\e[0m
 \e[0;90m│  ╰─ \e[0;33m⏵ systemd-tool-16\e[0m         \e[0;90m─────────────────────\e[0;33m╺━━━╸\e[0;90m──\e[0;37m  ⏱ 3s\e[0m
-\e[0;90m├─ … 25 active\e[0m
+\e[0;90m├─ … 25 active, 7 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 37      \e[0;32m✔ 13        \e[0;34m⏸ 1       \e[0m∑ 51
 \e[0;90m┗━ \e[0mElapsed ⏱ 4s
@@ -51,12 +51,13 @@
 \e[0;90m│  ├─ \e[0;33m⏵ iproute2-tool-23\e[0m        \e[0;90m──\e[0;33m╺━━━╸\e[0;90m─────────────────────\e[0;37m  ⏱ 6s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ shadow-tool-25\e[0m          \e[0;90m──\e[0;33m╺━━━╸\e[0;90m─────────────────────\e[0;37m  ⏱ 6s\e[0m
 \e[0;90m│  ╰─ \e[0;33m⏵ man-db-tool-28\e[0m          \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 6s\e[0m
-\e[0;90m├─ … 9 active\e[0m
+\e[0;90m├─ … 9 active, 7 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 21      \e[0;32m✔ 29        \e[0;34m⏸ 1       \e[0m∑ 51
 \e[0;90m┗━ \e[0mElapsed ⏱ 7s
 === finished @ 11113ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ devshell-env\e[0;90m  1s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 11s\e[0m
 === log ===
 these 51 derivations will be built:\e[0m

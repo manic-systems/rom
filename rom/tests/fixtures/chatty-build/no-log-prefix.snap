@@ -14,6 +14,8 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 4s
 === finished @ 6000ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ chatty-1.0\e[0;90m  6s\e[0m
+\e[0;90m├─ \e[0;32m✔ quiet-1.0\e[0;90m  4s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 6s\e[0m
 === log ===
 [  0%] Building CXX object src/CMakeFiles/core.dir/file_001.cpp.o\e[0m
