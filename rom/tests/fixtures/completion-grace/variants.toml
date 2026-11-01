@@ -1,0 +1,3 @@
+[default]
+format = "plain"
+terminal = { width = 100, height = 20 }

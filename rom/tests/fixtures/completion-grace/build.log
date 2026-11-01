@@ -1,0 +1,36 @@
+0 @nix {"action":"msg","level":3,"msg":"these 2 paths will be fetched (16.0 MiB download, 16.0 MiB unpacked):"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/546088ca90gb5c924538c3d963cbgb87-zzz-active"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f10746c3084fb0gd2373d1g03g459ac5-aaa-completed"}
+100 @nix {"action":"start","id":100,"level":3,"parent":0,"text":"copying path '/nix/store/f10746c3084fb0gd2373d1g03g459ac5-aaa-completed' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/f10746c3084fb0gd2373d1g03g459ac5-aaa-completed","https://cache.nixos.org"]}
+100 @nix {"action":"start","id":101,"level":3,"parent":100,"text":"copying path '/nix/store/f10746c3084fb0gd2373d1g03g459ac5-aaa-completed' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/f10746c3084fb0gd2373d1g03g459ac5-aaa-completed","https://cache.nixos.org","local"]}
+120 @nix {"action":"start","id":102,"level":3,"parent":101,"text":"downloading 'https://cache.nixos.org/nar/f10746c3084fb0gd2373d1g03g459ac5-aaa-completed.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/f10746c3084fb0gd2373d1g03g459ac5-aaa-completed.nar.xz"]}
+200 @nix {"action":"start","id":200,"level":3,"parent":0,"text":"copying path '/nix/store/546088ca90gb5c924538c3d963cbgb87-zzz-active' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/546088ca90gb5c924538c3d963cbgb87-zzz-active","https://cache.nixos.org"]}
+200 @nix {"action":"start","id":201,"level":3,"parent":200,"text":"copying path '/nix/store/546088ca90gb5c924538c3d963cbgb87-zzz-active' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/546088ca90gb5c924538c3d963cbgb87-zzz-active","https://cache.nixos.org","local"]}
+220 @nix {"action":"start","id":202,"level":3,"parent":201,"text":"downloading 'https://cache.nixos.org/nar/546088ca90gb5c924538c3d963cbgb87-zzz-active.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/546088ca90gb5c924538c3d963cbgb87-zzz-active.nar.xz"]}
+500 @nix {"action":"result","id":101,"type":105,"fields":[1398101,8388608,1,0]}
+600 @nix {"action":"result","id":201,"type":105,"fields":[699051,8388608,1,0]}
+900 @nix {"action":"result","id":101,"type":105,"fields":[2796203,8388608,1,0]}
+1000 @nix {"action":"result","id":201,"type":105,"fields":[1398101,8388608,1,0]}
+1300 @nix {"action":"result","id":101,"type":105,"fields":[4194304,8388608,1,0]}
+1400 @nix {"action":"result","id":201,"type":105,"fields":[2097152,8388608,1,0]}
+1500 = both-running
+1700 @nix {"action":"result","id":101,"type":105,"fields":[5592405,8388608,1,0]}
+1800 @nix {"action":"result","id":201,"type":105,"fields":[2796203,8388608,1,0]}
+2100 @nix {"action":"result","id":101,"type":105,"fields":[6990507,8388608,1,0]}
+2200 @nix {"action":"result","id":201,"type":105,"fields":[3495253,8388608,1,0]}
+2500 @nix {"action":"result","id":101,"type":105,"fields":[8388608,8388608,1,0]}
+2500 @nix {"action":"stop","id":102}
+2500 @nix {"action":"stop","id":101}
+2500 @nix {"action":"stop","id":100}
+2600 @nix {"action":"result","id":201,"type":105,"fields":[4194304,8388608,1,0]}
+2600 = completion-grace
+3000 @nix {"action":"result","id":201,"type":105,"fields":[4893355,8388608,1,0]}
+3400 @nix {"action":"result","id":201,"type":105,"fields":[5592405,8388608,1,0]}
+3600 = after-grace
+3800 @nix {"action":"result","id":201,"type":105,"fields":[6291456,8388608,1,0]}
+4200 @nix {"action":"result","id":201,"type":105,"fields":[6990507,8388608,1,0]}
+4600 @nix {"action":"result","id":201,"type":105,"fields":[7689557,8388608,1,0]}
+5000 @nix {"action":"result","id":201,"type":105,"fields":[8388608,8388608,1,0]}
+5000 @nix {"action":"stop","id":202}
+5000 @nix {"action":"stop","id":201}
+5000 @nix {"action":"stop","id":200}
