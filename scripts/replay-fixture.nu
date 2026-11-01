@@ -38,8 +38,9 @@ def main [
   if $step { ^sh -c 'stty -icanon -echo min 1 < /dev/tty' }
 
   # Fixture derivations are not in the store, so their edges come from a
-  # sidecar. A scratch state directory keeps the replay's build times out of
-  # the real history and supplies the fixture's own.
+  # sidecar, as does the CPU use their builds have no cgroups for. A scratch
+  # state directory keeps the replay's build times out of the real history
+  # and supplies the fixture's own.
   let variants_file = $directory | path join variants.toml
   let variants = if ($variants_file | path exists) { open $variants_file } else { {} }
   if $variant != "default" and $variant not-in ($variants | columns) {
@@ -48,6 +49,7 @@ def main [
   let settings = $variants | get --optional $variant | default {}
 
   let derivations = $directory | path join derivations.json
+  let cpu = $directory | path join cpu.csv
   let scratch = mktemp --directory
   let state = $scratch | path join state
   let history = $directory | path join history.csv
@@ -65,6 +67,7 @@ def main [
     XDG_CONFIG_HOME: $config
     XDG_STATE_HOME: $state
     ROM_FIXTURE_DERIVATIONS: (if ($derivations | path exists) { $derivations | path expand } else { null })
+    ROM_FIXTURE_CPU: (if ($cpu | path exists) { $cpu | path expand } else { null })
   } | compact
 
   let started = date now

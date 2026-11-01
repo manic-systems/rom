@@ -1,4 +1,4 @@
-//! Derivation metadata for replayed fixture logs.
+//! Derivation metadata and CPU use for replayed fixture logs.
 //!
 //! Fixtures name store paths that do not exist, so the `.drv` files ROM would
 //! read for dependency edges come from a JSON sidecar instead:
@@ -184,5 +184,83 @@ impl DerivationResolver for FixtureResolver {
       .lock()
       .map(|mut queue| std::mem::take(&mut *queue))
       .unwrap_or_default()
+  }
+}
+
+/// Names the CPU sidecar the CLI samples in place of build cgroups.
+pub const FIXTURE_CPU_ENV: &str = "ROM_FIXTURE_CPU";
+
+/// Cores a fixture's machine has, so heavy builds read the same everywhere.
+pub const FIXTURE_CORES: f32 = 8.0;
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CpuRow {
+  after_ms: u64,
+  drv:      String,
+  cores:    f32,
+}
+
+/// CPU use of a fixture's builds, from a CSV sidecar:
+///
+/// ```csv
+/// after_ms,drv,cores
+/// 0,/nix/store/…-app.drv,6.0
+/// 3000,/nix/store/…-app.drv,1.0
+/// ```
+///
+/// Each row sets how many cores a build uses from `after_ms` into it until its
+/// next row. Times count from the build's start rather than the log's, which
+/// holds whichever clock a replay runs on.
+#[derive(Debug, Default)]
+pub struct FixtureCpu {
+  builds: BTreeMap<String, Vec<(f64, f32)>>,
+}
+
+impl FixtureCpu {
+  /// Reads the sidecar at `path`.
+  ///
+  /// # Errors
+  ///
+  /// Returns an error if the file cannot be read or is not a valid sidecar.
+  pub fn load(path: &Path) -> io::Result<Self> {
+    let mut builds = BTreeMap::<String, Vec<(f64, f32)>>::new();
+    for row in csv::Reader::from_path(path)?.deserialize::<CpuRow>() {
+      let row = row
+        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+      #[expect(
+        clippy::cast_precision_loss,
+        reason = "fixture offsets are far below f64's integer range"
+      )]
+      let from = row.after_ms as f64 / 1000.0;
+      builds.entry(row.drv).or_default().push((from, row.cores));
+    }
+    for steps in builds.values_mut() {
+      steps.sort_by(|left, right| left.0.total_cmp(&right.0));
+    }
+    Ok(Self { builds })
+  }
+
+  /// Returns the CPU time `drv` used in its first `elapsed` seconds, in
+  /// microseconds, like a cgroup's `usage_usec`.
+  #[must_use]
+  pub fn usage_usec(&self, drv: &Path, elapsed: f64) -> Option<u64> {
+    let steps = self.builds.get(drv.to_str()?)?;
+    let seconds = steps
+      .iter()
+      .enumerate()
+      .map(|(index, &(from, cores))| {
+        let until = steps
+          .get(index + 1)
+          .map_or(elapsed, |&(next, _)| next.min(elapsed));
+        f64::from(cores) * (until - from).max(0.0)
+      })
+      .sum::<f64>();
+    #[expect(
+      clippy::cast_possible_truncation,
+      clippy::cast_sign_loss,
+      reason = "CPU time is never negative and far below u64::MAX"
+    )]
+    Some((seconds * 1e6) as u64)
   }
 }

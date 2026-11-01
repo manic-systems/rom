@@ -34,7 +34,12 @@ use crate::{
   cache::BuildReportCache,
   display::{format_log, render_frame, write_final},
   error::RomError,
-  fixture::{FIXTURE_DERIVATIONS_ENV, FixtureResolver},
+  fixture::{
+    FIXTURE_CPU_ENV,
+    FIXTURE_DERIVATIONS_ENV,
+    FixtureCpu,
+    FixtureResolver,
+  },
   monitor::{FilesystemResolver, Output, Processed, StreamEngine},
   state::{BuildStatus, DerivationId, State, current_time},
   terminal::{Admission, LiveTerminal},
@@ -50,7 +55,7 @@ use crate::{
     SummaryStyle,
     TreeDirection,
   },
-  usage::CgroupUsage,
+  usage::CpuUsage,
 };
 
 /// Pretty build graphs for your pretty Nix builds.
@@ -918,7 +923,12 @@ fn drive(
   }
   stream.engine_mut().load_history(&history);
 
-  if let Some(usage) = CgroupUsage::detect() {
+  // Replayed fixtures have no build cgroups.
+  if let Some(path) = std::env::var_os(FIXTURE_CPU_ENV) {
+    let cpu =
+      FixtureCpu::load(Path::new(&path)).context("loading fixture CPU use")?;
+    stream.engine_mut().set_usage(CpuUsage::fixture(cpu));
+  } else if let Some(usage) = CpuUsage::detect() {
     stream.engine_mut().set_usage(usage);
   }
 
