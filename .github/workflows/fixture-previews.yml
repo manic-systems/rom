@@ -42,38 +42,31 @@ jobs:
           extra_nix_config: |
             extra-experimental-features = nix-command flakes
 
-      - name: Build head
-        run: nix build -L --out-link head-rom
-
-      - name: Build base
-        id: base
-        continue-on-error: true
-        run: |
-          git worktree add --detach base-src HEAD^1
-          nix build -L ./base-src --out-link base-rom
-
       # The fixture tests keep every variant's `.snap` current, so comparing
       # them decides what changed without running anything.
       - name: Compare
         id: compare
-        env:
-          BASE: ${{ steps.base.outcome == 'success' && 'base-src/rom/tests/fixtures' || 'missing' }}
         run: |
+          git worktree add --detach base-src HEAD^1
           nix develop .#previews -c nu scripts/fixture-previews.nu compare \
-            --base "$BASE" --head rom/tests/fixtures --out preview
+            --base base-src/rom/tests/fixtures --head rom/tests/fixtures --out preview
           echo "base=$(jq '.changed | length > 0' preview/manifest.json)" >> "$GITHUB_OUTPUT"
+          echo "head=$(jq '.changed + .added | length > 0' preview/manifest.json)" >> "$GITHUB_OUTPUT"
 
       # Without its base GIFs, the comparison falls back to showing the head
       # alone.
       - name: Animate base
+        id: base
         if: steps.compare.outputs.base == 'true'
         continue-on-error: true
         run: |
-          nix develop .#previews -c nu scripts/fixture-previews.nu animate \
-            --rom base-rom/bin/rom --replay base-src/scripts/replay-fixture.nu \
-            --fixtures base-src/rom/tests/fixtures \
-            --manifest preview/manifest.json --side base --out preview \
-          || {
+          {
+            nix build -L ./base-src --out-link base-rom &&
+            nix develop .#previews -c nu scripts/fixture-previews.nu animate \
+              --rom base-rom/bin/rom --replay base-src/scripts/replay-fixture.nu \
+              --fixtures base-src/rom/tests/fixtures \
+              --manifest preview/manifest.json --side base --out preview
+          } || {
             rm -rf preview
             nix develop .#previews -c nu scripts/fixture-previews.nu compare \
               --base missing --head rom/tests/fixtures --out preview
@@ -81,11 +74,13 @@ jobs:
           }
 
       - name: Animate head
-        run: >-
-          nix develop .#previews -c nu scripts/fixture-previews.nu animate
-          --rom head-rom/bin/rom --replay scripts/replay-fixture.nu
-          --fixtures rom/tests/fixtures
-          --manifest preview/manifest.json --side head --out preview
+        if: steps.compare.outputs.head == 'true' || steps.base.outcome == 'failure'
+        run: |
+          nix build -L --out-link head-rom
+          nix develop .#previews -c nu scripts/fixture-previews.nu animate \
+            --rom head-rom/bin/rom --replay scripts/replay-fixture.nu \
+            --fixtures rom/tests/fixtures \
+            --manifest preview/manifest.json --side head --out preview
 
       - name: Name pull request
         env:
