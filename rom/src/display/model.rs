@@ -32,15 +32,16 @@ pub(super) enum Direction {
 
 #[derive(Debug, Clone)]
 pub(super) struct Transfer {
-  pub direction: Direction,
-  pub name:      String,
-  pub done:      u64,
-  pub total:     Option<u64>,
-  pub start:     f64,
-  pub host:      String,
-  pub completed: bool,
+  pub direction:     Direction,
+  pub name:          String,
+  pub done:          u64,
+  pub total:         Option<u64>,
+  pub unsized_count: usize,
+  pub start:         f64,
+  pub host:          String,
+  pub completed:     bool,
   /// Seconds since the byte count last moved.
-  pub idle:      f64,
+  pub idle:          f64,
 }
 
 pub(super) struct PresentedTransfer {
@@ -132,6 +133,7 @@ pub(super) struct RenderSnapshot<'a> {
   pub error_count:      usize,
   pub counts:           SummaryCounts,
   pub placed_transfers: Vec<PresentedTransfer>,
+  pub build_transfers:  HashMap<DerivationId, Vec<Transfer>>,
   pub source_fetches:   Vec<&'a SourceFetch>,
   pub packages:         HashMap<DerivationId, UnitCounts<'a>>,
   pub finished:         bool,
@@ -299,6 +301,7 @@ impl<'a> RenderSnapshot<'a> {
       error_count: state.error_count(),
       counts,
       placed_transfers: Vec::new(),
+      build_transfers: HashMap::default(),
       source_fetches: state
         .source_fetches()
         .filter(|fetch| elapsed(fetch.start, now) >= SOURCE_FETCH_DELAY)
@@ -331,24 +334,22 @@ impl<'a> RenderSnapshot<'a> {
       self.add_transfer(store_paths, path, transfer, Direction::Upload, now);
     }
     for (&path, transfer) in &self.summary.completed_downloads {
-      if elapsed(transfer.end, now) <= 1.0 {
-        self.add_completed_transfer(
-          store_paths,
-          path,
-          transfer,
-          Direction::Download,
-        );
-      }
+      self.add_completed_transfer(
+        store_paths,
+        path,
+        transfer,
+        Direction::Download,
+        elapsed(transfer.end, now) <= 1.0,
+      );
     }
     for (&path, transfer) in &self.summary.completed_uploads {
-      if elapsed(transfer.end, now) <= 1.0 {
-        self.add_completed_transfer(
-          store_paths,
-          path,
-          transfer,
-          Direction::Upload,
-        );
-      }
+      self.add_completed_transfer(
+        store_paths,
+        path,
+        transfer,
+        Direction::Upload,
+        elapsed(transfer.end, now) <= 1.0,
+      );
     }
     // Stable detail order, with active work ahead of completion-grace rows.
     self.placed_transfers.sort_by(|left, right| {
@@ -376,16 +377,22 @@ impl<'a> RenderSnapshot<'a> {
     let Some(info) = store_paths.get(&path) else {
       return;
     };
-    self.push_transfer(info, transfer.parent, Transfer {
-      direction,
-      name: info.name.name.clone(),
-      done: transfer.bytes_transferred,
-      total: transfer.total_bytes,
-      start: transfer.start,
-      host: transfer.host.name().to_owned(),
-      completed: false,
-      idle: elapsed(transfer.last_progress, now),
-    });
+    self.push_transfer(
+      info,
+      transfer.parent,
+      Transfer {
+        direction,
+        name: info.name.name.clone(),
+        done: transfer.bytes_transferred,
+        total: transfer.total_bytes,
+        unsized_count: 0,
+        start: transfer.start,
+        host: transfer.host.name().to_owned(),
+        completed: false,
+        idle: elapsed(transfer.last_progress, now),
+      },
+      true,
+    );
   }
 
   fn add_completed_transfer(
@@ -394,20 +401,27 @@ impl<'a> RenderSnapshot<'a> {
     path: StorePathId,
     transfer: &CompletedTransferInfo,
     direction: Direction,
+    visible: bool,
   ) {
     let Some(info) = store_paths.get(&path) else {
       return;
     };
-    self.push_transfer(info, transfer.parent, Transfer {
-      direction,
-      name: info.name.name.clone(),
-      done: transfer.total_bytes,
-      total: Some(transfer.total_bytes),
-      start: transfer.start,
-      host: transfer.host.name().to_owned(),
-      completed: true,
-      idle: 0.0,
-    });
+    self.push_transfer(
+      info,
+      transfer.parent,
+      Transfer {
+        direction,
+        name: info.name.name.clone(),
+        done: transfer.total_bytes,
+        total: Some(transfer.total_bytes),
+        unsized_count: 0,
+        start: transfer.start,
+        host: transfer.host.name().to_owned(),
+        completed: true,
+        idle: 0.0,
+      },
+      visible,
+    );
   }
 
   fn push_transfer(
@@ -415,6 +429,7 @@ impl<'a> RenderSnapshot<'a> {
     info: &StorePathInfo,
     parent: Option<DerivationId>,
     transfer: Transfer,
+    visible: bool,
   ) {
     let placement = if let Some(producer) = info.producer {
       TransferPlacement::Inline(producer)
@@ -454,10 +469,19 @@ impl<'a> RenderSnapshot<'a> {
     } else {
       TransferPlacement::Unmatched
     };
-    self.placed_transfers.push(PresentedTransfer {
-      transfer,
-      placement,
-    });
+    if let TransferPlacement::Inline(id) = placement {
+      self
+        .build_transfers
+        .entry(id)
+        .or_default()
+        .push(transfer.clone());
+    }
+    if visible {
+      self.placed_transfers.push(PresentedTransfer {
+        transfer,
+        placement,
+      });
+    }
   }
 }
 
@@ -478,47 +502,51 @@ impl RenderSnapshot<'_> {
 
 pub(super) fn aggregate_transfers<'a>(
   transfers: impl IntoIterator<Item = &'a Transfer>,
-) -> Transfer {
-  let mut selected = transfers.into_iter().collect::<Vec<&Transfer>>();
-  // A just-completed transfer remains visible briefly, but must not be folded
-  // into an active transfer's progress. Mixing those scopes makes the total
-  // jump whenever the completed-transfer grace period starts or expires.
-  if selected.iter().any(|item| !item.completed) {
-    selected.retain(|item| !item.completed);
+) -> Vec<Transfer> {
+  let mut grouped = BTreeMap::<Direction, Vec<&Transfer>>::new();
+  for transfer in transfers {
+    grouped
+      .entry(transfer.direction)
+      .or_default()
+      .push(transfer);
   }
-  let direction = if selected
-    .iter()
-    .all(|item| item.direction == Direction::Upload)
-  {
-    Direction::Upload
-  } else {
-    Direction::Download
-  };
-  let total = selected
-    .iter()
-    .try_fold(0_u64, |sum, item| Some(sum.saturating_add(item.total?)));
-  Transfer {
-    direction,
-    name: selected
-      .first()
-      .map(|item| item.name.clone())
-      .unwrap_or_default(),
-    done: selected.iter().map(|item| item.done).sum(),
-    total,
-    start: selected
-      .iter()
-      .map(|item| item.start)
-      .fold(f64::INFINITY, f64::min),
-    host: selected
-      .first()
-      .map(|item| item.host.clone())
-      .unwrap_or_default(),
-    completed: selected.iter().all(|item| item.completed),
-    idle: selected
-      .iter()
-      .map(|item| item.idle)
-      .fold(f64::INFINITY, f64::min),
-  }
+
+  grouped
+    .into_values()
+    .map(|selected| {
+      let has_sized = selected.iter().any(|item| item.total.is_some());
+      let done = selected
+        .iter()
+        .filter(|item| !has_sized || item.total.is_some())
+        .fold(0_u64, |done, item| done.saturating_add(item.done));
+      let total = has_sized.then(|| {
+        selected
+          .iter()
+          .filter_map(|item| item.total)
+          .fold(0_u64, u64::saturating_add)
+      });
+      Transfer {
+        direction: selected[0].direction,
+        name: selected[0].name.clone(),
+        done,
+        total,
+        unsized_count: selected
+          .iter()
+          .filter(|item| item.total.is_none())
+          .count(),
+        start: selected
+          .iter()
+          .map(|item| item.start)
+          .fold(f64::INFINITY, f64::min),
+        host: selected[0].host.clone(),
+        completed: selected.iter().all(|item| item.completed),
+        idle: selected
+          .iter()
+          .map(|item| item.idle)
+          .fold(f64::INFINITY, f64::min),
+      }
+    })
+    .collect()
 }
 
 #[cfg(test)]
@@ -531,6 +559,7 @@ mod tests {
       name: "demo".to_owned(),
       done,
       total: Some(total),
+      unsized_count: 0,
       start: 0.0,
       host: "cache".to_owned(),
       completed,
@@ -539,13 +568,15 @@ mod tests {
   }
 
   #[test]
-  fn active_transfer_progress_excludes_recently_completed_transfers() {
-    let aggregate = aggregate_transfers(&[
+  fn transfer_progress_includes_recently_completed_transfers() {
+    let [aggregate] = aggregate_transfers(&[
       transfer(312, 312, true),
       transfer(188, 1024, false),
-    ]);
-    assert_eq!(aggregate.done, 188);
-    assert_eq!(aggregate.total, Some(1024));
+    ])
+    .try_into()
+    .unwrap();
+    assert_eq!(aggregate.done, 500);
+    assert_eq!(aggregate.total, Some(1336));
     assert!(!aggregate.completed);
   }
 }

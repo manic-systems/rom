@@ -114,7 +114,7 @@ struct PlannedRow {
   /// The producer folded into this row.
   producer:     Option<DerivationId>,
   children:     Vec<RowId>,
-  inline:       Vec<usize>,
+  inline:       Vec<Transfer>,
   consumers:    usize,
 }
 
@@ -467,11 +467,7 @@ impl Renderer<'_> {
         continue;
       }
       match item.placement {
-        TransferPlacement::Inline(id) => {
-          if let Some(row) = plan.rows.get_mut(&RowId::Build(id)) {
-            row.inline.push(index);
-          }
-        },
+        TransferPlacement::Inline(_) => {},
         TransferPlacement::Source {
           consumer,
           consumer_count,
@@ -508,6 +504,14 @@ impl Renderer<'_> {
           plan.rows.insert(id, PlannedRow::new(priority));
           plan.row_mut(RowId::TransferGroup).children.push(id);
         },
+      }
+    }
+    for &id in self.snapshot.derivations.keys() {
+      if let Some(transfers) = self.snapshot.build_transfers.get(&id)
+        && let Some(row) = plan.rows.get_mut(&RowId::Build(id))
+        && transfers.iter().any(|transfer| !transfer.completed)
+      {
+        row.inline.extend(transfers.iter().cloned());
       }
     }
     // Keep a group for planned transfers even before the first one starts.
@@ -1113,7 +1117,13 @@ impl Renderer<'_> {
           .map(|&index| &self.snapshot.placed_transfers[index].transfer)
           .filter(|transfer| transfer.direction == direction)
           .collect::<Vec<&Transfer>>();
-        let mut aggregate = aggregate_transfers(transfers.iter().copied());
+        let Some(mut aggregate) =
+          aggregate_transfers(transfers.iter().copied())
+            .into_iter()
+            .next()
+        else {
+          return;
+        };
         aggregate.name = transfers
           .iter()
           .map(|transfer| transfer.name.as_str())
@@ -1164,14 +1174,9 @@ impl Renderer<'_> {
 
     // Copies of the row's own outputs stand in for its build progress.
     if !row.inline.is_empty() {
-      let aggregate = aggregate_transfers(
-        row
-          .inline
-          .iter()
-          .map(|&index| &self.snapshot.placed_transfers[index].transfer),
-      );
-      bar = Some(self.transfer_bar(&aggregate));
-      status = self.transfer_status(&aggregate);
+      let aggregates = aggregate_transfers(row.inline.iter());
+      bar = (aggregates.len() == 1).then(|| self.transfer_bar(&aggregates[0]));
+      status = self.transfer_statuses(&aggregates);
     }
 
     let children = self.visible_children(id, row, selection);
@@ -1735,10 +1740,32 @@ impl Renderer<'_> {
       },
     );
     status.push(span(format!("  {bytes}"), theme.muted));
+    if transfer.unsized_count > 0 {
+      status.push(span(
+        format!("  +{} unsized", transfer.unsized_count),
+        theme.muted,
+      ));
+    }
     if Self::shows_host(transfer) {
       status.push(span(format!("  {}", transfer.host), theme.host));
     }
     status
+  }
+
+  fn transfer_statuses(&self, transfers: &[Transfer]) -> Vec<Span<'static>> {
+    transfers
+      .iter()
+      .flat_map(|transfer| {
+        let arrow = match transfer.direction {
+          Direction::Download => self.icons.download,
+          Direction::Upload => self.icons.upload,
+        };
+        let mut status = self.transfer_status(transfer);
+        status
+          .insert(0, span(format!("  {arrow}"), self.transfer_color(transfer)));
+        status
+      })
+      .collect()
   }
 
   pub(super) fn transfer_suffix(
@@ -1783,6 +1810,12 @@ impl Renderer<'_> {
     }
     if available > essential + bytes.len() + 2 {
       spans.push(span(format!("  {bytes}"), self.config.theme.muted));
+    }
+    if transfer.unsized_count > 0 {
+      let unknown = format!("+{} unsized", transfer.unsized_count);
+      if available > essential + bytes.len() + unknown.len() + 4 {
+        spans.push(span(format!("  {unknown}"), self.config.theme.muted));
+      }
     }
     if available > essential + bytes.len() + duration.len() + 5 {
       spans.push(span(format!("  {duration}"), self.config.theme.timer));
