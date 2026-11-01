@@ -1,0 +1,28 @@
+{
+  "derivations": {
+    "/nix/store/236b624ac44g776cccb7cb08037dggf1-consumer.drv": {
+      "sources": [
+        "/nix/store/c7fff5505a94c665a92931c3389ff4cd-source-0",
+        "/nix/store/505d5da950a1afc92b3aaad03043g331-source-1",
+        "/nix/store/f744d83gb1f4896d0cacfc82b5c07g89-source-2",
+        "/nix/store/543555207c7348g476212294d162gbc4-source-3",
+        "/nix/store/dd6595917b789g105fg9f1449ag140da-source-4",
+        "/nix/store/016f8d860ddfc72fa13da8144f601894-source-5",
+        "/nix/store/632b4467b555237gd7bf32b518d07751-source-6",
+        "/nix/store/1gc44386db7a98d43a0939afbb18ca4c-source-7",
+        "/nix/store/4c57dg8901ca416ba7178db1bca085a4-source-8",
+        "/nix/store/a48g9ag47g53a222853gbc21df326cf2-source-9",
+        "/nix/store/ca8dd47cb458a098b932g6g2a152142g-source-10",
+        "/nix/store/gag5da188g9f2579f741db959515bgb9-source-11",
+        "/nix/store/86c08593c2d717398bbb225399f23b76-source-12",
+        "/nix/store/6b83795289a55d3570426158460d2fd0-source-13",
+        "/nix/store/21gg603db7f0df9cg8bd2da27f45c90b-source-14",
+        "/nix/store/b2ga23c64gd63185b50040f86g5952c6-source-15",
+        "/nix/store/66g39d26cc2gdfda53gf56b65bd6513d-source-16",
+        "/nix/store/d2cg102497dad4811b2163441dfbg6d6-source-17",
+        "/nix/store/33f1f96c9bda99f3c0163b503971f38b-source-18",
+        "/nix/store/143268ga90054gb6f81d86023g52d907-source-19"
+      ]
+    }
+  }
+}
