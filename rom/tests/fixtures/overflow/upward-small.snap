@@ -7,7 +7,7 @@
 \e[0;90m┢━ \e[0mBuilds    \e[0;33m⏵ 17 \e[0;32m✔ 0 \e[0;34m⏸ 0 \e[0m∑ 17
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
 === half-done @ 1600ms ===
-\e[0;90m╭─ … 5 active\e[0m
+\e[0;90m╭─ … 5 active, 8 more\e[0m
 \e[0;90m│  ╭─ \e[0;33m⏵ ncurses\e[0;90m  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ git\e[0;90m  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ perl\e[0;90m  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
@@ -15,5 +15,12 @@
 \e[0;90m┢━ \e[0mBuilds    \e[0;33m⏵ 9 \e[0;32m✔ 8 \e[0;34m⏸ 0 \e[0m∑ 17
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
 === finished @ 1800ms ===
-\e[0;90m╺━ \e[0;32mFinished after 1s\e[0m
+\e[0;90m╭─ … 11 more\e[0m
+\e[0;90m│  ╭─ \e[0;32m✔ openssl\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ glibc\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ gcc\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ coreutils\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ bash\e[0;90m  1s\e[0m
+\e[0;90m├─ \e[0;32m✔ system\e[0;90m  1s\e[0m
+\e[0;90m┕━ \e[0;32mFinished after 1s\e[0m
 === log ===

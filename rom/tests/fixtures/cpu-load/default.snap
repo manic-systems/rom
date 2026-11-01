@@ -27,6 +27,10 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 1m10s\e[0;37m  ⚙ 94%\e[0m
 === finished @ 71000ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ heavy-1.0\e[0;90m  1m10s\e[0m
+\e[0;90m├─ \e[0;32m✔ serial-1.0\e[0;90m  1m10s\e[0m
+\e[0;90m├─ \e[0;32m✔ idle-1.0\e[0;90m  1m10s\e[0m
+\e[0;90m├─ \e[0;32m✔ steady-1.0\e[0;90m  1m10s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 1m11s\e[0m
 === log ===
 these 4 derivations will be built:\e[0m

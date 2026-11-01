@@ -47,7 +47,9 @@
 \e[0;90m├─ \e[0;34m⏸ nixos-system-rom-26.11.20261031.abcdef0\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ user-units\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ gcc-2.4.2\e[0m            \e[0;90m────────────\e[0;33m╺━━╸\e[0;90m───────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ openssl-2.6.4\e[0m        \e[0;90m──────────────\e[0;33m╺━━╸\e[0;90m─────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ openssl-2.6.4\e[0m        \e[0;90m──────────────\e[0;33m╺━━╸\e[0;90m─────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ├─ \e[0;32m✔ bash-2.2.0\e[0;90m  4s\e[0m
+\e[0;90m│  │  ╰─ \e[0;32m✔ zlib-2.0.0\e[0;90m  3s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ system-units\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ curl-2.1.1\e[0m           \e[0;90m───────────────\e[0;33m╺━━╸\e[0;90m────  (buildPhase)\e[0;37m  ⏱ 3s\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ git-2.4.4\e[0m            \e[0;90m─────────────────\e[0;33m╺━━╸\e[0;90m──  (installPhase)\e[0;37m  ⏱ 3s\e[0m
@@ -69,20 +71,18 @@
 \e[0;90m│  │  ├─ \e[0;33m⏵ man-db-2.2.3\e[0m         \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  │  ╰─ \e[0;33m⏵ pipewire-2.3.4\e[0m       \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ etc\e[0m
+\e[0;90m│  │  ├─ \e[0;32m✔ curl-1.6.1\e[0;90m  4s\e[0m
+\e[0;90m│  │  ├─ \e[0;32m✔ perl-1.1.3\e[0;90m  4s\e[0m
+\e[0;90m│  │  ╰─ \e[0;32m✔ ncurses-1.3.0\e[0;90m  5s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ system-path\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ firmware\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ fonts\e[0m
-\e[0;90m│  │  ├─ \e[0;34m⏸ sqlite-3.2.2\e[0m
-\e[0;90m│  │  ├─ \e[0;34m⏸ libffi-3.3.3\e[0m
-\e[0;90m│  │  ├─ \e[0;34m⏸ xz-3.4.4\e[0m
-\e[0;90m│  │  ├─ \e[0;34m⏸ gettext-3.5.0\e[0m
-\e[0;90m│  │  ╰─ \e[0;34m⏸ systemd-3.6.1\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ man-pages\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ locale\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ udev-rules\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ dbus-1\e[0m
 \e[0;90m│  ╰─ \e[0;34m⏸ activation\e[0m
-\e[0;90m├─ … 67 more\e[0m
+\e[0;90m├─ … 79 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 32      \e[0;32m✔ 40        \e[0;34m⏸ 85      \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 6s
@@ -92,7 +92,8 @@
 \e[0;90m│  ├─ \e[0;34m⏸ fonts\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ gettext-3.5.0\e[0m        \e[0;90m──\e[0;33m╺━━╸\e[0;90m─────────────────  (installPhase)\e[0;37m  ⏱ 5s\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ kmod-3.3.0\e[0m           \e[0;90m───────\e[0;33m╺━━╸\e[0;90m────────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ nftables-3.5.2\e[0m       \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ├─ \e[0;33m⏵ nftables-3.5.2\e[0m       \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m│  │  ╰─ \e[0;32m✔ libffi-3.3.3\e[0;90m  5s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ man-pages\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ openssh-3.0.4\e[0m        \e[0;90m──────────\e[0;33m╺━━╸\e[0;90m─────────  (installPhase)\e[0;37m  ⏱ 4s\e[0m
 \e[0;90m│  │  ├─ \e[0;33m⏵ sudo-3.2.1\e[0m           \e[0;90m─────────────\e[0;33m╺━━╸\e[0;90m──────  (buildPhase)\e[0;37m  ⏱ 4s\e[0m
@@ -124,20 +125,21 @@
 \e[0;90m│  ├─ \e[0;34m⏸ system-units\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ initrd\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ firmware\e[0m
-\e[0;90m│  ├─ \e[0;34m⏸ dbus-1\e[0m
-\e[0;90m│  ╰─ \e[0;34m⏸ activation\e[0m
-\e[0;90m├─ … 24 more\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ dbus-1\e[0m
+\e[0;90m├─ … 31 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 32      \e[0;32m✔ 88        \e[0;34m⏸ 37      \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 12s
 === system @ 22406ms ===
 \e[0;90m╭─ \e[0mBuilds
 \e[0;90m├─ \e[0;33m⏵ nixos-system-rom-26.11.20261031.abcdef0\e[0m \e[0;33m╺━━━╸\e[0;90m───────────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ╰─ \e[0;32m✔ activation\e[0;90m  1s\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 156       \e[0;34m⏸ 0       \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 22s
 === finished @ 23406ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ nixos-system-rom-26.11.20261031.abcdef0\e[0;90m  2s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 23s\e[0m
 === log ===
 these 157 derivations will be built:\e[0m

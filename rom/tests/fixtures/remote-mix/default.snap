@@ -18,6 +18,7 @@
 \e[0;90m│  ├─ \e[0;33m⏵ remote-c-1.0\e[0m            \e[0;90m─────────────────\e[0;33m╺━━╸\e[0;90m──  (buildPhase)\e[0;37m  ⏱ 3s\e[0;35m @ch\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ remote-d-1.0\e[0m            \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (checkPhase)\e[0;37m  ⏱ 3s\e[0;35m @ch\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ remote-e-1.0\e[0m            \e[0;90m──────────────────\e[0;33m╺━━╸\e[0;90m─  (buildPhase)\e[0;37m  ⏱ 3s\e[0;35m @eu\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ local-b-1.0\e[0;90m  2s\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ remote-f-1.0\e[0;90m  waiting for a machine\e[0m
 \e[0;90m│  ╰─ \e[0;34m⏸ locked-g-1.0\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
@@ -28,12 +29,16 @@
 \e[0;90m├─ \e[0;34m⏸ deploy\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ remote-e-1.0\e[0m            \e[0;90m──\e[0;33m╺━━╸\e[0;90m─────────────────  (buildPhase)\e[0;37m  ⏱ 6s\e[0;35m @eu\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ remote-f-1.0\e[0m            \e[0;90m───────\e[0;33m╺━━╸\e[0;90m────────────\e[0;37m  ⏱ 1s\e[0;35m @chariot\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ remote-c-1.0\e[0;90m  5s\e[0m
 \e[0;90m│  ╰─ \e[0;34m⏸ locked-g-1.0\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 2       \e[0;32m✔ 4         \e[0;34m⏸ 2       \e[0m∑ 8
 \e[0;90m┗━ \e[0mElapsed ⏱ 6s
 === finished @ 8500ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ deploy\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ remote-f-1.0\e[0;90m  3s\e[0m
+\e[0;90m│  ╰─ \e[0;32m✔ locked-g-1.0\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 8s\e[0m
 === log ===
 these 8 derivations will be built:\e[0m
