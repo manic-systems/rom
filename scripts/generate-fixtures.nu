@@ -57,6 +57,7 @@ def run-fixture [name: string] {
     "deep-units" => { fixture deep-units }
     "ca-and-dynamic" => { fixture ca-and-dynamic }
     "downloads" => { fixture downloads }
+    "completion-grace" => { fixture completion-grace }
     "unsized-download" => { fixture unsized-download }
     "mixed-transfers" => { fixture mixed-transfers }
     "substitution-heavy" => { fixture substitution-heavy }
@@ -778,6 +779,23 @@ def "fixture downloads" [] {
       (check 1500 started)
       (check 4000 midway)
       (check 8000 stalled)
+    ]
+  }
+}
+
+# A completed download keeps its order among active downloads during its
+# one-second completion grace period.
+def "fixture completion-grace" [] {
+  let completed = out "aaa-completed"
+  let active = out "zzz-active"
+  {
+    events: [
+      (plan-fetches 0 [$completed $active] "16.0 MiB" "16.0 MiB")
+      (substitution 100 $completed (8 * $mib) 100 2500)
+      (substitution 200 $active (8 * $mib) 200 5000)
+      (check 1500 both-running)
+      (check 2600 completion-grace)
+      (check 3600 after-grace)
     ]
   }
 }

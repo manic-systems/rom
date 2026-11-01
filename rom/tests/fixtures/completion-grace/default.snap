@@ -1,0 +1,18 @@
+=== both-running @ 1500ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 1s\e[0m
+  \e[0;36maaa-completed  ↓ ━━━━━━━━━━━━━━━━\e[0;90m────────────────\e[0m \e[0;36m 50%\e[0;90m  4.0 MiB/8.0 MiB\e[0;37m  1s\e[0;35m  cache.nixos.org\e[0m
+  \e[0;36mzzz-active  ↓ ━━━━━━━━\e[0;90m────────────────────────\e[0m \e[0;36m 25%\e[0;90m  2.0 MiB/8.0 MiB\e[0;37m  1s\e[0;35m  cache.nixos.org\e[0m
+=== completion-grace @ 2600ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 2s\e[0m
+  \e[0;32maaa-completed  ↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m \e[0;32m100%\e[0;90m  8.0 MiB/8.0 MiB\e[0;37m  2s\e[0;35m  cache.nixos.org\e[0m
+  \e[0;36mzzz-active  ↓ ━━━━━━━━━━━━━━━━\e[0;90m────────────────\e[0m \e[0;36m 50%\e[0;90m  4.0 MiB/8.0 MiB\e[0;37m  2s\e[0;35m  cache.nixos.org\e[0m
+=== after-grace @ 3600ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 3s\e[0m
+  \e[0;36mzzz-active  ↓ ━━━━━━━━━━━━━━━━━━━━━\e[0;90m───────────\e[0m \e[0;36m 66%\e[0;90m  5.3 MiB/8.0 MiB\e[0;37m  3s\e[0;35m  cache.nixos.org\e[0m
+=== finished @ 5000ms ===
+\e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 5s\e[0m
+\e[0;32mFinished after 5s\e[0m
+=== log ===
+these 2 paths will be fetched (16.0 MiB download, 16.0 MiB unpacked):\e[0m
+  /nix/store/546088ca90gb5c924538c3d963cbgb87-zzz-active\e[0m
+  /nix/store/f10746c3084fb0gd2373d1g03g459ac5-aaa-completed\e[0m
