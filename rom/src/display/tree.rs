@@ -734,7 +734,11 @@ impl Renderer<'_> {
       let active = plan
         .rows
         .iter()
-        .filter(|(id, row)| row.active && !selection.rows.contains(id))
+        .filter(|(id, row)| {
+          row.active
+            && !matches!(id, RowId::TransferGroup)
+            && !selection.rows.contains(id)
+        })
         .count()
         .min(hidden);
       let label = match (active, hidden - active) {
