@@ -65,7 +65,7 @@ enum Cgroup {
 impl CgroupUsage {
   /// Finds the cgroups Nix creates build cgroups under.
   ///
-  /// Returns [`None`] off Linux or when neither exists.
+  /// Returns [`None`] off Linux or when none exists.
   #[must_use]
   pub fn detect() -> Option<Self> {
     if !cfg!(target_os = "linux") {
@@ -79,7 +79,10 @@ impl CgroupUsage {
         let line = text.lines().find_map(|line| line.strip_prefix("0::"))?;
         Some(base.join(line.trim_start_matches('/')))
       });
-    let roots = [Some(base.join("system.slice/nix-daemon.service")), own]
+    let daemon = base.join("system.slice/nix-daemon.service");
+    // Newer daemons run in a `nix-daemon` child cgroup and create builds under
+    // it rather than beside it.
+    let roots = [Some(daemon.join("nix-daemon")), Some(daemon), own]
       .into_iter()
       .flatten()
       .filter(|root| root.is_dir())
