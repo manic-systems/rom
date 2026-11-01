@@ -822,6 +822,7 @@ def "fixture mixed-transfers" [] {
       (check 1500 both-directions)
       (check 4500 remote-build)
       (check 7200 result-and-push)
+      (check 8000 after-download)
     ]
     drvs: { derivations: { $app: { sources: [$src $vendor] } } }
   }

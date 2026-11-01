@@ -70,6 +70,7 @@
 7600 @nix {"action":"result","id":41,"type":105,"fields":[3145728,3145728,1,0]}
 7600 @nix {"action":"stop","id":41}
 7750 @nix {"action":"result","id":42,"type":105,"fields":[4194304,8388608,1,0]}
+8000 = after-download
 8166 @nix {"action":"result","id":42,"type":105,"fields":[5592405,8388608,1,0]}
 8583 @nix {"action":"result","id":42,"type":105,"fields":[6990506,8388608,1,0]}
 9000 @nix {"action":"result","id":42,"type":105,"fields":[8388608,8388608,1,0]}
