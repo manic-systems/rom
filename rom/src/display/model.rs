@@ -72,12 +72,13 @@ pub(super) struct StatusCounts {
   pub running:   usize,
   pub completed: usize,
   pub waiting:   usize,
+  pub checking:  usize,
   pub failed:    usize,
 }
 
 impl StatusCounts {
   pub const fn total(self) -> usize {
-    self.running + self.completed + self.waiting + self.failed
+    self.running + self.completed + self.waiting + self.checking + self.failed
   }
 
   pub const fn is_empty(self) -> bool {
@@ -274,18 +275,21 @@ impl<'a> RenderSnapshot<'a> {
           usize::try_from(state.builds_progress().waiting())
             .unwrap_or(usize::MAX),
         ),
+        checking:  unconfirmed.len(),
         failed:    builds.failed.len() + dependency_failed,
       },
       downloads: StatusCounts {
         running:   summary.running_downloads.len(),
         completed: summary.completed_downloads.len(),
         waiting:   summary.planned_downloads.len(),
+        checking:  0,
         failed:    0,
       },
       uploads:   StatusCounts {
         running:   summary.running_uploads.len(),
         completed: summary.completed_uploads.len(),
         waiting:   0,
+        checking:  0,
         failed:    0,
       },
     };

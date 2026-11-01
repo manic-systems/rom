@@ -125,7 +125,7 @@ impl Renderer<'_> {
     };
 
     let builds = counts.builds;
-    let mut rows = vec![row(
+    let mut build_row = row(
       "Builds",
       [
         Some((icons.running, builds.running)),
@@ -134,7 +134,14 @@ impl Renderer<'_> {
         Some((icons.failed, builds.failed)),
       ],
       builds.total(),
-    )];
+    );
+    if builds.checking > 0 {
+      build_row[3].0 = format!(
+        "{}{}{} + {} checking",
+        icons.planned, icons.gap, builds.waiting, builds.checking
+      );
+    }
+    let mut rows = vec![build_row];
     let downloads = counts.downloads;
     if !downloads.is_empty() {
       rows.push(row(
@@ -227,11 +234,22 @@ impl Renderer<'_> {
         self.config.theme.planned,
       ),
     ] {
-      let label = if verbose {
-        format!(" {icon}{}{count} {label}", self.icons.gap)
-      } else {
-        format!(" {icon}{}{count}", self.icons.gap)
-      };
+      let label =
+        if label == "waiting" && self.snapshot.counts.builds.checking > 0 {
+          let checking = self.snapshot.counts.builds.checking;
+          if verbose {
+            format!(
+              " {icon}{}{count} waiting + {checking} checking",
+              self.icons.gap
+            )
+          } else {
+            format!(" {icon}{}{count} + {checking} checking", self.icons.gap)
+          }
+        } else if verbose {
+          format!(" {icon}{}{count} {label}", self.icons.gap)
+        } else {
+          format!(" {icon}{}{count}", self.icons.gap)
+        };
       spans.push(span(label, color));
     }
     spans.extend(self.machine_cpu());
