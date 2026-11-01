@@ -24,6 +24,7 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 6s
 === finished @ 6900ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ uses-gen-1.0\e[0;90m  1s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 6s\e[0m
 === log ===
 these 5 derivations will be built:\e[0m

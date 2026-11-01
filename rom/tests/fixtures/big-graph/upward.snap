@@ -18,7 +18,7 @@
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 32      \e[0;32m✔ 0         \e[0;34m⏸ 125     \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
 === saturated @ 6000ms ===
-\e[0;90m╭─ … 9 active, 82 more\e[0m
+\e[0;90m╭─ … 9 active, 94 more\e[0m
 \e[0;90m│     ╭─ \e[0;33m⏵ pipewire-2.3.4\e[0m       \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│     ├─ \e[0;33m⏵ man-db-2.2.3\e[0m         \e[0;90m─\e[0;33m╺━━╸\e[0;90m──────────────────  (unpackPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│     ├─ \e[0;33m⏵ less-2.1.2\e[0m           \e[0;90m───\e[0;33m╺━━╸\e[0;90m────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
@@ -37,7 +37,7 @@
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 32      \e[0;32m✔ 40        \e[0;34m⏸ 85      \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 6s
 === draining @ 12000ms ===
-\e[0;90m╭─ … 14 active, 34 more\e[0m
+\e[0;90m╭─ … 14 active, 41 more\e[0m
 \e[0;90m│     ╭─ \e[0;33m⏵ dbus-4.2.2\e[0m           \e[0;90m────\e[0;33m╺━━╸\e[0;90m───────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│     ├─ \e[0;33m⏵ systemd-4.1.1\e[0m        \e[0;90m─────\e[0;33m╺━━╸\e[0;90m──────────────  (configurePhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│     ├─ \e[0;33m⏵ gettext-4.0.0\e[0m        \e[0;90m───────\e[0;33m╺━━╸\e[0;90m────────────  (installPhase)\e[0;37m  ⏱ 1s\e[0m
@@ -56,12 +56,14 @@
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 32      \e[0;32m✔ 88        \e[0;34m⏸ 37      \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 12s
 === system @ 22406ms ===
+\e[0;90m   ╭─ \e[0;32m✔ activation\e[0;90m  1s\e[0m
 \e[0;90m╭─ \e[0;33m⏵ nixos-system-rom-26.11.20261031.abcdef0\e[0m \e[0;33m╺━━━╸\e[0;90m───────────────────────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 156       \e[0;34m⏸ 0       \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 22s
 === finished @ 23406ms ===
-\e[0;90m╺━ \e[0;32mFinished after 23s\e[0m
+\e[0;90m╭─ \e[0;32m✔ nixos-system-rom-26.11.20261031.abcdef0\e[0;90m  2s\e[0m
+\e[0;90m┕━ \e[0;32mFinished after 23s\e[0m
 === log ===
 these 157 derivations will be built:\e[0m
   /nix/store/01431770392c09568g7ff91a9cf9a3a6-readline-2.6.1.drv\e[0m

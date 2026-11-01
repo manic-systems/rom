@@ -17,7 +17,7 @@
 \e[0;90m│     ├─ \e[0;33m⏵ linux-pam-2.0.4\e[0;90m  (configurePh\e[0m
 \e[0;90m│     ├─ \e[0;33m⏵ kmod-2.1.0\e[0;90m  (buildPhase)\e[0;37m  ⏱ 2\e[0m
 \e[0;90m│     ╰─ \e[0;33m⏵ nftables-2.3.2\e[0;90m  (buildPhase)\e[0;37m \e[0m
-\e[0;90m├─ … 16 active, 83 more\e[0m
+\e[0;90m├─ … 16 active, 95 more\e[0m
 \e[0;90m┢━ \e[0mBuilds    \e[0;33m⏵ 32 \e[0;32m✔ 40 \e[0;34m⏸ 85 \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 6s
 === draining @ 12000ms ===
@@ -28,16 +28,18 @@
 \e[0;90m│     ├─ \e[0;33m⏵ python3-4.6.2\e[0;90m  (configurePhas\e[0m
 \e[0;90m│     ├─ \e[0;33m⏵ perl-4.0.3\e[0;90m  (buildPhase)\e[0;37m  ⏱ 2\e[0m
 \e[0;90m│     ╰─ \e[0;33m⏵ git-4.1.4\e[0;90m  (configurePhase)\e[0;37m  \e[0m
-\e[0;90m├─ … 21 active, 35 more\e[0m
+\e[0;90m├─ … 21 active, 42 more\e[0m
 \e[0;90m┢━ \e[0mBuilds    \e[0;33m⏵ 32 \e[0;32m✔ 88 \e[0;34m⏸ 37 \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 12s
 === system @ 22406ms ===
 \e[0;90m╭─ \e[0mBuilds
 \e[0;90m├─ \e[0;33m⏵ nixos-system-rom-26…1.abcdef0\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ╰─ \e[0;32m✔ activation\e[0;90m  1s\e[0m
 \e[0;90m┢━ \e[0mBuilds    \e[0;33m⏵ 1 \e[0;32m✔ 156 \e[0;34m⏸ 0 \e[0m∑ 157
 \e[0;90m┗━ \e[0mElapsed ⏱ 22s
 === finished @ 23406ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ nixos-system-rom-26.…31.abcdef0\e[0;90m  2s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 23s\e[0m
 === log ===
 these 157 derivations will be built:\e[0m

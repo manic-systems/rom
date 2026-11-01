@@ -27,11 +27,33 @@
 \e[0;90m│  ├─ \e[0;33m⏵ sqlite\e[0m                  \e[0;90m───\e[0;33m╺━━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ libffi\e[0m                  \e[0;90m───\e[0;33m╺━━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ xz\e[0m                      \e[0;90m───\e[0;33m╺━━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  ╰─ \e[0;33m⏵ gettext\e[0m                 \e[0;90m───\e[0;33m╺━━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ├─ \e[0;33m⏵ gettext\e[0m                 \e[0;90m───\e[0;33m╺━━━╸\e[0;90m───────────────────  (buildPhase)\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ bash\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ coreutils\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ gcc\e[0;90m  1s\e[0m
+\e[0;90m│  ╰─ \e[0;32m✔ glibc\e[0;90m  1s\e[0m
+\e[0;90m├─ … 4 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 9       \e[0;32m✔ 8         \e[0;34m⏸ 0       \e[0m∑ 17
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
 === finished @ 1800ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ system\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ bash\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ coreutils\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ gcc\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ glibc\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ openssl\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ zlib\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ curl\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ python3\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ perl\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ git\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ ncurses\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ readline\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ sqlite\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ libffi\e[0;90m  1s\e[0m
+\e[0;90m│  ├─ \e[0;32m✔ xz\e[0;90m  1s\e[0m
+\e[0;90m│  ╰─ \e[0;32m✔ gettext\e[0;90m  1s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 1s\e[0m
 === log ===

@@ -74,6 +74,7 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 11s
 === finished @ 14124ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ grow-shrink-root\e[0;90m  1s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 14s\e[0m
 === log ===
 these 74 derivations will be built:\e[0m

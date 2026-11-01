@@ -4,16 +4,16 @@
 \e[0;90m├─ \e[0;34m⏸ quick-39\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-28\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-25\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-10\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-40\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-3\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-12\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-30\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-43\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-9\e[0m
 \e[0;90m├─ \e[0;34m⏸ slow-33\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-35\e[0m
-\e[0;90m├─ \e[0;34m⏸ quick-32\e[0m
-\e[0;90m├─ \e[0;34m⏸ quick-23\e[0m
-\e[0;90m├─ \e[0;34m⏸ quick-38\e[0m
-\e[0;90m├─ \e[0;34m⏸ quick-42\e[0m
-\e[0;90m├─ … 9 more\e[0m
+\e[0;90m├─ … 21 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 8       \e[0;32m✔ 15        \e[0;34m⏸ 21      \e[0m∑ 44
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
@@ -22,11 +22,17 @@
 \e[0;90m├─ \e[0;33m⏵ slow-11\e[0m                    \e[0;90m──────────\e[0;33m╺━━━╸\e[0;90m─────────────\e[0;37m  ⏱ 2s\e[0m
 \e[0;90m├─ \e[0;33m⏵ slow-0\e[0m                     \e[0;90m───────────────\e[0;33m╺━━━╸\e[0;90m────────\e[0;37m  ⏱ 2s\e[0m
 \e[0;90m├─ \e[0;33m⏵ slow-22\e[0m                    \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-21\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-39\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-28\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-25\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-40\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-30\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-43\e[0m
 \e[0;90m├─ \e[0;34m⏸ quick-42\e[0m
-\e[0;90m├─ \e[0;34m⏸ quick-41\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-27\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-24\e[0m
+\e[0;90m├─ … 5 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 8       \e[0;32m✔ 31        \e[0;34m⏸ 5       \e[0m∑ 44
 \e[0;90m┗━ \e[0mElapsed ⏱ 3s
@@ -36,11 +42,16 @@
 \e[0;90m├─ \e[0;33m⏵ slow-33\e[0m                    \e[0;90m────────────\e[0;33m╺━━━╸\e[0;90m───────────\e[0;37m  ⏱ 2s\e[0m
 \e[0;90m├─ \e[0;33m⏵ slow-0\e[0m                     \e[0;90m───────────────\e[0;33m╺━━━╸\e[0;90m────────\e[0;37m  ⏱ 4s\e[0m
 \e[0;90m├─ \e[0;33m⏵ slow-22\e[0m                    \e[0;90m────────────────────\e[0;33m╺━━━╸\e[0;90m───\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m├─ \e[0;32m✔ quick-43\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 4       \e[0;32m✔ 40        \e[0;34m⏸ 0       \e[0m∑ 44
 \e[0;90m┗━ \e[0mElapsed ⏱ 5s
 === finished @ 6070ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ slow-11\e[0;90m  5s\e[0m
+\e[0;90m├─ \e[0;32m✔ slow-33\e[0;90m  3s\e[0m
+\e[0;90m├─ \e[0;32m✔ slow-0\e[0;90m  5s\e[0m
+\e[0;90m├─ \e[0;32m✔ slow-22\e[0;90m  4s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 6s\e[0m
 === log ===
 these 44 derivations will be built:\e[0m

@@ -12,5 +12,12 @@
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
 === finished @ 2680ms ===
 \e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;32m✔ foo+bar=baz-1.0\e[0;90m  2s\e[0m
+\e[0;90m├─ \e[0;32m✔ _private-0.1\e[0;90m  2s\e[0m
+\e[0;90m├─ \e[0;32m✔ 1.0\e[0;90m  2s\e[0m
+\e[0;90m├─ \e[0;32m✔ a\e[0;90m  2s\e[0m
+\e[0;90m├─ \e[0;32m✔ x86_64-unknown-linux-gnu-binutils-2.44\e[0;90m  2s\e[0m
+\e[0;90m├─ \e[0;32m✔ nixos-rebuild-ng-26.11pre-git\e[0;90m  2s\e[0m
+\e[0;90m├─ \e[0;32m✔ hello-2.12.3-dev\e[0;90m  2s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 2s\e[0m
 === log ===

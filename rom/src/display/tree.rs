@@ -287,6 +287,11 @@ impl Renderer<'_> {
         // Dependency failures are useful context, but must not displace
         // builds that are still running.
         BuildStatus::DependencyFailed | BuildStatus::Planned => 2,
+        BuildStatus::Built { end, .. }
+          if elapsed(end, self.now) <= TRANSFER_DISPLAY_DELAY =>
+        {
+          2
+        },
         BuildStatus::Available => 1,
         BuildStatus::Unknown | BuildStatus::Built { .. } => 0,
       };
