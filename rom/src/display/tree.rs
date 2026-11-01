@@ -579,14 +579,6 @@ impl Renderer<'_> {
       })
       .map(RowId::Build)
       .collect();
-    let rows = &plan.rows;
-    plan.roots.sort_by_key(|root| {
-      (
-        Reverse(rows[root].priority),
-        Reverse(rows[root].active_below),
-        Reverse(rows[root].children.len()),
-      )
-    });
     if plan.rows.contains_key(&RowId::TransferGroup) {
       plan.roots.push(RowId::TransferGroup);
     }
