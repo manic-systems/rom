@@ -1,0 +1,106 @@
+{
+  "derivations": {
+    "/nix/store/124768c6ag6gc8fb47680d92b99fg6da-gh.drv.drv": {
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/bgd9b7576921f04f7890f048126d6g7b-gh-wrapped-1.0.drv": {
+      "dynamic": [
+        "/nix/store/124768c6ag6gc8fb47680d92b99fg6da-gh.drv.drv"
+      ]
+    },
+    "/nix/store/gb2b7gcf0940161406a6aa3f4d8b4aa6-gh.drv": {
+      "inputs": [
+        "/nix/store/32651f3f0bga98285267gb1216dbc2bd-github.com-cli-cli-v2-cmd-root.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/32651f3f0bga98285267gb1216dbc2bd-github.com-cli-cli-v2-cmd-root.drv": {
+      "inputs": [
+        "/nix/store/c46f1g646b6499b33bc0c406c5891743-github.com-cli-cli-v2-cmd-repo.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/c46f1g646b6499b33bc0c406c5891743-github.com-cli-cli-v2-cmd-repo.drv": {
+      "inputs": [
+        "/nix/store/8a99g5a5b6c9fbf6ggb23g1559a9509g-github.com-cli-cli-v2-cmd-factory.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/8a99g5a5b6c9fbf6ggb23g1559a9509g-github.com-cli-cli-v2-cmd-factory.drv": {
+      "inputs": [
+        "/nix/store/3d6a3b17b108731bdc9c5cc1f663db80-github.com-cli-cli-v2-pkg-cmdutil.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/3d6a3b17b108731bdc9c5cc1f663db80-github.com-cli-cli-v2-pkg-cmdutil.drv": {
+      "inputs": [
+        "/nix/store/1854cg50449180a11g8c9c6a1d4c6839-github.com-cli-cli-v2-context.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/1854cg50449180a11g8c9c6a1d4c6839-github.com-cli-cli-v2-context.drv": {
+      "inputs": [
+        "/nix/store/c638gb768gfc6f2142b4b2a6d933234c-github.com-cli-cli-v2-api.drv",
+        "/nix/store/5724396997f46gc1969adbc1a40b0g8a-github.com-cli-cli-v2-pkg-iostreams.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/c638gb768gfc6f2142b4b2a6d933234c-github.com-cli-cli-v2-api.drv": {
+      "inputs": [
+        "/nix/store/ccagbf5632afb283g2572f741991714c-github.com-cli-cli-v2-internal-ghrepo.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/ccagbf5632afb283g2572f741991714c-github.com-cli-cli-v2-internal-ghrepo.drv": {
+      "inputs": [
+        "/nix/store/bb8b5770adafd9bb7g63b6g5ca1d725a-github.com-cli-go-gh-v2-pkg-repository.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/bb8b5770adafd9bb7g63b6g5ca1d725a-github.com-cli-go-gh-v2-pkg-repository.drv": {
+      "inputs": [
+        "/nix/store/dcabf000cg85321d5545a1f362fc4f72-github.com-cli-go-gh-v2-pkg-ssh.drv",
+        "/nix/store/68a150f7c387g71a7f8ff226289g45fd-github.com-cli-safeexec.drv"
+      ],
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/dcabf000cg85321d5545a1f362fc4f72-github.com-cli-go-gh-v2-pkg-ssh.drv": {
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/68a150f7c387g71a7f8ff226289g45fd-github.com-cli-safeexec.drv": {
+      "outputs": {
+        "out": ""
+      }
+    },
+    "/nix/store/5724396997f46gc1969adbc1a40b0g8a-github.com-cli-cli-v2-pkg-iostreams.drv": {
+      "outputs": {
+        "out": ""
+      }
+    }
+  },
+  "produced": {
+    "/nix/store/124768c6ag6gc8fb47680d92b99fg6da-gh.drv.drv": "/nix/store/gb2b7gcf0940161406a6aa3f4d8b4aa6-gh.drv"
+  }
+}

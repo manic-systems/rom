@@ -63,9 +63,11 @@ const STALL_AFTER: f64 = 3.0;
 const BAR_WIDTH: usize = 28;
 /// Narrowest bar worth drawing; narrower terminals drop the bar column.
 const MIN_BAR_WIDTH: usize = 8;
-/// Widest the name column gets, connectors included.
+/// Widest the name column gets by default, connectors included.
 const NAME_WIDTH: usize = 44;
-/// Columns kept for status text right of the bars.
+/// Room every name keeps before the bars, or the bar column is dropped.
+const MIN_NAME_WIDTH: usize = 12;
+/// Most columns kept for status text right of the bars.
 const STATUS_WIDTH: usize = 24;
 
 /// How far a row's work has come, drawn in the bar column.
@@ -737,17 +739,44 @@ impl Renderer<'_> {
 
   /// Lines rows up in columns: names, then bars, then status.
   ///
-  /// Every bar starts in the same column, after the longest name that fits.
-  /// Terminals too narrow for a useful bar keep the status after the name.
+  /// Every bar starts in the same column, after the longest name that fits
+  /// beside a bar.
+  /// Terminals too narrow for a useful bar, or for names on deep rows before
+  /// one, keep the status after the name.
   fn lay_out(&self, rows: Vec<Row>) -> Vec<Line<'static>> {
     let width = usize::from(self.width);
-    // A fixed column keeps bars still while rows come and go.
-    let column = (width * 2 / 5).min(NAME_WIDTH);
-    let bar_width = width
-      .saturating_sub(column + 1 + STATUS_WIDTH)
-      .min(BAR_WIDTH);
-    let bars =
-      rows.iter().any(|row| row.bar.is_some()) && bar_width >= MIN_BAR_WIDTH;
+    // A fixed column keeps bars still while rows come and go. Longer names
+    // push it right, narrowing the bars, as far as a bar still fits.
+    let base = (width * 2 / 5).min(NAME_WIDTH);
+    let (longest, deepest, status) = rows
+      .iter()
+      .filter(|row| row.bar.is_some())
+      .map(|row| {
+        let lead = spans_width(&row.lead);
+        let name = row.name.width();
+        (
+          lead + name,
+          lead + name.min(MIN_NAME_WIDTH),
+          spans_width(&row.status).min(STATUS_WIDTH),
+        )
+      })
+      .fold((0, 0, 0), |widest, row| {
+        (
+          widest.0.max(row.0),
+          widest.1.max(row.1),
+          widest.2.max(row.2),
+        )
+      });
+    let limit = width.saturating_sub(1 + status + MIN_BAR_WIDTH).max(base);
+    let column = longest.clamp(base, limit);
+    let bar_width = width.saturating_sub(column + 1 + status).min(BAR_WIDTH);
+    // Narrow terminals, and rows too deep for a name before the bars, drop
+    // the bar column instead.
+    let roomy = width.saturating_sub(base + 1 + STATUS_WIDTH) >= MIN_BAR_WIDTH;
+    let bars = rows.iter().any(|row| row.bar.is_some())
+      && roomy
+      && bar_width >= MIN_BAR_WIDTH
+      && deepest <= column;
 
     rows
       .into_iter()

@@ -1,0 +1,12 @@
+0 @nix {"action":"msg","level":3,"msg":"these 2 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/124768c6ag6gc8fb47680d92b99fg6da-gh.drv.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/bgd9b7576921f04f7890f048126d6g7b-gh-wrapped-1.0.drv"}
+100 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/124768c6ag6gc8fb47680d92b99fg6da-gh.drv.drv'","type":105,"fields":["/nix/store/124768c6ag6gc8fb47680d92b99fg6da-gh.drv.drv","",1,1]}
+500 @nix {"action":"stop","id":10}
+600 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/dcabf000cg85321d5545a1f362fc4f72-github.com-cli-go-gh-v2-pkg-ssh.drv'","type":105,"fields":["/nix/store/dcabf000cg85321d5545a1f362fc4f72-github.com-cli-go-gh-v2-pkg-ssh.drv","",1,1]}
+600 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/68a150f7c387g71a7f8ff226289g45fd-github.com-cli-safeexec.drv'","type":105,"fields":["/nix/store/68a150f7c387g71a7f8ff226289g45fd-github.com-cli-safeexec.drv","",1,1]}
+600 @nix {"action":"start","id":13,"level":3,"parent":0,"text":"building '/nix/store/5724396997f46gc1969adbc1a40b0g8a-github.com-cli-cli-v2-pkg-iostreams.drv'","type":105,"fields":["/nix/store/5724396997f46gc1969adbc1a40b0g8a-github.com-cli-cli-v2-pkg-iostreams.drv","",1,1]}
+3000 = deep
+4000 @nix {"action":"stop","id":11}
+4000 @nix {"action":"stop","id":12}
+4000 @nix {"action":"stop","id":13}

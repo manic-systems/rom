@@ -52,6 +52,7 @@ def run-fixture [name: string] {
     "dependency-failure" => { fixture dependency-failure }
     "multiple-failures" => { fixture multiple-failures }
     "packages-and-units" => { fixture packages-and-units }
+    "deep-units" => { fixture deep-units }
     "ca-and-dynamic" => { fixture ca-and-dynamic }
     "downloads" => { fixture downloads }
     "unsized-download" => { fixture unsized-download }
@@ -622,6 +623,55 @@ def "fixture packages-and-units" [] {
       )
       produced: { $producer: $package }
       realised: [($objects | get 1)]
+    }
+  }
+}
+
+# Units nested deep enough that their running leaves push the bars right, or
+# drop them on a narrow terminal, to keep their names.
+def "fixture deep-units" [] {
+  let producer = drv "gh.drv"
+  let package = drv "gh"
+  let wrapped = drv "gh-wrapped-1.0"
+  let chain = [
+    cmd-root cmd-repo cmd-factory pkg-cmdutil context api internal-ghrepo
+  ] | each {|name| drv $"github.com-cli-cli-v2-($name)" }
+    | append (drv "github.com-cli-go-gh-v2-pkg-repository")
+  let leaves = [
+    github.com-cli-go-gh-v2-pkg-ssh github.com-cli-safeexec
+    github.com-cli-cli-v2-pkg-iostreams
+  ] | each {|name| drv $name }
+  let floating = { out: "" }
+  let inputs = $chain | enumerate | each {|unit|
+    let below = if $unit.index + 1 < ($chain | length) {
+      [($chain | get ($unit.index + 1))]
+    } else {
+      $leaves | first 2
+    }
+    # A shallower leaf beside the chain.
+    let beside = if $unit.index == 4 { [($leaves | last)] } else { [] }
+    { $unit.item: { inputs: ($below | append $beside), outputs: $floating } }
+  }
+  {
+    events: [
+      (plan-builds 0 [$producer $wrapped])
+      (build 100 10 $producer)
+      (stop 500 10)
+      (build 600 11 ($leaves | get 0))
+      (build 600 12 ($leaves | get 1))
+      (build 600 13 ($leaves | get 2))
+      (check 3000 deep)
+      (stop 4000 11)
+      (stop 4000 12)
+      (stop 4000 13)
+    ]
+    drvs: {
+      derivations: (
+        { $producer: { outputs: $floating }, $wrapped: { dynamic: [$producer] }, $package: { inputs: [($chain | first)], outputs: $floating } }
+        | merge ($inputs | reduce --fold {} {|unit, acc| $acc | merge $unit })
+        | merge ($leaves | reduce --fold {} {|leaf, acc| $acc | insert $leaf { outputs: $floating } })
+      )
+      produced: { $producer: $package }
     }
   }
 }
