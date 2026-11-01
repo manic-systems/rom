@@ -2,7 +2,7 @@
 
 use std::{
   io::{self, IsTerminal, Write},
-  time::{Duration, Instant},
+  time::Duration,
 };
 
 use crossterm::{
@@ -23,8 +23,7 @@ const MIN_LIVE_COLUMNS: u16 = 20;
 const MIN_LIVE_ROWS: u16 = 8;
 const MAX_PENDING_BYTES: usize = 64 * 1024;
 const PARTIAL_LINE_GRACE: f64 = 0.5;
-const MIN_FRAME_INTERVAL: Duration = Duration::from_millis(50);
-const MAX_FRAME_INTERVAL: Duration = Duration::from_secs(1);
+const FRAME_INTERVAL: Duration = Duration::from_micros(33_333);
 
 /// Why live presentation was or was not admitted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -86,7 +85,6 @@ pub struct LiveTerminal<W: Write> {
   partial_line:  bool,
   partial_since: Option<f64>,
   frame:         String,
-  frame_cost:    Duration,
 }
 
 impl<W: Write> LiveTerminal<W> {
@@ -103,7 +101,6 @@ impl<W: Write> LiveTerminal<W> {
       partial_line: false,
       partial_since: None,
       frame: String::new(),
-      frame_cost: Duration::ZERO,
     }
   }
 
@@ -113,10 +110,10 @@ impl<W: Write> LiveTerminal<W> {
     self.retired
   }
 
-  /// Returns the wait before the next frame, scaled to the last frame's cost.
+  /// Returns the target interval between live frames.
   #[must_use]
-  pub fn frame_interval(&self) -> Duration {
-    (self.frame_cost * 10).clamp(MIN_FRAME_INTERVAL, MAX_FRAME_INTERVAL)
+  pub const fn frame_interval(&self) -> Duration {
+    FRAME_INTERVAL
   }
 
   /// Renders one frame, retrying a bounded number of times if the terminal is
@@ -163,7 +160,6 @@ impl<W: Write> LiveTerminal<W> {
       }
     }
     for _ in 0..3 {
-      let begin = Instant::now();
       let (columns, rows) = crossterm::terminal::size()?;
       // The renderer receives one fewer column than the terminal reserves.
       let tree_too_narrow = matches!(config.format, DisplayFormat::Tree)
@@ -204,7 +200,6 @@ impl<W: Write> LiveTerminal<W> {
       self.frame = text;
       self.graph_height = (frame.height + padding as u16).min(rows - 1);
       self.initialized = true;
-      self.frame_cost = begin.elapsed();
       return Ok(true);
     }
     self.retire()?;
