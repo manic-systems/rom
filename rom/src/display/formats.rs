@@ -250,12 +250,13 @@ impl Renderer<'_> {
     ));
     let mut transfers = self.snapshot.transfers().peekable();
     if transfers.peek().is_some() {
-      let transfer = aggregate_transfers(transfers);
       let mut spans = vec![
         span("│  ", self.config.theme.connector),
         span("Transfer  │", self.config.theme.muted),
       ];
-      spans.extend(self.transfer_suffix(&transfer, spans_width(&spans)));
+      for transfer in aggregate_transfers(transfers) {
+        spans.extend(self.transfer_suffix(&transfer, spans_width(&spans)));
+      }
       lines.push(fit_line(spans, self.width));
     }
     lines.push(fit_line(
