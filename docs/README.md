@@ -31,8 +31,8 @@
 
 > **rom** /`rɒm`/ _noun_
 >
-> 1. A Nix build output monitor for hopeless **rom**antics.
-> 2. A flamboyant output monitor for your Nix builds.
+> 1. A flamboyant output monitor for your Nix builds.
+> 2. A Nix build output monitor for hopeless **rom**antics.
 
 ---
 
@@ -65,8 +65,8 @@ To get started with rom, skip to the [Usage](#usage) section.
 - **Build phases, elapsed timers, and progress bars**
 - **Historical duration estimates**
 - **Linux cgroup CPU telemetry**.
-- **Download and upload tracking**: We track both downloads and upload stats
-  and give you byte counts, progress, remote hosts, _and_ aggregation of all of
+- **Download and upload tracking**: We track both downloads and upload stats and
+  give you byte counts, progress, remote hosts, _and_ aggregation of all of
   these! How nice is that!
 
 ## Status
@@ -97,15 +97,17 @@ testing. This repository also provides the latest development version of rom,
 which you can get from the flake outputs.
 
 ```sh
-nix shell nixpkgs#rom # stable
-nix shell github:manic-systems/rom # dev
+# Run rom from either Nixpkgs or the flake
+$ nix shell nixpkgs#rom # stable
+$ nix shell github:manic-systems/rom # dev
 ```
 
 You _can_ of course try rom in a Nix shell today, no setup required!
 
 ```sh
-nix develop
-cargo build
+# Enter a reproducible devshell and build from source
+$ nix develop
+$ cargo build # cargo install if you so choose
 ```
 
 ## Usage
@@ -113,10 +115,11 @@ cargo build
 Put `rom` in place of the Nix command you would have run anyway:
 
 ```sh
-rom build nixpkgs#hello
-rom build .#myPackage -- --no-link
-rom shell .#myShell
-rom develop . -- --impure
+# Monitoring various Nix commands
+$ rom build nixpkgs#hello
+$ rom build .#myPackage -- --no-link
+$ rom shell .#myShell
+$ rom develop . -- --impure
 ```
 
 Other than nice output, rom behaves exactly like Nix!
@@ -128,9 +131,10 @@ environment under rom first, then drop you into the real shell.
 Any other subcommand is monitored too:
 
 ```sh
-rom eval .#version
-rom flake check
-rom run .#app -- --help
+# Other supported subcommands
+$ rom eval .#version
+$ rom flake check
+$ rom run .#app -- --help
 ```
 
 ### Piping
@@ -139,12 +143,15 @@ Without a command, rom reads a log from standard input. Lines starting with
 `@nix` are drawn, and everything else passes through byte for byte:
 
 ```sh
-nix build --log-format internal-json nixpkgs#hello 2>&1 | rom
+# Pipe internal JSON log format to ron to run the monitor
+$ nix build --log-format internal-json nixpkgs#hello 2>&1 | rom
 ```
 
 Use `--json` for a stream of bare internal-JSON records instead.
 
 ### Options
+
+<!--markdownlint-disable MD013-->
 
 | Option                             | Default   | What it changes                            |
 | ---------------------------------- | --------- | ------------------------------------------ |
@@ -156,7 +163,9 @@ Use `--json` for a stream of bare internal-JSON records instead.
 | `--log-lines N`                    | no limit  | builder log lines shown per build          |
 | `--platform nix\|lix`              | detected  | which evaluator to run                     |
 | `--silent`                         |           | hide logs and the graph, keep errors       |
-| `-v`, `-vv`, …                     |           | more diagnostics from Nix and rom          |
+| `-v`, `-vv`, ...                   |           | more diagnostics from Nix and rom          |
+
+<!--markdownlint-enable MD013-->
 
 > [!NOTE]
 > [`FORMATS.md`](./FORMATS.md) shows you what each format looks like.
@@ -224,11 +233,13 @@ maralorn and the other nom contributors dearly for their great work. Comparing
 ourselves to and trying to match nom's quality has been a major part of initial
 rom development.
 
-Conos's ATerm and internal-JSON parser were heavily inspired by
-[nous]. Thank you @atagen!
+Conos's ATerm and internal-JSON parser were heavily inspired by [nous]. Thank
+you [@atagen](https://github.com/atagen)!
 
 ## License
 
-ROM and Cognos are licensed under the European Union Public Licence v. 1.2
-([EUPL-1.2](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)). See
-[`LICENSE`](./../LICENSE).
+[provided here]: https://interoperable-europe.ec.europa.eu/sites/default/files/custom-page/attachment/eupl_v1.2_en.pdf
+
+Both rom and cognos are made made available under European Union Public Licence
+(EUPL) version 1.2. See [LICENSE](../LICENSE) for more details on the exact
+conditions. An online copy is [provided here].
