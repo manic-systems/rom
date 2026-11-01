@@ -58,6 +58,7 @@ def run-fixture [name: string] {
     "ca-and-dynamic" => { fixture ca-and-dynamic }
     "downloads" => { fixture downloads }
     "completion-grace" => { fixture completion-grace }
+    "download-legend" => { fixture download-legend }
     "unsized-download" => { fixture unsized-download }
     "mixed-transfers" => { fixture mixed-transfers }
     "substitution-heavy" => { fixture substitution-heavy }
@@ -800,6 +801,21 @@ def "fixture completion-grace" [] {
   }
 }
 
+# Keep the table legend's height stable when the first download starts.
+def "fixture download-legend" [] {
+  let builds = [alpha-1.0 beta-1.0 gamma-1.0] | each {|name| drv $name }
+  let path = out "legend-download-1.0"
+  {
+    events: [
+      (plan-builds 0 $builds)
+      (plan-fetches 0 [$path] "2 MiB" "8 MiB")
+      ($builds | enumerate | each {|build| build 100 (10 + $build.index) $build.item })
+      (check 1500 before-download)
+      (substitution 20 $path (2 * $mib) 1600 5000)
+      (check 3000 first-download)
+    ]
+  }
+}
 # A substitution without progress, under a build that logs a styled and an
 # over-width line. `pty_live.rs` replays it through the real CLI.
 def "fixture unsized-download" [] {

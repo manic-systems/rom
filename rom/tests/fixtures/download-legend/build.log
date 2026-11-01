@@ -1,0 +1,25 @@
+0 @nix {"action":"msg","level":3,"msg":"these 3 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/44f3a2f1g79f327748558b5b610636g0-alpha-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/61d12gb0f1525267g654695cgab985b8-gamma-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/f1174b1cb2g60bg123cf670880a600d3-beta-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"this path will be fetched (2 MiB download, 8 MiB unpacked):"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/7g0bb71gf6b05007749bb37cb457187b-legend-download-1.0"}
+100 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/44f3a2f1g79f327748558b5b610636g0-alpha-1.0.drv'","type":105,"fields":["/nix/store/44f3a2f1g79f327748558b5b610636g0-alpha-1.0.drv","",1,1]}
+100 @nix {"action":"start","id":11,"level":3,"parent":0,"text":"building '/nix/store/f1174b1cb2g60bg123cf670880a600d3-beta-1.0.drv'","type":105,"fields":["/nix/store/f1174b1cb2g60bg123cf670880a600d3-beta-1.0.drv","",1,1]}
+100 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/61d12gb0f1525267g654695cgab985b8-gamma-1.0.drv'","type":105,"fields":["/nix/store/61d12gb0f1525267g654695cgab985b8-gamma-1.0.drv","",1,1]}
+1500 = before-download
+1600 @nix {"action":"start","id":20,"level":3,"parent":0,"text":"copying path '/nix/store/7g0bb71gf6b05007749bb37cb457187b-legend-download-1.0' from 'https://cache.nixos.org'","type":108,"fields":["/nix/store/7g0bb71gf6b05007749bb37cb457187b-legend-download-1.0","https://cache.nixos.org"]}
+1600 @nix {"action":"start","id":21,"level":3,"parent":20,"text":"copying path '/nix/store/7g0bb71gf6b05007749bb37cb457187b-legend-download-1.0' from 'https://cache.nixos.org'","type":100,"fields":["/nix/store/7g0bb71gf6b05007749bb37cb457187b-legend-download-1.0","https://cache.nixos.org","local"]}
+1620 @nix {"action":"start","id":22,"level":3,"parent":21,"text":"downloading 'https://cache.nixos.org/nar/7g0bb71gf6b05007749bb37cb457187b-legend-download-1.0.nar.xz'","type":101,"fields":["https://cache.nixos.org/nar/7g0bb71gf6b05007749bb37cb457187b-legend-download-1.0.nar.xz"]}
+2025 @nix {"action":"result","id":21,"type":105,"fields":[262144,2097152,1,0]}
+2450 @nix {"action":"result","id":21,"type":105,"fields":[524288,2097152,1,0]}
+2875 @nix {"action":"result","id":21,"type":105,"fields":[786432,2097152,1,0]}
+3000 = first-download
+3300 @nix {"action":"result","id":21,"type":105,"fields":[1048576,2097152,1,0]}
+3725 @nix {"action":"result","id":21,"type":105,"fields":[1310720,2097152,1,0]}
+4150 @nix {"action":"result","id":21,"type":105,"fields":[1572864,2097152,1,0]}
+4575 @nix {"action":"result","id":21,"type":105,"fields":[1835008,2097152,1,0]}
+5000 @nix {"action":"result","id":21,"type":105,"fields":[2097152,2097152,1,0]}
+5000 @nix {"action":"stop","id":22}
+5000 @nix {"action":"stop","id":21}
+5000 @nix {"action":"stop","id":20}
