@@ -1,0 +1,16 @@
+0 @nix {"action":"msg","level":3,"msg":"these 4 derivations will be built:"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/2097c7298dbb7cfad6a7fag8904g29bf-alpha-child-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/27a70gg5ab68b556d12825074278c0f0-alpha-root-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/67d553957acd7957g714fb4gcabb736d-beta-root-1.0.drv"}
+0 @nix {"action":"msg","level":3,"msg":"  /nix/store/9ba7g043552g6g7d8568f9b7g599fccd-beta-child-1.0.drv"}
+0 @nix {"action":"start","id":10,"level":3,"parent":0,"text":"building '/nix/store/27a70gg5ab68b556d12825074278c0f0-alpha-root-1.0.drv'","type":105,"fields":["/nix/store/27a70gg5ab68b556d12825074278c0f0-alpha-root-1.0.drv","",1,1]}
+50 @nix {"action":"start","id":11,"level":3,"parent":10,"text":"building '/nix/store/2097c7298dbb7cfad6a7fag8904g29bf-alpha-child-1.0.drv'","type":105,"fields":["/nix/store/2097c7298dbb7cfad6a7fag8904g29bf-alpha-child-1.0.drv","",1,1]}
+100 @nix {"action":"start","id":12,"level":3,"parent":0,"text":"building '/nix/store/67d553957acd7957g714fb4gcabb736d-beta-root-1.0.drv'","type":105,"fields":["/nix/store/67d553957acd7957g714fb4gcabb736d-beta-root-1.0.drv","",1,1]}
+150 @nix {"action":"start","id":13,"level":3,"parent":12,"text":"building '/nix/store/9ba7g043552g6g7d8568f9b7g599fccd-beta-child-1.0.drv'","type":105,"fields":["/nix/store/9ba7g043552g6g7d8568f9b7g599fccd-beta-child-1.0.drv","",1,1]}
+1500 = before
+2500 @nix {"action":"stop","id":11}
+4000 = after
+5000 @nix {"action":"stop","id":13}
+5500 @nix {"action":"stop","id":10}
+5500 @nix {"action":"stop","id":12}
+7000 = settled

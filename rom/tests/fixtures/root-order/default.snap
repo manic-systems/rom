@@ -1,0 +1,31 @@
+=== before @ 1500ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ alpha-root-1.0\e[0m             \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ alpha-child-1.0\e[0m         \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ \e[0;33m⏵ beta-root-1.0\e[0m              \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ beta-child-1.0\e[0m          \e[0;90m──\e[0;33m╺━━━╸\e[0;90m─────────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 4       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 1s
+=== after @ 4000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m├─ \e[0;33m⏵ alpha-root-1.0\e[0m             \e[0;90m──────────────────────\e[0;33m╺━━━╸\e[0;90m─\e[0;37m  ⏱ 4s\e[0m
+\e[0;90m├─ \e[0;33m⏵ beta-root-1.0\e[0m              \e[0;90m───────────────────────\e[0;33m╺━━━╸\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ beta-child-1.0\e[0m          \e[0;90m──────────────────────\e[0;33m╺━━━╸\e[0;90m─\e[0;37m  ⏱ 3s\e[0m
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 3       \e[0;32m✔ 1         \e[0;34m⏸ 0       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 4s
+=== settled @ 7000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
+\e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 4         \e[0;34m⏸ 0       \e[0m∑ 4
+\e[0;90m┗━ \e[0mElapsed ⏱ 7s
+=== finished @ 7000ms ===
+\e[0;90m╭─ \e[0mBuilds
+\e[0;90m┕━ \e[0;32mFinished after 7s\e[0m
+=== log ===
+these 4 derivations will be built:\e[0m
+  /nix/store/2097c7298dbb7cfad6a7fag8904g29bf-alpha-child-1.0.drv\e[0m
+  /nix/store/27a70gg5ab68b556d12825074278c0f0-alpha-root-1.0.drv\e[0m
+  /nix/store/67d553957acd7957g714fb4gcabb736d-beta-root-1.0.drv\e[0m
+  /nix/store/9ba7g043552g6g7d8568f9b7g599fccd-beta-child-1.0.drv\e[0m

@@ -45,6 +45,7 @@ def run-fixture [name: string] {
     "deep-chain" => { fixture deep-chain }
     "wide-fanout" => { fixture wide-fanout }
     "grow-shrink" => { fixture grow-shrink }
+    "root-order" => { fixture root-order }
     "shared-names" => { fixture shared-names }
     "planned-lifecycle" => { fixture planned-lifecycle }
     "sub-second-builds" => { fixture sub-second-builds }
@@ -446,6 +447,37 @@ def "fixture planned-lifecycle" [] {
       (stop 5000 12)
     ]
     drvs: { derivations: { $app: { inputs: [$lib] }, $lib: { inputs: [$dep] } } }
+  }
+}
+
+# Two active root branches must keep their order when one child finishes.
+def "fixture root-order" [] {
+  let alpha_child = drv "alpha-child-1.0"
+  let alpha_root = drv "alpha-root-1.0"
+  let beta_child = drv "beta-child-1.0"
+  let beta_root = drv "beta-root-1.0"
+  let tasks = [
+    { drv: $alpha_root, inputs: [$alpha_child] }
+    { drv: $alpha_child, inputs: [] }
+    { drv: $beta_root, inputs: [$beta_child] }
+    { drv: $beta_child, inputs: [] }
+  ]
+  {
+    events: [
+      (plan-builds 0 ($tasks | get drv))
+      (build 0 10 $alpha_root)
+      (build 50 11 $alpha_child --parent 10)
+      (build 100 12 $beta_root)
+      (build 150 13 $beta_child --parent 12)
+      (check 1500 before)
+      (stop 2500 11)
+      (check 4000 after)
+      (stop 5000 13)
+      (stop 5500 10)
+      (stop 5500 12)
+      (check 7000 settled)
+    ]
+    drvs: { derivations: (edges $tasks) }
   }
 }
 
