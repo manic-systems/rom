@@ -11,7 +11,7 @@ use rom::{
   EngineConfig,
   display::render_frame,
   monitor::{DerivationResolver, Engine},
-  types::{DisplayFormat, RenderConfig},
+  types::{DisplayFormat, IconMode, RenderConfig},
 };
 use serde_json::json;
 
@@ -123,6 +123,7 @@ fn frame(
     engine.state(),
     &RenderConfig {
       format,
+      icons: IconMode::Nerd,
       ..RenderConfig::default()
     },
     now,

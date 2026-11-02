@@ -108,7 +108,7 @@ pub struct DisplayOptions {
   #[pound(long, global)]
   pub summary: Option<SummaryStyle>,
 
-  /// Icon set. Defaults to nerd.
+  /// Icon set. Defaults to auto.
   #[pound(long, global)]
   pub icons: Option<IconMode>,
 

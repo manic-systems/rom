@@ -130,15 +130,20 @@ pub struct Theme {
 }
 
 /// Icon selection.
+///
+/// `Auto` selects Nerd Fonts for terminals known to bundle those glyphs and
+/// falls back to plain Unicode otherwise.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
 #[cfg_attr(feature = "cli", derive(serde::Deserialize))]
 #[cfg_attr(feature = "cli", serde(rename_all = "kebab-case"))]
 pub enum IconMode {
+  /// Selects Nerd Fonts when the terminal is known to provide them.
+  #[default]
+  Auto,
   /// Plain Unicode symbols.
   Unicode,
   /// Nerd Fonts glyphs.
-  #[default]
   Nerd,
 }
 
@@ -236,7 +241,7 @@ impl Default for RenderConfig {
       legend_style:   LegendStyle::Table,
       summary_style:  SummaryStyle::Concise,
       theme:          Theme::default(),
-      icons:          IconMode::Nerd,
+      icons:          IconMode::Auto,
     }
   }
 }
