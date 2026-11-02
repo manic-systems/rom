@@ -1,7 +1,7 @@
 //! Command-line interface and Nix/Lix process adapters.
 
 use std::{
-  collections::HashSet,
+  collections::{HashSet, VecDeque},
   env::{self, VarError},
   fs,
   io::{self, IsTerminal, Read, Write},
@@ -475,6 +475,68 @@ fn exit_code(code: i32) -> ExitCode {
   ExitCode::from(low)
 }
 
+/// Returns the store Nix builds in when `arguments` name one, through
+/// `--store X` or `--option store X`.
+///
+/// Like Nix, the last one wins and parsing ends at `--` or with the command
+/// `--command` runs. Words taken as another flag's value, such as
+/// `--argstr name --store`, are skipped, as far as the flags Nix commonly gives
+/// values go. Grouped short flags split as Nix splits them.
+fn build_store(arguments: &[String]) -> Option<String> {
+  let mut store = None;
+  let mut words = arguments.iter().cloned().collect::<VecDeque<String>>();
+  while let Some(word) = next_flag(&mut words) {
+    let mut operand = || words.pop_front();
+    match word.as_str() {
+      "--" | "--command" | "-c" => break,
+      "--store" => store = operand().or(store),
+      "--option" => {
+        let (name, value) = (operand(), operand());
+        if name.is_some_and(|name| name == "store") {
+          store = value.or(store);
+        }
+      },
+      "--arg" | "--argstr" | "--arg-from-file" | "--override-input"
+      | "--override-flake" | "--set-env-var" | "-s" | "--redirect" => {
+        operand();
+        operand();
+      },
+      "--expr" | "--apply" | "--file" | "-f" | "--include" | "-I"
+      | "--eval-store" | "--arg-from-stdin" | "--out-link" | "-o"
+      | "--profile" | "--unset-env-var" | "--unset" | "-u" | "--keep"
+      | "--keep-env-var" | "-k" => {
+        operand();
+      },
+      _ => {},
+    }
+  }
+  store
+}
+
+/// Takes the next word in flag position, splitting a group of short flags as
+/// Nix does: `-vI` into `-v -I`, and `-I./path` into `-I ./path`.
+fn next_flag(words: &mut VecDeque<String>) -> Option<String> {
+  let word = words.pop_front()?;
+  if let [b'-', letter, _, ..] = word.as_bytes()
+    && letter.is_ascii_alphabetic()
+  {
+    let mut rest = Vec::new();
+    for (offset, letter) in word.char_indices().skip(2) {
+      if letter.is_ascii_alphabetic() {
+        rest.push(format!("-{letter}"));
+      } else {
+        rest.push(word[offset..].to_owned());
+        break;
+      }
+    }
+    for part in rest.into_iter().rev() {
+      words.push_front(part);
+    }
+    return Some(word[..2].to_owned());
+  }
+  Some(word)
+}
+
 fn run_monitored_command(
   program: &str,
   arguments: Vec<String>,
@@ -484,6 +546,7 @@ fn run_monitored_command(
 
   // A dry run exits 0 with the same "will be built" announcements.
   let builds = !arguments.iter().any(|argument| argument == "--dry-run");
+  let store = build_store(&arguments);
 
   let mut command = Command::new(program);
   command
@@ -548,6 +611,7 @@ fn run_monitored_command(
   let result = drive(
     &receiver,
     monitor_config,
+    store.as_deref(),
     false,
     &interrupted,
     builds.then_some(&mut child),
@@ -654,7 +718,7 @@ fn run_input<R: Read + Send + 'static>(
   config: Config,
 ) -> misstep::Result<()> {
   let (receiver, reader_thread) = byte_reader(reader);
-  drive(&receiver, config, true, &AtomicBool::new(false), None)?;
+  drive(&receiver, config, None, true, &AtomicBool::new(false), None)?;
   reader_thread
     .join()
     .map_err(|_| misstep::report!("input reader panicked"))?
@@ -911,6 +975,7 @@ fn watch(
 fn drive(
   receiver: &Receiver<io::Result<Vec<u8>>>,
   config: Config,
+  store: Option<&str>,
   semantic_failure_is_error: bool,
   interrupted: &AtomicBool,
   child: Option<&mut Child>,
@@ -929,9 +994,10 @@ fn drive(
       .context("loading fixture derivations")?;
     stream.engine_mut().set_resolver(resolver);
   } else {
-    stream
-      .engine_mut()
-      .set_resolver(FilesystemResolver::default());
+    stream.engine_mut().set_resolver(store.map_or_else(
+      FilesystemResolver::default,
+      FilesystemResolver::with_store,
+    ));
   }
   stream.engine_mut().load_history(&history);
 

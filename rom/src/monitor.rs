@@ -69,6 +69,19 @@ pub trait DerivationResolver: Send + Sync {
   /// return without waiting.
   fn request_writer(&self, _drv: PathBuf, _producers: Vec<PathBuf>) {}
 
+  /// Asks for a `.drv` file [`Self::resolve`] could not read, which a build
+  /// in another store wrote there. Once [`Self::answers`] reports it
+  /// [`Answer::Fetched`], [`Self::resolve`] reads it.
+  ///
+  /// Like [`Self::request_produced`], it must return without waiting.
+  fn request_derivation(&self, _path: PathBuf) {}
+
+  /// Asks which derivations take `drv` as an input, for a build that started
+  /// without a known parent. Answers come back as [`Answer::Referrers`].
+  ///
+  /// Like [`Self::request_produced`], it must return without waiting.
+  fn request_referrers(&self, _drv: PathBuf) {}
+
   /// Asks whether each content-addressed derivation's outputs are already
   /// realised, without building anything.
   ///
@@ -99,6 +112,15 @@ pub enum Answer {
   Produced(ProducedDrv),
   /// The answer to a [`DerivationResolver::request_realised`] lookup.
   Realised(RealisedDrv),
+  /// A [`DerivationResolver::request_derivation`] fetch, ready to resolve.
+  Fetched(PathBuf),
+  /// The answer to a [`DerivationResolver::request_referrers`] lookup.
+  Referrers {
+    /// The derivation asked about.
+    drv:       PathBuf,
+    /// The derivations that take it as an input.
+    referrers: Vec<PathBuf>,
+  },
 }
 
 /// What a dynamic-derivation producer wrote.
@@ -125,16 +147,17 @@ pub struct RealisedDrv {
 /// Nix finds realised gets no build activity, so Nix's build trace is the
 /// only record of either. A worker thread reads it, batching lookups that
 /// arrive together into as few `nix` calls as it can.
+///
+/// A remote build writes dynamic derivations into the store it builds in,
+/// so [`Self::with_store`] points lookups there and fetches the `.drv` files
+/// missing locally in the background.
 #[derive(Default)]
 pub struct FilesystemResolver {
+  store:  Option<Arc<str>>,
   worker: OnceLock<TraceWorker>,
 }
 
 enum TraceRequest {
-  Writer {
-    drv:       PathBuf,
-    producers: Vec<PathBuf>,
-  },
   Realised(Vec<PathBuf>),
 }
 
@@ -143,9 +166,33 @@ enum TraceRequest {
 struct TraceWorker {
   requests: Sender<TraceRequest>,
   lookups:  Arc<(Mutex<LookupQueue>, Condvar)>,
+  fetches:  Arc<(Mutex<FetchQueue>, Condvar)>,
+  /// Derivations fetched from the build store, until resolved.
+  fetched:  Arc<Mutex<HashMap<PathBuf, cognos::ParsedDerivation>>>,
   known:    Mutex<KnownProducers>,
   answered: Sender<Answer>,
   answers:  Mutex<Receiver<Answer>>,
+}
+
+/// Reads from the build store, each asked for once.
+#[derive(Default)]
+struct FetchQueue {
+  pending: VecDeque<Fetch>,
+  asked:   HashSet<Fetch>,
+  closed:  bool,
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+enum Fetch {
+  /// A `.drv` file missing locally.
+  Derivation(PathBuf),
+  /// The derivations that take one as an input.
+  Referrers(PathBuf),
+  /// Which of `producers` wrote `drv`.
+  Writer {
+    drv:       PathBuf,
+    producers: Vec<PathBuf>,
+  },
 }
 
 /// Producers an earlier run linked, kept since looking one up by its original
@@ -243,6 +290,11 @@ impl Drop for TraceWorker {
       queue.closed = true;
     }
     ready.notify_all();
+    let (queue, ready) = &*self.fetches;
+    if let Ok(mut queue) = queue.lock() {
+      queue.closed = true;
+    }
+    ready.notify_all();
     if let Ok(live) = LIVE_LOOKUPS.lock() {
       live.iter().copied().for_each(kill_lookup);
     }
@@ -250,15 +302,66 @@ impl Drop for TraceWorker {
 }
 
 impl TraceWorker {
-  fn spawn() -> Self {
+  fn spawn(store: Option<Arc<str>>) -> Self {
     let (requests, pending) = mpsc::channel::<TraceRequest>();
     let (answered, answers) = mpsc::channel();
     let lookups =
       Arc::new((Mutex::new(LookupQueue::default()), Condvar::new()));
+    let fetch_queue =
+      Arc::new((Mutex::new(FetchQueue::default()), Condvar::new()));
+    let fetched_drvs = Arc::new(Mutex::new(HashMap::new()));
     let known = Mutex::new(KnownProducers::load());
+    for _ in 0..PARALLEL_FETCHES {
+      let queued = Arc::clone(&fetch_queue);
+      let fetched = Arc::clone(&fetched_drvs);
+      let answered = answered.clone();
+      let store = store.clone();
+      let fetch_thread = thread::Builder::new()
+        .name("rom-fetch".to_owned())
+        .spawn(move || {
+          while let Some(fetch) = next_fetch(&queued) {
+            let answer = match fetch {
+              Fetch::Derivation(path) => {
+                let Some(parsed) = store
+                  .as_deref()
+                  .and_then(|store| fetch_derivation(&path, store))
+                else {
+                  continue;
+                };
+                if let Ok(mut fetched) = fetched.lock() {
+                  fetched.insert(path.clone(), parsed);
+                }
+                Answer::Fetched(path)
+              },
+              Fetch::Referrers(drv) => {
+                let referrers = referrers(&drv, store.as_deref());
+                Answer::Referrers { drv, referrers }
+              },
+              Fetch::Writer { drv, producers } => {
+                let Some(producer) =
+                  find_writer(&drv, producers, store.as_deref())
+                else {
+                  continue;
+                };
+                Answer::Produced(ProducedDrv {
+                  producer,
+                  drv: Some(drv),
+                })
+              },
+            };
+            if answered.send(answer).is_err() {
+              return;
+            }
+          }
+        });
+      if let Err(error) = fetch_thread {
+        tracing::warn!("cannot read the build store: {error}");
+      }
+    }
     for _ in 0..PARALLEL_LOOKUPS {
       let queued = Arc::clone(&lookups);
       let answered = answered.clone();
+      let store = store.clone();
       let lookup_thread = thread::Builder::new()
         .name("rom-producers".to_owned())
         .spawn(move || {
@@ -268,7 +371,7 @@ impl TraceWorker {
             };
 
             let mut answers = Vec::new();
-            look_up_batch(batch, &mut answers);
+            look_up_batch(batch, store.as_deref(), &mut answers);
             for answer in answers {
               if answered.send(answer).is_err() {
                 return;
@@ -288,22 +391,10 @@ impl TraceWorker {
           let mut drvs = Vec::new();
           let mut batch = Vec::new();
           for request in iter::once(first).chain(pending.try_iter()) {
-            match request {
-              TraceRequest::Writer {
-                drv,
-                producers: candidates,
-              } => {
-                batch.extend(find_writer(&drv, candidates).map(|producer| {
-                  Answer::Produced(ProducedDrv {
-                    producer,
-                    drv: Some(drv),
-                  })
-                }));
-              },
-              TraceRequest::Realised(paths) => drvs.extend(paths),
-            }
+            let TraceRequest::Realised(paths) = request;
+            drvs.extend(paths);
           }
-          check_realised(drvs, &mut batch);
+          check_realised(drvs, store.as_deref(), &mut batch);
           for answer in batch {
             if traced.send(answer).is_err() {
               return;
@@ -317,6 +408,8 @@ impl TraceWorker {
     Self {
       requests,
       lookups,
+      fetches: fetch_queue,
+      fetched: fetched_drvs,
       known,
       answered,
       answers: Mutex::new(answers),
@@ -325,13 +418,36 @@ impl TraceWorker {
 }
 
 impl FilesystemResolver {
+  /// Resolves against `store`, the store Nix builds in, such as
+  /// `ssh-ng://host` for `--store ssh-ng://host`.
+  #[must_use]
+  pub fn with_store(store: &str) -> Self {
+    Self {
+      store:  Some(store.into()),
+      worker: OnceLock::new(),
+    }
+  }
+
+  fn worker(&self) -> &TraceWorker {
+    self
+      .worker
+      .get_or_init(|| TraceWorker::spawn(self.store.clone()))
+  }
+
+  fn fetch(&self, fetch: Fetch) {
+    let (queue, ready) = &*self.worker().fetches;
+    let Ok(mut queue) = queue.lock() else {
+      return;
+    };
+    if queue.asked.insert(fetch.clone()) {
+      queue.pending.push_back(fetch);
+      ready.notify_one();
+    }
+  }
+
   fn request(&self, request: TraceRequest) {
     // A send only fails once the worker is gone, which it already reported.
-    let _sent = self
-      .worker
-      .get_or_init(TraceWorker::spawn)
-      .requests
-      .send(request);
+    let _sent = self.worker().requests.send(request);
   }
 }
 
@@ -340,7 +456,29 @@ impl DerivationResolver for FilesystemResolver {
     &self,
     path: &Path,
   ) -> std::result::Result<cognos::ParsedDerivation, cognos::aterm::Error> {
-    cognos::parse_drv_file(path)
+    let error = match cognos::parse_drv_file(path) {
+      Err(error @ cognos::aterm::Error::Read { .. })
+        if self.store.is_some() =>
+      {
+        error
+      },
+      parsed => return parsed,
+    };
+    self
+      .worker
+      .get()
+      .and_then(|worker| worker.fetched.lock().ok()?.remove(path))
+      .ok_or(error)
+  }
+
+  fn request_derivation(&self, path: PathBuf) {
+    if self.store.is_some() {
+      self.fetch(Fetch::Derivation(path));
+    }
+  }
+
+  fn request_referrers(&self, drv: PathBuf) {
+    self.fetch(Fetch::Referrers(drv));
   }
 
   fn request_produced(
@@ -348,7 +486,7 @@ impl DerivationResolver for FilesystemResolver {
     mut producers: Vec<PathBuf>,
     priority: LookupPriority,
   ) {
-    let worker = self.worker.get_or_init(TraceWorker::spawn);
+    let worker = self.worker();
     if let Ok(known) = worker.known.lock() {
       producers.retain(|producer| {
         let Some(drv) = known.links.get(producer).cloned() else {
@@ -374,14 +512,14 @@ impl DerivationResolver for FilesystemResolver {
   }
 
   fn remember_produced(&self, producer: &Path, drv: &Path) {
-    let worker = self.worker.get_or_init(TraceWorker::spawn);
+    let worker = self.worker();
     if let Ok(mut known) = worker.known.lock() {
       known.remember(producer, drv);
     }
   }
 
   fn request_writer(&self, drv: PathBuf, producers: Vec<PathBuf>) {
-    self.request(TraceRequest::Writer { drv, producers });
+    self.fetch(Fetch::Writer { drv, producers });
   }
 
   fn request_realised(&self, drvs: Vec<PathBuf>) {
@@ -401,11 +539,15 @@ impl DerivationResolver for FilesystemResolver {
 
 /// Nix lists a batch's realised paths out of request order and fails it if
 /// one is unbuilt, so a hit is halved down to the one producer.
-fn find_writer(drv: &Path, producers: Vec<PathBuf>) -> Option<PathBuf> {
+fn find_writer(
+  drv: &Path,
+  producers: Vec<PathBuf>,
+  store: Option<&str>,
+) -> Option<PathBuf> {
   if producers.is_empty() || TRACE_UNAVAILABLE.load(Ordering::Relaxed) {
     return None;
   }
-  let found = match build_trace(&producers) {
+  let found = match build_trace(&producers, store) {
     Ok(entries) => {
       entries
         .iter()
@@ -425,7 +567,7 @@ fn find_writer(drv: &Path, producers: Vec<PathBuf>) -> Option<PathBuf> {
     return first.pop();
   }
   let second = first.split_off(first.len() / 2);
-  find_writer(drv, first).or_else(|| find_writer(drv, second))
+  find_writer(drv, first, store).or_else(|| find_writer(drv, second, store))
 }
 
 static TRACE_UNAVAILABLE: AtomicBool = AtomicBool::new(false);
@@ -438,11 +580,15 @@ fn report_unavailable(reason: &str) {
 
 /// Answers whether each derivation is realised, halving any batch Nix
 /// rejects, since one unbuilt derivation fails the whole call.
-fn check_realised(drvs: Vec<PathBuf>, answers: &mut Vec<Answer>) {
+fn check_realised(
+  drvs: Vec<PathBuf>,
+  store: Option<&str>,
+  answers: &mut Vec<Answer>,
+) {
   if drvs.is_empty() {
     return;
   }
-  let realised = build_trace(&drvs).is_ok();
+  let realised = build_trace(&drvs, store).is_ok();
   if realised || drvs.len() == 1 {
     answers.extend(
       drvs
@@ -453,8 +599,72 @@ fn check_realised(drvs: Vec<PathBuf>, answers: &mut Vec<Answer>) {
   }
   let mut first = drvs;
   let second = first.split_off(first.len() / 2);
-  check_realised(first, answers);
-  check_realised(second, answers);
+  check_realised(first, store, answers);
+  check_realised(second, store, answers);
+}
+
+/// Waits for a queued fetch, or returns `None` once the worker is dropped.
+fn next_fetch(fetches: &(Mutex<FetchQueue>, Condvar)) -> Option<Fetch> {
+  let (queue, ready) = fetches;
+  let mut queue = queue.lock().ok()?;
+  loop {
+    if queue.closed {
+      return None;
+    }
+    if let Some(fetch) = queue.pending.pop_front() {
+      return Some(fetch);
+    }
+    queue = ready.wait(queue).ok()?;
+  }
+}
+
+/// Most referrers of a derivation linked as its consumers, since a store
+/// can hold many derivations that take a common one.
+const MAX_REFERRERS: usize = 16;
+
+/// Lists the derivations in `store` that take `drv` as an input.
+fn referrers(drv: &Path, store: Option<&str>) -> Vec<PathBuf> {
+  let mut command = nix_binary("nix-store");
+  if let Some(store) = store {
+    command.args(["--store", store]);
+  }
+  let Ok(output) =
+    run_lookup(command.args(["--query", "--referrers"]).arg(drv))
+  else {
+    return Vec::new();
+  };
+  String::from_utf8_lossy(&output.stdout)
+    .lines()
+    .map(PathBuf::from)
+    .filter(|path| path.extension().is_some_and(|extension| extension == "drv"))
+    .take(MAX_REFERRERS)
+    .collect()
+}
+
+/// Reads a `.drv` file from `store`.
+fn fetch_derivation(
+  path: &Path,
+  store: &str,
+) -> Option<cognos::ParsedDerivation> {
+  let output =
+    run_lookup(nix_command(Some(store)).args(["store", "cat"]).arg(path))
+      .inspect_err(|error| {
+        tracing::debug!("cannot fetch {}: {error}", path.display());
+      })
+      .ok()?;
+  if !output.status.success() {
+    tracing::debug!(
+      "cannot fetch {}: {}",
+      path.display(),
+      String::from_utf8_lossy(&output.stderr).trim()
+    );
+    return None;
+  }
+  cognos::parse_drv_content(&output.stdout)
+    .inspect_err(|error| {
+      tracing::debug!("cannot parse {}: {error}", path.display());
+    })
+    .ok()
 }
 
 /// Waits for queued producer lookups and takes a batch, attaching ones first,
@@ -480,6 +690,8 @@ fn next_batch(lookups: &(Mutex<LookupQueue>, Condvar)) -> Option<Vec<PathBuf>> {
 }
 
 const PARALLEL_LOOKUPS: usize = 2;
+/// Each fetch is a round trip to the build store, mostly spent waiting.
+const PARALLEL_FETCHES: usize = 4;
 const REALISED_DELAY: f64 = 2.0;
 const BATCH_LOOKUPS: usize = 64;
 const LOOKUP_TIMEOUT: Duration = Duration::from_secs(60);
@@ -489,7 +701,15 @@ static LIVE_LOOKUPS: Mutex<Vec<u32>> = Mutex::new(Vec::new());
 
 /// Returns a `nix` command that the kernel kills along with rom's lookup
 /// thread, since Nix can spin on some lookups for good.
-fn nix_command() -> Command {
+fn nix_command(store: Option<&str>) -> Command {
+  let mut command = nix_binary("nix");
+  if let Some(store) = store {
+    command.args(["--store", store]);
+  }
+  command
+}
+
+fn nix_binary(program: &str) -> Command {
   #[cfg(target_os = "linux")]
   {
     use std::env;
@@ -508,11 +728,11 @@ fn nix_command() -> Command {
     });
     if setpriv {
       let mut command = Command::new("setpriv");
-      command.args(["--pdeathsig", "KILL", "--", "nix"]);
+      command.args(["--pdeathsig", "KILL", "--", program]);
       return command;
     }
   }
-  Command::new("nix")
+  Command::new(program)
 }
 
 /// Kills a lookup, which must still be in the locked `LIVE_LOOKUPS`.
@@ -609,7 +829,11 @@ fn collect_lookup(mut child: Child) -> io::Result<process::Output> {
 
 /// Answers a batch of producers in one `nix path-info`, halving any batch Nix
 /// rejects, since one unbuilt producer fails the whole call.
-fn look_up_batch(producers: Vec<PathBuf>, answers: &mut Vec<Answer>) {
+fn look_up_batch(
+  producers: Vec<PathBuf>,
+  store: Option<&str>,
+  answers: &mut Vec<Answer>,
+) {
   if producers.is_empty() {
     return;
   }
@@ -623,7 +847,7 @@ fn look_up_batch(producers: Vec<PathBuf>, answers: &mut Vec<Answer>) {
       .partition::<Vec<PathBuf>, _>(|producer| {
         names.insert(output_name(producer))
       });
-  look_up_batch(rest, answers);
+  look_up_batch(rest, store, answers);
 
   let unanswered = |batch: Vec<PathBuf>, answers: &mut Vec<Answer>| {
     answers.extend(batch.into_iter().map(|producer| {
@@ -639,8 +863,8 @@ fn look_up_batch(producers: Vec<PathBuf>, answers: &mut Vec<Answer>) {
       return;
     }
     let second = first.split_off(first.len() / 2);
-    look_up_batch(first, answers);
-    look_up_batch(second, answers);
+    look_up_batch(first, store, answers);
+    look_up_batch(second, store, answers);
   };
   if TRACE_UNAVAILABLE.load(Ordering::Relaxed) {
     unanswered(batch, answers);
@@ -648,11 +872,13 @@ fn look_up_batch(producers: Vec<PathBuf>, answers: &mut Vec<Answer>) {
   }
 
   let output = match run_lookup(
-    nix_command().args(["path-info", "--max-jobs", "0"]).args(
-      batch
-        .iter()
-        .map(|producer| format!("{}^out", producer.display())),
-    ),
+    nix_command(store)
+      .args(["path-info", "--max-jobs", "0"])
+      .args(
+        batch
+          .iter()
+          .map(|producer| format!("{}^out", producer.display())),
+      ),
   ) {
     Ok(output) => output,
     Err(error) if error.kind() == io::ErrorKind::TimedOut => {
@@ -719,9 +945,10 @@ struct TraceEntry {
 /// Reads Nix's build trace for each producer's `out`.
 fn build_trace(
   producers: &[PathBuf],
+  store: Option<&str>,
 ) -> std::result::Result<Vec<TraceEntry>, TraceError> {
   let output = run_lookup(
-    nix_command()
+    nix_command(store)
       .args(["store", "build-trace", "info", "--json", "--max-jobs", "0"])
       .args(
         producers
@@ -922,6 +1149,38 @@ impl Engine {
               .and_then(|info| info.package(written)),
           );
           true
+        },
+        Answer::Referrers { drv, referrers } => {
+          let Some(id) = tree.state.derivation_id(&drv) else {
+            continue;
+          };
+          let mut linked = false;
+          for referrer in referrers {
+            let Some(derivation) =
+              referrer.to_str().and_then(Derivation::parse)
+            else {
+              continue;
+            };
+            let consumer = tree.state.get_or_create_derivation_id(derivation);
+            linked |= tree.state.link_dependency(consumer, id);
+            linked |= tree.resolve(referrer);
+            // A consumer that is itself unplaced leads further up.
+            if tree
+              .state
+              .get_derivation_info(consumer)
+              .is_some_and(|info| info.derivation_parents.is_empty())
+            {
+              tree.request_produced(Lookup::Orphan(consumer));
+            }
+          }
+          linked
+        },
+        Answer::Fetched(path) => {
+          let fetched = tree.resolve(path.clone());
+          if let Some(id) = tree.state.derivation_id(&path) {
+            tree.look_up_inputs(id);
+          }
+          fetched
         },
         Answer::Realised(RealisedDrv { drv, realised }) => {
           let Some(id) = tree.state.derivation_id(&drv) else {
@@ -1338,6 +1597,7 @@ struct DerivationTree<'engine> {
 impl DerivationTree<'_> {
   fn resolve(&mut self, root: PathBuf) -> bool {
     let mut pending = vec![root];
+    let root = pending[0].clone();
     let mut changed = false;
     while let Some(path) = pending.pop() {
       if self.resolved.contains(&path) {
@@ -1349,6 +1609,19 @@ impl DerivationTree<'_> {
       let id = self.state.get_or_create_derivation_id(derivation);
       let parsed = match self.resolver.resolve(&path) {
         Ok(parsed) => parsed,
+        // Only the derivation asked about is fetched, not every input of
+        // one, which for a package of units runs to thousands. A resolved
+        // copy is not fetched once its original was read.
+        Err(cognos::aterm::Error::Read { .. })
+          if path == root
+            && self
+              .state
+              .get_derivation_info(id)
+              .is_some_and(|info| !self.resolved.contains(&info.name.path)) =>
+        {
+          self.resolver.request_derivation(path);
+          continue;
+        },
         Err(error) => {
           tracing::debug!(
             error = &error as &dyn std::error::Error,
@@ -1489,6 +1762,9 @@ impl DerivationTree<'_> {
           return;
         };
         let Some(ids) = by_name.get(&drv.name.name) else {
+          // Nix plans without naming a producer it finds realised in another
+          // store, so the derivations that take this one lead back up.
+          self.resolver.request_referrers(drv.name.path.clone());
           return;
         };
         let candidates = ids
@@ -1559,10 +1835,17 @@ impl DerivationTree<'_> {
     }
     self.resolve(drv);
     self.state.join_package(id, produced_id);
+    self.look_up_inputs(produced_id);
+    Some(produced_id)
+  }
+
+  /// Looks up the producers of `id`'s dynamic inputs, which follows a chain
+  /// an earlier run built.
+  fn look_up_inputs(&mut self, id: DerivationId) {
     let due = self
       .producers
       .by_consumer
-      .get(&produced_id)
+      .get(&id)
       .into_iter()
       .flatten()
       .copied()
@@ -1582,7 +1865,6 @@ impl DerivationTree<'_> {
         self.resolver.request_produced(due, LookupPriority::Attach);
       }
     }
-    Some(produced_id)
   }
 }
 
