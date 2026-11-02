@@ -158,7 +158,7 @@ Use `--json` for a stream of bare internal-JSON records instead.
 | `--format tree\|plain\|dashboard`  | `tree`    | dependency graph, one line each, or totals |
 | `--legend compact\|table\|verbose` | `table`   | the status counts under the graph          |
 | `--summary concise\|table\|full`   | `concise` | the summary when the build ends            |
-| `--icons nerd\|unicode`            | `nerd`    | Nerd Font glyphs, or plain Unicode         |
+| `--icons auto\|nerd\|unicode`       | `auto`    | Nerd Font glyphs when detected, otherwise plain Unicode |
 | `--log-prefix short\|full\|none`   | `short`   | what precedes each builder log line        |
 | `--log-lines N`                    | no limit  | builder log lines shown per build          |
 | `--platform nix\|lix`              | detected  | which evaluator to run                     |
@@ -166,6 +166,8 @@ Use `--json` for a stream of bare internal-JSON records instead.
 | `-v`, `-vv`, ...                   |           | more diagnostics from Nix and rom          |
 
 <!--markdownlint-enable MD013-->
+`auto` also honors `NERD_FONTS=1` to force Nerd Font glyphs or `NERD_FONTS=0`
+to force plain Unicode.
 
 > [!NOTE]
 > [`FORMATS.md`](./FORMATS.md) shows you what each format looks like.
