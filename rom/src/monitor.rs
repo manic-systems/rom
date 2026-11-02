@@ -751,10 +751,12 @@ fn build_trace(
 }
 
 /// Whether Nix failed only because something is not built yet, which with
-/// `--max-jobs 0` it reports as either error.
+/// `--max-jobs 0` it reports as any of these errors. A producer whose own
+/// producer is unbuilt names the derivation it would read as invalid.
 fn unbuilt(stderr: &str) -> bool {
   stderr.contains("unbuilt derivation")
     || stderr.contains("Unable to start any build")
+    || stderr.contains("' is not valid")
 }
 
 /// Returns the producer in Nix's warning that it skipped one while planning.
@@ -1813,6 +1815,20 @@ fn write_outputs<W: Write>(
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn unbuilt_producer_input_is_unbuilt() {
+    // A producer whose own producer had yet to run.
+    let stderr = "this derivation will be built:
+  /nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-inner.drv.drv
+error: path '/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-inner.drv' is not \
+                  valid
+";
+    assert!(unbuilt(stderr));
+    assert!(!unbuilt(
+      "error: cannot connect to socket at '/nix/var/nix/daemon-socket/socket'"
+    ));
+  }
 
   #[test]
   fn arbitrary_passthrough_does_not_accumulate_a_line() {
