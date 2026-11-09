@@ -321,18 +321,6 @@ pub struct Progress {
   pub failed:   u64,
 }
 
-impl Progress {
-  /// What Nix knows of and has not started.
-  #[must_use]
-  pub const fn waiting(self) -> u64 {
-    self
-      .expected
-      .saturating_sub(self.done)
-      .saturating_sub(self.running)
-      .saturating_sub(self.failed)
-  }
-}
-
 /// Activity status tracking.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
@@ -380,7 +368,6 @@ pub struct State {
   derivation_ids:     HashMap<Derivation, DerivationId>,
   name_counts:        HashMap<String, usize>,
   activities:         HashMap<ActivityId, ActivityStatus>,
-  builds:             HashMap<ActivityId, Progress>,
   source_fetches:     BTreeMap<ActivityId, SourceFetch>,
   nix_errors:         Vec<String>,
   nix_error_count:    usize,
@@ -411,7 +398,6 @@ impl State {
       derivation_ids:     HashMap::new(),
       name_counts:        HashMap::new(),
       activities:         HashMap::new(),
-      builds:             HashMap::new(),
       source_fetches:     BTreeMap::new(),
       nix_errors:         Vec::new(),
       nix_error_count:    0,
@@ -425,20 +411,6 @@ impl State {
   #[must_use]
   pub fn progress_state(&self) -> ProgressState {
     self.progress.clone()
-  }
-
-  /// Returns Nix's own count of the run's builds, over every worker that
-  /// reported one.
-  #[must_use]
-  pub fn builds_progress(&self) -> Progress {
-    self.builds.values().fold(Progress::default(), |sum, each| {
-      Progress {
-        done:     sum.done + each.done,
-        expected: sum.expected + each.expected,
-        running:  sum.running + each.running,
-        failed:   sum.failed + each.failed,
-      }
-    })
   }
 
   /// Returns the share of the machine's cores every local build is using
@@ -1262,7 +1234,6 @@ impl State {
     &mut self,
     id: ActivityId,
   ) -> Option<ActivityStatus> {
-    self.builds.remove(&id);
     self.activities.remove(&id)
   }
 
@@ -1375,8 +1346,7 @@ impl State {
       return false;
     };
     if status.activity == Activities::Builds {
-      self.builds.insert(id, progress);
-      return true;
+      return false;
     }
     let Progress { done, expected, .. } = progress;
 
