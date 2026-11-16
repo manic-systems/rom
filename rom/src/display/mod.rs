@@ -339,8 +339,8 @@ fn preserve_last(
   lines
 }
 
-/// Draws a progress bar: heavy `━` for the finished part, with `╸` for a
-/// half cell, and a light `─` track for the rest.
+/// Draws a progress bar: heavy `━` for the finished part, ending in a
+/// half-cell `╸` so a gap always separates it from the light `─` track.
 fn progress_bar(
   done: u64,
   total: u64,
@@ -351,20 +351,18 @@ fn progress_bar(
   if width == 0 || total == 0 {
     return Vec::new();
   }
-  let halves = u128::from(done.min(total)).saturating_mul((width * 2) as u128)
-    / u128::from(total);
-  let filled = (halves / 2) as usize;
-  let half = halves % 2 == 1;
-  let empty = width - filled - usize::from(half);
+  let filled =
+    (u128::from(done.min(total)) * width as u128 / u128::from(total)) as usize;
   let mut spans = Vec::new();
   if filled > 0 {
-    spans.push(Span::styled("━".repeat(filled), Style::default().fg(fill)));
+    let solid = "━".repeat(filled - 1);
+    spans.push(Span::styled(format!("{solid}╸"), Style::default().fg(fill)));
   }
-  if half {
-    spans.push(Span::styled("╸", Style::default().fg(fill)));
-  }
-  if empty > 0 {
-    spans.push(Span::styled("─".repeat(empty), Style::default().fg(track)));
+  if filled < width {
+    spans.push(Span::styled(
+      "─".repeat(width - filled),
+      Style::default().fg(track),
+    ));
   }
   spans
 }
@@ -490,10 +488,9 @@ mod tests {
   use crate::state::TransferInfo;
 
   #[test]
-  fn line_bar_uses_half_cell_glyphs() {
-    let spans = progress_bar(6, 12, 3, Color::Cyan, Color::DarkGray);
+  fn line_bar_ends_fill_in_half_cell() {
+    let spans = progress_bar(8, 12, 3, Color::Cyan, Color::DarkGray);
     assert_eq!(spans[0].style.fg, Some(Color::Cyan));
-    assert_eq!(spans[1].style.fg, Some(Color::Cyan));
     assert_eq!(spans.last().unwrap().style.fg, Some(Color::DarkGray));
     let text = spans
       .into_iter()
