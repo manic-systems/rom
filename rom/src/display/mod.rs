@@ -1,9 +1,4 @@
 //! Pure Ratatui rendering.
-//!
-//! This module does not own a terminal. It turns immutable state into a full
-//! buffer; terminal admission, synchronized commits, and log insertion live in
-//! [`crate::terminal`]. Keeping that boundary makes rendering deterministic in
-//! ordinary Rust tests.
 
 mod formats;
 mod frame;
