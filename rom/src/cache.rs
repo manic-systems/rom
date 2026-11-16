@@ -219,7 +219,7 @@ impl BuildReportCache {
 /// Parses an RFC 3339 timestamp, returning `None` if it is invalid.
 #[must_use]
 pub fn parse_utc_time(input: &str) -> Option<SystemTime> {
-  Some(input.parse::<Timestamp>().ok()?.into())
+  input.parse::<Timestamp>().ok()?.try_into().ok()
 }
 
 /// Formats a time as an RFC 3339 UTC timestamp.
