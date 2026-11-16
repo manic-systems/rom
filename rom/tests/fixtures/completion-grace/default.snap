@@ -1,14 +1,14 @@
 === both-running @ 1500ms ===
 \e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 1s\e[0m
-  \e[0;36maaa-completed  ↓ ━━━━━━━━━━━━━━━━\e[0;90m────────────────\e[0m \e[0;36m 50%\e[0;90m  4.0 MiB/8.0 MiB\e[0;37m  1s\e[0;35m  cache.nixos.org\e[0m
-  \e[0;36mzzz-active  ↓ ━━━━━━━━\e[0;90m────────────────────────\e[0m \e[0;36m 25%\e[0;90m  2.0 MiB/8.0 MiB\e[0;37m  1s\e[0;35m  cache.nixos.org\e[0m
+  \e[0;36maaa-completed  ↓ ━━━━━━━━━━━━━━━╸\e[0;90m────────────────\e[0m \e[0;36m 50%\e[0;90m  4.0 MiB/8.0 MiB\e[0;37m  1s\e[0;35m  cache.nixos.org\e[0m
+  \e[0;36mzzz-active  ↓ ━━━━━━━╸\e[0;90m────────────────────────\e[0m \e[0;36m 25%\e[0;90m  2.0 MiB/8.0 MiB\e[0;37m  1s\e[0;35m  cache.nixos.org\e[0m
 === completion-grace @ 2600ms ===
 \e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 2s\e[0m
-  \e[0;32maaa-completed  ↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m \e[0;32m100%\e[0;90m  8.0 MiB/8.0 MiB\e[0;37m  2s\e[0;35m  cache.nixos.org\e[0m
-  \e[0;36mzzz-active  ↓ ━━━━━━━━━━━━━━━━\e[0;90m────────────────\e[0m \e[0;36m 50%\e[0;90m  4.0 MiB/8.0 MiB\e[0;37m  2s\e[0;35m  cache.nixos.org\e[0m
+  \e[0;32maaa-completed  ↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸\e[0m \e[0;32m100%\e[0;90m  8.0 MiB/8.0 MiB\e[0;37m  2s\e[0;35m  cache.nixos.org\e[0m
+  \e[0;36mzzz-active  ↓ ━━━━━━━━━━━━━━━╸\e[0;90m────────────────\e[0m \e[0;36m 50%\e[0;90m  4.0 MiB/8.0 MiB\e[0;37m  2s\e[0;35m  cache.nixos.org\e[0m
 === after-grace @ 3600ms ===
 \e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 3s\e[0m
-  \e[0;36mzzz-active  ↓ ━━━━━━━━━━━━━━━━━━━━━\e[0;90m───────────\e[0m \e[0;36m 66%\e[0;90m  5.3 MiB/8.0 MiB\e[0;37m  3s\e[0;35m  cache.nixos.org\e[0m
+  \e[0;36mzzz-active  ↓ ━━━━━━━━━━━━━━━━━━━━╸\e[0;90m───────────\e[0m \e[0;36m 66%\e[0;90m  5.3 MiB/8.0 MiB\e[0;37m  3s\e[0;35m  cache.nixos.org\e[0m
 === finished @ 5000ms ===
 \e[0;90m─ \e[0mBuilds\e[0;37m  ⏱ 5s\e[0m
 \e[0;32mFinished after 5s\e[0m
