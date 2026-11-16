@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- The live graph redraws inside tmux and GNU Screen instead of freezing after its first frame (#110).
+- `terminal::admission` and `Admission` are replaced by `terminal::is_live`.
+
 ## 0.3.3
 
 ### Added

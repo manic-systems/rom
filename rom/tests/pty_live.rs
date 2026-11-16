@@ -25,7 +25,7 @@ const CLEAR_LINE: &[u8] = b"\x1b[2K";
 
 #[test]
 fn fixture_reaches_a_styled_first_live_frame_through_the_real_cli() {
-  let transcript = replay_fixture("unsized-download", false, 80, 24);
+  let transcript = replay_fixture("unsized-download", 80, 24);
   assert_eq!(count(&transcript, BEGIN_SYNC), count(&transcript, END_SYNC));
   assert!(count(&transcript, BEGIN_SYNC) > 0);
   assert!(transcript.windows(7).any(|w| w == b"\x1b[1;35m"));
@@ -64,7 +64,7 @@ fn fixture_reaches_a_styled_first_live_frame_through_the_real_cli() {
 
 #[test]
 fn shrinking_graph_stays_anchored_to_the_bottom() {
-  let transcript = replay_fixture("fetch-to-store", false, 80, 24);
+  let transcript = replay_fixture("fetch-to-store", 80, 24);
   let frames = synchronized_transactions(&transcript);
   // Each repaint clears the previous region one row at a time and then draws
   // logs and the new frame. Drawing fewer rows than were cleared would leave
@@ -88,20 +88,9 @@ fn shrinking_graph_stays_anchored_to_the_bottom() {
 }
 
 #[test]
-fn multiplexer_gets_a_safe_initial_graph_without_live_controls() {
-  let transcript = replay_fixture("unsized-download", true, 80, 24);
-  assert_eq!(count(&transcript, BEGIN_SYNC), 0);
-  assert_eq!(count(&transcript, END_SYNC), 0);
-  assert!(!transcript.windows(4).any(|window| window == b"\x1b[2K"));
-  assert!(transcript.windows(6).any(|window| window == b"Builds"));
-  assert!(transcript.windows(4).any(|window| window == b"demo"));
-  assert!(transcript.windows(7).any(|window| window == b"\x1b[1;35m"));
-}
-
-#[test]
 fn undersized_terminal_falls_back_without_live_control_artifacts() {
   for (columns, rows) in [(19, 8), (80, 7)] {
-    let transcript = replay_fixture("unsized-download", false, columns, rows);
+    let transcript = replay_fixture("unsized-download", columns, rows);
     assert_eq!(count(&transcript, BEGIN_SYNC), 0);
     assert_eq!(count(&transcript, END_SYNC), 0);
     assert!(!transcript.windows(4).any(|window| window == b"\x1b[2K"));
@@ -115,12 +104,7 @@ fn undersized_terminal_falls_back_without_live_control_artifacts() {
   clippy::semicolon_inside_block,
   reason = "semicolon_outside_block asks for the opposite"
 )]
-fn replay_fixture(
-  fixture: &str,
-  multiplexer: bool,
-  columns: u16,
-  rows: u16,
-) -> Vec<u8> {
+fn replay_fixture(fixture: &str, columns: u16, rows: u16) -> Vec<u8> {
   let (master, slave) = open_pty(columns, rows).unwrap();
   // SAFETY: `open_pty` returned `slave` as a fresh descriptor nothing else
   // owns.
@@ -129,15 +113,9 @@ fn replay_fixture(
   command
     .env("TERM", "dumb")
     .env("TERM_PROGRAM", "ghostty")
-    .env_remove("STY")
     .stdin(Stdio::piped())
     .stdout(Stdio::null())
     .stderr(Stdio::from(slave));
-  if multiplexer {
-    command.env("TMUX", "/tmp/tmux-test,1,0");
-  } else {
-    command.env_remove("TMUX");
-  }
   let hook = || {
     // SAFETY: `setsid` has no preconditions.
     if unsafe { libc::setsid() } == -1 {

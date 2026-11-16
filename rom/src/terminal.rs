@@ -1,4 +1,4 @@
-//! Terminal admission and atomic normal-screen composition.
+//! Terminal selection and atomic normal-screen composition.
 
 use std::{
   io::{self, IsTerminal, Write},
@@ -25,40 +25,15 @@ const MAX_PENDING_BYTES: usize = 64 * 1024;
 const PARTIAL_LINE_GRACE: f64 = 0.5;
 const FRAME_INTERVAL: Duration = Duration::from_micros(33_333);
 
-/// Why live presentation was or was not admitted.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Admission {
-  /// Live redraws are allowed.
-  Live,
-  /// Standard error is not a terminal.
-  NotATerminal,
-  /// The terminal is inside tmux or GNU Screen.
-  Multiplexer,
-}
-
-/// Selects live redraws for every direct interactive terminal.
+/// Returns whether standard error can host live redraws.
 ///
 /// Like nix-output-monitor, ROM sends synchronized-update markers without a
-/// capability round trip. Terminals which do not implement mode 2026 ignore
-/// the private mode while still understanding the ordinary cursor operations.
-/// Multiplexers remain append-only until their passthrough behavior has an
-/// explicit compatibility test.
+/// capability round trip. Terminals and multiplexers which do not implement
+/// mode 2026 ignore the private mode while still understanding the ordinary
+/// cursor operations.
 #[must_use]
-pub fn admission() -> Admission {
-  admission_from(
-    io::stderr().is_terminal(),
-    std::env::var_os("TMUX").is_some() || std::env::var_os("STY").is_some(),
-  )
-}
-
-const fn admission_from(is_terminal: bool, multiplexer: bool) -> Admission {
-  if !is_terminal {
-    Admission::NotATerminal
-  } else if multiplexer {
-    Admission::Multiplexer
-  } else {
-    Admission::Live
-  }
+pub fn is_live() -> bool {
+  io::stderr().is_terminal()
 }
 
 /// Counts the newlines in `bytes`.
@@ -472,13 +447,6 @@ mod tests {
       .unwrap();
     assert!(!terminal.retired);
     assert_eq!(terminal.pending, b"progress\rreplacement\x1b[K\n");
-  }
-
-  #[test]
-  fn direct_terminals_are_live_and_multiplexers_fail_closed() {
-    assert_eq!(admission_from(false, false), Admission::NotATerminal);
-    assert_eq!(admission_from(true, true), Admission::Multiplexer);
-    assert_eq!(admission_from(true, false), Admission::Live);
   }
 
   #[test]

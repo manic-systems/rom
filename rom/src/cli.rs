@@ -32,7 +32,7 @@ use tracing_subscriber::{
 
 use crate::{
   cache::BuildReportCache,
-  display::{format_log, render_frame, write_final},
+  display::{format_log, write_final},
   error::RomError,
   fixture::{
     FIXTURE_CPU_ENV,
@@ -42,7 +42,7 @@ use crate::{
   },
   monitor::{FilesystemResolver, Output, Processed, StreamEngine},
   state::{BuildStatus, DerivationId, State, current_time},
-  terminal::{Admission, LiveTerminal},
+  terminal::LiveTerminal,
   types::{
     Config,
     DisplayFormat,
@@ -756,24 +756,15 @@ fn byte_reader<R: Read + Send + 'static>(
 
 enum Presenter {
   Live(LiveTerminal<io::Stderr>),
-  Fallback {
-    writer:            io::Stderr,
-    presented_initial: bool,
-  },
   Append(io::Stderr),
 }
 
 impl Presenter {
   fn new(silent: bool) -> Self {
-    let admission = crate::terminal::admission();
-    tracing::debug!(?admission, silent, "selected terminal presenter");
-    if !silent && matches!(admission, Admission::Live) {
+    let live = crate::terminal::is_live();
+    tracing::debug!(live, silent, "selected terminal presenter");
+    if !silent && live {
       Self::Live(LiveTerminal::new(io::stderr()))
-    } else if !silent && !matches!(admission, Admission::NotATerminal) {
-      Self::Fallback {
-        writer:            io::stderr(),
-        presented_initial: false,
-      }
     } else {
       Self::Append(io::stderr())
     }
@@ -800,21 +791,21 @@ impl Presenter {
   const fn frame_interval(&self) -> Duration {
     match self {
       Self::Live(terminal) => terminal.frame_interval(),
-      Self::Fallback { .. } | Self::Append(_) => Duration::from_millis(50),
+      Self::Append(_) => Duration::from_millis(50),
     }
   }
 
   fn flush_logs(&mut self) -> io::Result<()> {
     match self {
       Self::Live(terminal) => terminal.flush_logs(),
-      Self::Fallback { .. } | Self::Append(_) => Ok(()),
+      Self::Append(_) => Ok(()),
     }
   }
 
   fn write(&mut self, bytes: &[u8]) -> io::Result<()> {
     match self {
       Self::Live(terminal) => terminal.write_passthrough(bytes),
-      Self::Fallback { writer, .. } | Self::Append(writer) => {
+      Self::Append(writer) => {
         writer.write_all(bytes)?;
         writer.flush()
       },
@@ -832,35 +823,6 @@ impl Presenter {
       Self::Live(terminal) => {
         terminal.render(stream.engine().state(), config, now, final_render)
       },
-      Self::Fallback {
-        writer,
-        presented_initial,
-      } => {
-        if final_render || *presented_initial {
-          return Ok(false);
-        }
-        let width = config.width.unwrap_or(100).max(2) - 1;
-        let height = config.height.unwrap_or(100).max(1);
-        let frame = render_frame(
-          stream.engine().state(),
-          config,
-          now,
-          width,
-          height,
-          false,
-        );
-        if frame.text().trim().is_empty() {
-          return Ok(false);
-        }
-        if config.ansi {
-          writeln!(writer, "{}", frame.ansi_text())?;
-        } else {
-          writeln!(writer, "{}", frame.text())?;
-        }
-        writer.flush()?;
-        *presented_initial = true;
-        Ok(true)
-      },
       Self::Append(_) => Ok(false),
     }
   }
@@ -875,7 +837,7 @@ impl Presenter {
       Self::Live(terminal) => {
         terminal.render(stream.engine().state(), config, now, false)
       },
-      Self::Fallback { .. } | Self::Append(_) => Ok(false),
+      Self::Append(_) => Ok(false),
     }
   }
 
@@ -894,7 +856,7 @@ impl Presenter {
       Self::Live(terminal) => {
         terminal.append_final(stream.engine().state(), config, now)
       },
-      Self::Fallback { writer, .. } | Self::Append(writer) => {
+      Self::Append(writer) => {
         write_final(writer, stream.engine().state(), config, now)
       },
     }
