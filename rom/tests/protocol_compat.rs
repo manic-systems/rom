@@ -52,6 +52,16 @@ fn fetch_to_store_records_are_supported_in_both_input_modes() {
 }
 
 #[test]
+fn determinate_extension_records_are_silent() {
+  let mut engine = Engine::new(EngineConfig::default());
+  let start = r#"@nix {"action":"start","id":2,"level":4,"name":"EvaluateFlakeDerivationOutput","parent":0,"payload":{"nix.installable":"flake:nixpkgs#hello"},"sid":"01a1f003-6c5a-7226-80a1-99d35dfea0f0","text":"evaluating derivation 'flake:nixpkgs#hello'","type":10113}"#;
+  let result = r#"@nix {"action":"result","id":3,"payload":{"bodySize":21,"httpStatus":200},"sid":"01a1f003-6c5a-7226-80a1-99d35dfea0f0","type":10111}"#;
+  assert_eq!(output(&mut engine, start), Vec::<Output>::new());
+  assert_eq!(output(&mut engine, result), Vec::<Output>::new());
+  assert!(!engine.state().has_errors());
+}
+
+#[test]
 fn repeated_unsupported_records_report_once() {
   let mut engine = Engine::new(EngineConfig::default());
   let record = r#"@nix {"action":"start","id":2,"level":3,"parent":0,"text":"future","type":114,"fields":[]}"#;

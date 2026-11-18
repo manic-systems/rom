@@ -1036,6 +1036,24 @@ impl Processed {
   }
 }
 
+/// Determinate Nix's `actStringly` activity, which reports string-named
+/// activities such as the spans behind its OpenTelemetry tracing.
+const DETERMINATE_STRINGLY_ACTIVITY: u64 = 10113;
+
+/// Determinate Nix's `resHttpStatus` result, which reports the HTTP status
+/// and body size of a transfer.
+const DETERMINATE_HTTP_STATUS_RESULT: u64 = 10111;
+
+/// Whether a record is a Determinate Nix extension that carries nothing rom
+/// displays, so it can be dropped without a diagnostic.
+fn is_determinate_extension(record: &UnsupportedRecord) -> bool {
+  matches!(
+    (record.action.as_str(), record.kind),
+    ("start", Some(DETERMINATE_STRINGLY_ACTIVITY))
+      | ("result", Some(DETERMINATE_HTTP_STATUS_RESULT))
+  )
+}
+
 fn diagnostic(message: String) -> Processed {
   Processed {
     changed: false,
@@ -1417,6 +1435,9 @@ impl Engine {
     let action = match cognos::decode_action(json) {
       Ok(DecodedAction::Known(action)) => action,
       Ok(DecodedAction::Unsupported(record)) => {
+        if is_determinate_extension(&record) {
+          return Ok(Processed::default());
+        }
         if self.reported_unsupported.contains(&record) {
           return Ok(Processed::default());
         }
