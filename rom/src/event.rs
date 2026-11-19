@@ -32,6 +32,7 @@ pub enum ActivitySubject {
   Build {
     derivation: Option<Derivation>,
     host:       Host,
+    protocol:   Option<String>,
   },
   /// A build Nix will start once a lock or machine frees up.
   Blocked {
@@ -40,13 +41,16 @@ pub enum ActivitySubject {
     blocker:     Blocker,
   },
   Substitute {
-    path: Option<StorePath>,
-    host: Host,
+    path:     Option<StorePath>,
+    host:     Host,
+    protocol: Option<String>,
   },
   CopyPath {
-    path: Option<StorePath>,
-    from: Host,
-    to:   Host,
+    path:          Option<StorePath>,
+    from:          Host,
+    from_protocol: Option<String>,
+    to:            Host,
+    to_protocol:   Option<String>,
   },
   /// A local source path being copied into, or only hashed for, the store.
   FetchToStore {
@@ -58,12 +62,13 @@ pub enum ActivitySubject {
 
 #[derive(Debug, Clone)]
 pub struct MessageEvent {
-  pub level:        Verbosity,
-  pub is_error:     bool,
-  pub styled:       String,
-  pub plain:        String,
-  pub announcement: Option<Announcement>,
-  pub derivation:   Option<Derivation>,
+  pub level:                  Verbosity,
+  pub is_error:               bool,
+  pub styled:                 String,
+  pub plain:                  String,
+  pub announcement:           Option<Announcement>,
+  pub derivation:             Option<Derivation>,
+  pub planned_download_bytes: Option<u64>,
 }
 
 #[derive(Debug, Clone)]
@@ -124,6 +129,7 @@ impl Event {
           level,
           announcement: announcement(level, &plain),
           derivation: extract_derivation(&plain),
+          planned_download_bytes: parse_planned_download_bytes(&plain),
           is_error,
           styled: msg,
           plain,
@@ -170,35 +176,45 @@ fn decode_subject(
       }
     },
     Activities::Build => {
+      let (host, protocol) =
+        parse_host(fields.get(1).and_then(Value::as_str).unwrap_or(""));
       ActivitySubject::Build {
         derivation: fields
           .first()
           .and_then(Value::as_str)
           .and_then(Derivation::parse)
           .or_else(|| extract_derivation(text)),
-        host:       parse_host(
-          fields.get(1).and_then(Value::as_str).unwrap_or(""),
-        ),
+        host,
+        protocol,
       }
     },
     Activities::Substitute => {
+      let (host, protocol) =
+        parse_host(fields.get(1).and_then(Value::as_str).unwrap_or(""));
       ActivitySubject::Substitute {
         path: fields
           .first()
           .and_then(Value::as_str)
           .and_then(StorePath::parse)
           .or_else(|| extract_store_path(text)),
-        host: parse_host(fields.get(1).and_then(Value::as_str).unwrap_or("")),
+        host,
+        protocol,
       }
     },
     Activities::CopyPath => {
+      let (from, from_protocol) =
+        parse_host(fields.get(1).and_then(Value::as_str).unwrap_or(""));
+      let (to, to_protocol) =
+        parse_host(fields.get(2).and_then(Value::as_str).unwrap_or(""));
       ActivitySubject::CopyPath {
         path: fields
           .first()
           .and_then(Value::as_str)
           .and_then(StorePath::parse),
-        from: parse_host(fields.get(1).and_then(Value::as_str).unwrap_or("")),
-        to:   parse_host(fields.get(2).and_then(Value::as_str).unwrap_or("")),
+        from,
+        from_protocol,
+        to,
+        to_protocol,
       }
     },
     Activities::FetchToStore => {
@@ -338,7 +354,31 @@ fn extract_store_path(text: &str) -> Option<StorePath> {
   StorePath::parse(&rest[..end])
 }
 
-fn parse_host(value: &str) -> Host {
+#[expect(
+  clippy::cast_sign_loss,
+  reason = "negative and non-finite values are rejected before casting"
+)]
+fn parse_planned_download_bytes(message: &str) -> Option<u64> {
+  let (_, rest) = message.split_once("will be fetched (")?;
+  let (download_part, _) = rest.split_once(" download")?;
+  let mut parts = download_part.split_whitespace();
+  let number: f64 = parts.next()?.parse().ok()?;
+  if !number.is_finite() || number < 0.0 {
+    return None;
+  }
+  let unit = parts.next()?;
+  let multiplier = match unit {
+    "B" => 1.0_f64,
+    "KiB" => 1024.0_f64,
+    "MiB" => 1024.0_f64 * 1024.0,
+    "GiB" => 1024.0_f64 * 1024.0 * 1024.0,
+    "TiB" => 1024.0_f64 * 1024.0 * 1024.0 * 1024.0,
+    _ => return None,
+  };
+  Some((number * multiplier).round() as u64)
+}
+
+fn parse_host(value: &str) -> (Host, Option<String>) {
   let value = value.trim();
   if value.is_empty()
     || matches!(
@@ -346,9 +386,15 @@ fn parse_host(value: &str) -> Host {
       "localhost" | "local" | "local://" | "unix" | "unix://"
     )
   {
-    return Host::Localhost;
+    return (Host::Localhost, None);
   }
-  let store = value.split_once("://").map_or(value, |(_, rest)| rest);
+  let (protocol, store) =
+    value
+      .split_once("://")
+      .map_or((None, value), |(proto, rest)| {
+        let proto = (!proto.is_empty()).then(|| proto.to_owned());
+        (proto, rest)
+      });
   let without_protocol = store
     .split_once('?')
     .map_or(store, |(machine, _)| machine)
@@ -359,9 +405,9 @@ fn parse_host(value: &str) -> Host {
     .unwrap_or(without_protocol)
     .trim();
   if hostname.is_empty() || hostname == "localhost" {
-    Host::Localhost
+    (Host::Localhost, None)
   } else {
-    Host::Remote(hostname.to_owned())
+    (Host::Remote(hostname.to_owned()), protocol)
   }
 }
 
@@ -376,7 +422,12 @@ mod tests {
       r#"{"action":"start","id":1,"level":3,"parent":0,"text":"building","type":105,"fields":["/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-demo.drv","ssh://user@builder/",1,1]}"#,
     ).unwrap());
     let Event::Start(StartEvent {
-      subject: ActivitySubject::Build { derivation, host },
+      subject:
+        ActivitySubject::Build {
+          derivation,
+          host,
+          protocol,
+        },
       ..
     }) = event
     else {
@@ -384,5 +435,6 @@ mod tests {
     };
     assert_eq!(derivation.unwrap().name, "demo");
     assert_eq!(host, Host::Remote("builder".to_owned()));
+    assert_eq!(protocol.as_deref(), Some("ssh"));
   }
 }

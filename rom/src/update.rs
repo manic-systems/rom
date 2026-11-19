@@ -6,6 +6,7 @@ use cognos::{Activities, Host, Id};
 
 use crate::{
   cache::BuildReportCache,
+  curl,
   event::{
     ActivityResult,
     ActivitySubject,
@@ -49,7 +50,12 @@ pub struct LogEffect {
 }
 
 /// Applies one typed event and return every external effect caused by it.
-pub fn apply_event_at(state: &mut State, event: Event, now: f64) -> Effects {
+pub fn apply_event_at(
+  state: &mut State,
+  event: Event,
+  now: f64,
+  curl_progress: bool,
+) -> Effects {
   let mut effects = Effects::default();
   effects.changed |= state.begin_at(now);
 
@@ -71,6 +77,9 @@ pub fn apply_event_at(state: &mut State, event: Event, now: f64) -> Effects {
     Event::Result { id, result } => {
       match result {
         ActivityResult::BuildLog(line) => {
+          if curl_progress && let Some(parsed) = curl::parse_line(&line) {
+            effects.changed |= state.update_activity_curl(id, parsed);
+          }
           effects.log = Some(LogEffect {
             activity: Some(id),
             styled:   line.clone(),
@@ -130,6 +139,7 @@ fn apply_start(
     ActivitySubject::Build {
       derivation: Some(drv),
       host,
+      protocol,
     } => {
       effects.resolve.push(drv.path.clone());
       let estimate = get_build_estimate(state, &drv.name, &host);
@@ -142,9 +152,11 @@ fn apply_start(
         BuildInfo {
           start: now,
           host,
+          protocol,
           estimate,
           phase: None,
           cpu: None,
+          curl: None,
           path,
         },
         parent,
@@ -156,6 +168,7 @@ fn apply_start(
     ActivitySubject::Substitute {
       path: Some(path),
       host,
+      protocol,
     } => {
       let parent = start
         .parent
@@ -163,6 +176,7 @@ fn apply_start(
       let id = state.start_download(path, TransferInfo {
         start: now,
         host,
+        protocol,
         activity_id: start.id,
         parent,
         bytes_transferred: 0,
@@ -175,20 +189,24 @@ fn apply_start(
     ActivitySubject::CopyPath {
       path: Some(path),
       from,
+      from_protocol,
       to,
+      to_protocol,
     } => {
       let parent = start
         .parent
         .and_then(|parent| state.activity_derivation(parent));
       let download =
         matches!(to, Host::Localhost) && !matches!(from, Host::Localhost);
+      let (host, protocol) = if matches!(to, Host::Localhost) {
+        (from, from_protocol)
+      } else {
+        (to, to_protocol)
+      };
       let transfer = TransferInfo {
         start: now,
-        host: if matches!(to, Host::Localhost) {
-          from
-        } else {
-          to
-        },
+        host,
+        protocol,
         activity_id: start.id,
         parent,
         bytes_transferred: 0,
@@ -290,6 +308,9 @@ fn apply_message(
   effects: &mut Effects,
 ) -> bool {
   let mut changed = false;
+  if let Some(bytes) = message.planned_download_bytes {
+    changed |= state.set_planned_download_bytes(bytes);
+  }
   if let Some(announcement) = &message.announcement {
     changed |= match announcement {
       Announcement::Derivation(derivation) => {

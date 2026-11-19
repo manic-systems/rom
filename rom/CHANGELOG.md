@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `LegendStyle::Nom` (`--legend nom`) and `SummaryStyle::Nom` (`--summary nom`)
+  for per-host build, download, upload, and byte-progress tables in the style of
+  `nom`.
+- Per-host sorting (`--host-sort none|download-size|download-count|builds`) and
+  remote host capping (`--max-hosts N`, aggregating overflow hosts into
+  `(other)`).
+- Opt-in curl download progress parsing from builder logs (`--curl-progress
+  true|false`), surfacing fetch hostnames and transferred bytes in tree rows and
+  per-host tables without filtering build logs.
+- Independent display toggles for progress bars (`--progress-bars true|false`),
+  transfer percentages (`--show-percentages true|false`), and always-decimal
+  byte formatting (`--decimal-bytes true|false`).
+- `[theme]` color overrides in `$XDG_CONFIG_HOME/rom/config.toml` for all
+  semantic `Theme` slots (ANSI names, 256-color indices, and `#RRGGBB` hex
+  colors), and `rom::Color` re-export for library consumers.
+- Child `FileTransfer` progress fallback when the parent `CopyPath`/`Substitute`
+  activity does not report direct byte progress.
+
 ## 0.6.0
 
 ### Changed

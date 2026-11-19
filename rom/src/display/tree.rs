@@ -22,7 +22,6 @@ use super::{
   Transfer,
   aggregate_transfers,
   fit_line,
-  format_bytes,
   format_duration,
   format_timer,
   model::{
@@ -277,9 +276,11 @@ impl Renderer<'_> {
     for (&id, info) in self.snapshot.derivations {
       let priority = match info.build_status {
         BuildStatus::Failed { .. } => 4,
-        // Like transfers, builds earn a row once they have a timer to show.
+        // Like transfers, builds earn a row once they have a timer to show,
+        // unless curl download progress is already active.
         BuildStatus::Building(ref build)
-          if elapsed(build.start, self.now) < MIN_TIMER_SECONDS =>
+          if build.curl.is_none()
+            && elapsed(build.start, self.now) < MIN_TIMER_SECONDS =>
         {
           0
         },
@@ -803,7 +804,8 @@ impl Renderer<'_> {
     // Narrow terminals, and rows too deep for a name before the bars, drop
     // the bar column instead.
     let roomy = width.saturating_sub(base + 1 + STATUS_WIDTH) >= MIN_BAR_WIDTH;
-    let bars = rows.iter().any(|row| row.bar.is_some())
+    let bars = self.config.progress_bars
+      && rows.iter().any(|row| row.bar.is_some())
       && roomy
       && bar_width >= MIN_BAR_WIDTH
       && deepest <= column;
@@ -816,9 +818,13 @@ impl Renderer<'_> {
         let detailed = row.bar.is_some() || !row.status.is_empty();
         if !bars || !detailed || row.bar.is_none() {
           // Rows without bars use the reclaimed column for their status when
-          // the bar column exists; narrow terminals still protect the name.
+          // the bar column exists or bars are disabled; narrow terminals still
+          // protect the name.
           let status = if bars {
             spans_width(&row.status)
+          } else if !self.config.progress_bars {
+            spans_width(&row.status)
+              .min(width.saturating_sub(spans_width(&spans) + MIN_NAME_WIDTH))
           } else {
             spans_width(&row.status).min(STATUS_WIDTH / 2)
           };
@@ -1177,16 +1183,28 @@ impl Renderer<'_> {
       lead.push(span("… ", self.config.theme.muted));
     }
 
-    let (icon, color, mut bar, mut status) =
+    let (mut icon, mut color, mut bar, mut status) =
       self.build_status(id, info, row, selection);
-    lead.push(span(format!("{icon}{}", self.icons.gap), color));
 
     // Copies of the row's own outputs stand in for its build progress.
     if !row.inline.is_empty() {
       let aggregates = aggregate_transfers(row.inline.iter());
       bar = (aggregates.len() == 1).then(|| self.transfer_bar(&aggregates[0]));
-      status = self.transfer_statuses(&aggregates);
+      if matches!(info.build_status, BuildStatus::Unknown)
+        && aggregates.len() == 1
+      {
+        let transfer = &aggregates[0];
+        icon = match transfer.direction {
+          Direction::Download => self.icons.download,
+          Direction::Upload => self.icons.upload,
+        };
+        color = self.transfer_color(transfer);
+        status = self.transfer_status(transfer);
+      } else {
+        status = self.transfer_statuses(&aggregates);
+      }
     }
+    lead.push(span(format!("{icon}{}", self.icons.gap), color));
 
     let children = self.visible_children(id, row, selection);
     status.extend(self.hidden_sources(row, &children));
@@ -1316,17 +1334,27 @@ impl Renderer<'_> {
       BuildStatus::Built {
         info: build, end, ..
       } => {
-        let took = (self.config.show_timers
-          && end - build.start >= MIN_TIMER_SECONDS)
-          .then(|| {
-            span(
-              format!("  {}", format_duration(end - build.start)),
-              theme.muted,
-            )
-          })
-          .into_iter()
-          .collect();
-        (self.icons.done, theme.completed, None, took)
+        let mut details = Vec::new();
+        if let Some(curl) = &build.curl {
+          let bytes =
+            curl.total_bytes.map_or(curl.bytes_transferred, |total| {
+              total.max(curl.bytes_transferred)
+            });
+          if bytes > 0 {
+            details.push(span(format!("  {}", self.bytes(bytes)), theme.muted));
+          }
+          if !matches!(curl.host, Host::Localhost) {
+            details
+              .push(span(format!("  from {}", curl.host.name()), theme.muted));
+          }
+        }
+        if self.config.show_timers && end - build.start >= MIN_TIMER_SECONDS {
+          details.push(span(
+            format!("  {}", format_duration(end - build.start)),
+            theme.muted,
+          ));
+        }
+        (self.icons.done, theme.completed, None, details)
       },
       BuildStatus::Available => {
         (self.icons.done, theme.completed, None, Vec::new())
@@ -1362,6 +1390,15 @@ impl Renderer<'_> {
     reason = "elapsed time is clamped to zero and far below u64::MAX"
   )]
   fn build_bar(&self, info: &DerivationInfo, build: &BuildInfo) -> Bar {
+    if let Some(curl) = &build.curl
+      && let Some(total) = curl.total_bytes.filter(|&total| total > 0)
+    {
+      return Bar::Progress {
+        done: curl.bytes_transferred,
+        total,
+        color: self.config.theme.download,
+      };
+    }
     let color = self.config.theme.running;
     build
       .estimate
@@ -1392,6 +1429,15 @@ impl Renderer<'_> {
   ) -> Vec<Span<'static>> {
     let mut suffix = Vec::new();
 
+    if let Some(curl) = &build.curl
+      && !matches!(curl.host, Host::Localhost)
+    {
+      suffix.push(span(
+        format!("  from {}", curl.host.name()),
+        self.config.theme.host,
+      ));
+    }
+
     if let Some(phase) = &build.phase {
       suffix.push(span(format!("  ({phase})"), self.config.theme.muted));
     }
@@ -1402,6 +1448,10 @@ impl Renderer<'_> {
     suffix.extend(self.clock(build.start, average));
 
     suffix.extend(build.cpu.map(|cpu| self.cpu(cpu)));
+
+    if let Some(curl) = &build.curl {
+      suffix.extend(self.curl_progress_spans(curl));
+    }
 
     if let Host::Remote(machine) = &build.host {
       suffix.push(span(format!(" @{machine}"), self.config.theme.host));
@@ -1416,6 +1466,44 @@ impl Renderer<'_> {
     }
 
     suffix
+  }
+
+  pub(super) fn curl_progress_spans(
+    &self,
+    curl: &crate::curl::CurlProgress,
+  ) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    let total = curl.total_bytes.filter(|&total| total > 0);
+    if self.config.show_percentages
+      && let Some(total) = total
+    {
+      let percent =
+        (curl.bytes_transferred.saturating_mul(100) / total).min(100);
+      spans.push(span(format!("  {percent:>3}%"), self.config.theme.download));
+    }
+    if let Some(total) = total {
+      spans.push(span(
+        format!(
+          "  {}{}{}/{}",
+          self.icons.download,
+          self.icons.gap,
+          self.bytes(curl.bytes_transferred),
+          self.bytes(total),
+        ),
+        self.config.theme.transfer_bytes,
+      ));
+    } else if curl.bytes_transferred > 0 {
+      spans.push(span(
+        format!(
+          "  {}{}{}",
+          self.icons.download,
+          self.icons.gap,
+          self.bytes(curl.bytes_transferred),
+        ),
+        self.config.theme.transfer_bytes,
+      ));
+    }
+    spans
   }
 
   /// Counts the planned derivations above `id`, transitively, that have no
@@ -1729,7 +1817,9 @@ impl Renderer<'_> {
     let theme = &self.config.theme;
     let mut status = Vec::new();
     let total = transfer.total.filter(|total| *total > 0);
-    if let Some(total) = total {
+    if self.config.show_percentages
+      && let Some(total) = total
+    {
       let percent = (transfer.done.saturating_mul(100) / total).min(100);
       status.push(span(
         format!("  {percent:>3}%"),
@@ -1743,12 +1833,10 @@ impl Renderer<'_> {
       ));
     }
     let bytes = total.map_or_else(
-      || format_bytes(transfer.done),
-      |total| {
-        format!("{}/{}", format_bytes(transfer.done), format_bytes(total))
-      },
+      || self.bytes(transfer.done),
+      |total| format!("{}/{}", self.bytes(transfer.done), self.bytes(total)),
     );
-    status.push(span(format!("  {bytes}"), theme.muted));
+    status.push(span(format!("  {bytes}"), theme.transfer_bytes));
     if transfer.unsized_count > 0 {
       status.push(span(
         format!("  +{} unsized", transfer.unsized_count),
@@ -1792,33 +1880,44 @@ impl Renderer<'_> {
       .filter(|total| *total > 0)
       .map(|total| (transfer.done.saturating_mul(100) / total).min(100));
     let bytes = transfer.total.map_or_else(
-      || format_bytes(transfer.done),
-      |total| {
-        format!("{}/{}", format_bytes(transfer.done), format_bytes(total))
-      },
+      || self.bytes(transfer.done),
+      |total| format!("{}/{}", self.bytes(transfer.done), self.bytes(total)),
     );
     let duration = format_duration(elapsed(transfer.start, self.now));
-    let essential = percent.map_or(8, |value| 7 + value.to_string().len());
+    let show_percent =
+      self.config.show_percentages.then_some(percent).flatten();
+    let essential = match (self.config.progress_bars, show_percent) {
+      (true, Some(value)) => 7 + value.to_string().len(),
+      (true, None) => 8,
+      (false, Some(value)) => 5 + value.to_string().len(),
+      (false, None) => 4,
+    };
     let available = usize::from(self.width).saturating_sub(occupied);
     let mut spans = vec![span(format!("  {arrow}{}", self.icons.gap), color)];
-    if let Some(value) = percent {
-      let bar_width = available.saturating_sub(essential).min(32);
-      if bar_width >= 4 {
-        spans.extend(progress_bar(
-          transfer.done,
-          transfer.total.unwrap_or(0),
-          bar_width,
-          color,
-          self.config.theme.progress_track,
-        ));
-        spans.push(Span::raw(" "));
+    if self.config.progress_bars {
+      if let Some(total) = transfer.total.filter(|total| *total > 0) {
+        let bar_width = available.saturating_sub(essential).min(32);
+        if bar_width >= 4 {
+          spans.extend(progress_bar(
+            transfer.done,
+            total,
+            bar_width,
+            color,
+            self.config.theme.progress_track,
+          ));
+          if show_percent.is_some() {
+            spans.push(Span::raw(" "));
+          }
+        }
+      } else {
+        spans.push(span(self.spinner(), color));
       }
+    }
+    if let Some(value) = show_percent {
       spans.push(span(format!("{value:>3}%"), color));
-    } else {
-      spans.push(span(self.spinner(), color));
     }
     if available > essential + bytes.len() + 2 {
-      spans.push(span(format!("  {bytes}"), self.config.theme.muted));
+      spans.push(span(format!("  {bytes}"), self.config.theme.transfer_bytes));
     }
     if transfer.unsized_count > 0 {
       let unknown = format!("+{} unsized", transfer.unsized_count);

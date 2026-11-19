@@ -10,10 +10,17 @@ use std::{collections::BTreeMap, ffi::OsStr, io::ErrorKind, path::Path};
 use cognos::{ParsedDerivation, aterm::Error};
 use rom::{
   EngineConfig,
-  display::render_frame,
+  display::{format_bytes, format_bytes_decimal, render_frame},
   monitor::{DerivationResolver, Engine, Output},
   state::State,
-  types::{DisplayFormat, IconMode, LegendStyle, RenderConfig},
+  types::{
+    DisplayFormat,
+    HostSort,
+    IconMode,
+    LegendStyle,
+    RenderConfig,
+    SummaryStyle,
+  },
 };
 
 const CHAIN_HASH: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -325,11 +332,15 @@ fn tree_legends_are_distinct_and_other_formats_ignore_them() {
   let compact = render(DisplayFormat::Tree, LegendStyle::Compact);
   let table = render(DisplayFormat::Tree, LegendStyle::Table);
   let verbose = render(DisplayFormat::Tree, LegendStyle::Verbose);
+  let nom = render(DisplayFormat::Tree, LegendStyle::Nom);
   assert!(!compact.contains("Status"), "{compact}");
   assert!(table.contains("┢━ Status"), "{table}");
   assert!(verbose.contains("┢━ Build Summary"), "{verbose}");
+  assert!(nom.contains("┢━━━ Builds"), "{nom}");
+  assert!(nom.contains("┗━ ∑"), "{nom}");
   assert_ne!(compact, table);
   assert_ne!(table, verbose);
+  assert_ne!(table, nom);
 
   for format in [DisplayFormat::Plain, DisplayFormat::Dashboard] {
     assert_eq!(
@@ -338,4 +349,228 @@ fn tree_legends_are_distinct_and_other_formats_ignore_them() {
       "{format:?} should not render a tree legend",
     );
   }
+}
+
+#[test]
+fn curl_progress_is_opt_in_and_preserves_logs() {
+  let feed_curl = |curl_progress: bool| {
+    let mut engine = Engine::new(EngineConfig {
+      curl_progress,
+      ..EngineConfig::default()
+    });
+    let mut logs = Vec::new();
+    for (time, record) in [
+      (
+        0.0,
+        br#"@nix {"action":"start","id":1,"level":3,"parent":0,"text":"building","type":105,"fields":["/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-Geekbench-6.7.1-Linux.tar.gz.drv","",1,1]}"#.as_slice(),
+      ),
+      (
+        0.5,
+        br#"@nix {"action":"result","id":1,"type":101,"fields":["trying https://cdn.geekbench.com/Geekbench-6.7.1-Linux.tar.gz"]}"#,
+      ),
+      (
+        1.0,
+        br#"@nix {"action":"result","id":1,"type":101,"fields":["  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current"]}"#,
+      ),
+      (
+        1.5,
+        br#"@nix {"action":"result","id":1,"type":101,"fields":[" 24 217.5M   24 52.34M    0     0  7.77M      0  0:00:27  0:00:06  0:00:21  9.89M"]}"#,
+      ),
+    ] {
+      let processed = engine.process_record_at(record, time).unwrap();
+      logs.extend(processed.output);
+    }
+    (engine, logs)
+  };
+
+  let (disabled_engine, disabled_logs) = feed_curl(false);
+  let (enabled_engine, enabled_logs) = feed_curl(true);
+
+  // Raw curl log lines are never filtered out.
+  assert_eq!(disabled_logs.len(), 3);
+  assert_eq!(enabled_logs.len(), 3);
+
+  let config = RenderConfig {
+    legend_style: LegendStyle::Nom,
+    icons: IconMode::Unicode,
+    progress_bars: false,
+    show_percentages: false,
+    decimal_bytes: true,
+    ..RenderConfig::default()
+  };
+
+  let disabled_text =
+    render_frame(disabled_engine.state(), &config, 2.0, 110, 23, false).text();
+  assert!(
+    !disabled_text.contains("cdn.geekbench.com"),
+    "{disabled_text}"
+  );
+
+  let enabled_text =
+    render_frame(enabled_engine.state(), &config, 2.0, 110, 23, false).text();
+  assert!(
+    enabled_text.contains("from cdn.geekbench.com"),
+    "{enabled_text}"
+  );
+  assert!(
+    enabled_text.contains("52.3 MiB/217.5 MiB"),
+    "{enabled_text}"
+  );
+  assert!(
+    enabled_text.contains("cdn.geekbench.com (https)"),
+    "{enabled_text}"
+  );
+}
+
+#[test]
+fn nom_legend_sorts_and_caps_hosts_into_other() {
+  let mut engine = Engine::new(EngineConfig {
+    curl_progress: true,
+    ..EngineConfig::default()
+  });
+
+  // 1 local build + 3 remote download hosts of different sizes and counts:
+  // - small.example (2 downloads, 2 MiB total)
+  // - medium.example (1 download, 10 MiB total)
+  // - large.example (1 download, 100 MiB total)
+  for record in [
+    r#"@nix {"action":"start","id":1,"level":3,"parent":0,"text":"building","type":105,"fields":["/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-app.drv","",1,1]}"#,
+    r#"@nix {"action":"start","id":10,"level":3,"parent":0,"text":"copying","type":108,"fields":["/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-s1","https://small.example"]}"#,
+    r#"@nix {"action":"result","id":10,"type":105,"fields":[524288,1048576,1,0]}"#,
+    r#"@nix {"action":"start","id":11,"level":3,"parent":0,"text":"copying","type":108,"fields":["/nix/store/cccccccccccccccccccccccccccccccc-s2","https://small.example"]}"#,
+    r#"@nix {"action":"result","id":11,"type":105,"fields":[524288,1048576,1,0]}"#,
+    r#"@nix {"action":"start","id":12,"level":3,"parent":0,"text":"copying","type":108,"fields":["/nix/store/dddddddddddddddddddddddddddddddd-m1","https://medium.example"]}"#,
+    r#"@nix {"action":"result","id":12,"type":105,"fields":[2097152,10485760,1,0]}"#,
+    r#"@nix {"action":"start","id":13,"level":3,"parent":0,"text":"copying","type":108,"fields":["/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-l1","https://large.example"]}"#,
+    r#"@nix {"action":"result","id":13,"type":105,"fields":[10485760,104857600,1,0]}"#,
+  ] {
+    engine.process_record_at(record.as_bytes(), 0.0).unwrap();
+  }
+
+  let render_with = |host_sort, max_hosts, final_render| {
+    render_frame(
+      engine.state(),
+      &RenderConfig {
+        legend_style: LegendStyle::Nom,
+        summary_style: SummaryStyle::Nom,
+        icons: IconMode::Unicode,
+        host_sort,
+        max_hosts,
+        decimal_bytes: true,
+        ..RenderConfig::default()
+      },
+      2.0,
+      120,
+      25,
+      final_render,
+    )
+    .text()
+  };
+
+  let by_size = render_with(HostSort::DownloadSize, None, false);
+  let pos_small = by_size.find("small.example (https)").unwrap();
+  let pos_medium = by_size.find("medium.example (https)").unwrap();
+  let pos_large = by_size.find("large.example (https)").unwrap();
+  assert!(
+    pos_small < pos_medium && pos_medium < pos_large,
+    "expected ascending size order:\n{by_size}"
+  );
+
+  let by_count = render_with(HostSort::DownloadCount, None, false);
+  let pos_medium = by_count.find("medium.example (https)").unwrap();
+  let pos_large = by_count.find("large.example (https)").unwrap();
+  let pos_small = by_count.find("small.example (https)").unwrap();
+  assert!(
+    pos_medium < pos_large && pos_large < pos_small,
+    "expected ascending download-count order:\n{by_count}"
+  );
+
+  let capped = render_with(HostSort::DownloadSize, Some(1), false);
+  assert!(capped.contains("(other)"), "{capped}");
+  assert!(capped.contains("large.example (https)"), "{capped}");
+  assert!(!capped.contains("small.example"), "{capped}");
+  assert!(!capped.contains("medium.example"), "{capped}");
+  // (other) aggregates small (1.0/2.0 MiB) + medium (2.0/10.0 MiB) = 3.0/12.0
+  // MiB
+  assert!(capped.contains("3.0 MiB/12.0 MiB"), "{capped}");
+
+  let final_nom = render_with(HostSort::DownloadSize, Some(1), true);
+  assert!(final_nom.contains("large.example (https)"), "{final_nom}");
+  assert!(final_nom.contains("┗━ ∑"), "{final_nom}");
+}
+
+#[test]
+fn progress_bars_percentages_and_decimal_bytes_toggle_independently() {
+  assert_eq!(format_bytes(62_914_560), "60 MiB");
+  assert_eq!(format_bytes_decimal(62_914_560), "60.0 MiB");
+
+  let mut engine = Engine::new(EngineConfig::default());
+  for record in [
+    r#"@nix {"action":"start","id":10,"level":3,"parent":0,"text":"copying","type":108,"fields":["/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-pkg","https://cache.nixos.org"]}"#,
+    r#"@nix {"action":"result","id":10,"type":105,"fields":[15728640,62914560,1,0]}"#,
+  ] {
+    engine.process_record_at(record.as_bytes(), 0.0).unwrap();
+  }
+
+  let default_text = render_frame(
+    engine.state(),
+    &RenderConfig {
+      icons: IconMode::Unicode,
+      ..RenderConfig::default()
+    },
+    2.0,
+    100,
+    20,
+    false,
+  )
+  .text();
+  assert!(default_text.contains('━'), "{default_text}");
+  assert!(default_text.contains("25%"), "{default_text}");
+  assert!(default_text.contains("15 MiB/60 MiB"), "{default_text}");
+
+  let numbers_only = render_frame(
+    engine.state(),
+    &RenderConfig {
+      icons: IconMode::Unicode,
+      progress_bars: false,
+      show_percentages: false,
+      decimal_bytes: true,
+      ..RenderConfig::default()
+    },
+    2.0,
+    100,
+    20,
+    false,
+  )
+  .text();
+  assert!(
+    !numbers_only.contains('╸') && !numbers_only.contains("──"),
+    "{numbers_only}"
+  );
+  assert!(!numbers_only.contains('%'), "{numbers_only}");
+  assert!(numbers_only.contains("15.0 MiB/60.0 MiB"), "{numbers_only}");
+
+  // Plain format respects the same toggles.
+  let plain_numbers = render_frame(
+    engine.state(),
+    &RenderConfig {
+      format: DisplayFormat::Plain,
+      icons: IconMode::Unicode,
+      progress_bars: false,
+      show_percentages: false,
+      decimal_bytes: true,
+      ..RenderConfig::default()
+    },
+    2.0,
+    100,
+    20,
+    false,
+  )
+  .text();
+  assert!(!plain_numbers.contains('━'), "{plain_numbers}");
+  assert!(!plain_numbers.contains('%'), "{plain_numbers}");
+  assert!(
+    plain_numbers.contains("15.0 MiB/60.0 MiB"),
+    "{plain_numbers}"
+  );
 }

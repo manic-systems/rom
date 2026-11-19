@@ -3,6 +3,7 @@
 
 pub mod cache;
 #[cfg(feature = "cli")] pub mod cli;
+pub mod curl;
 pub mod display;
 pub mod error;
 mod event;
@@ -15,6 +16,7 @@ pub mod types;
 mod update;
 pub mod usage;
 
+pub use curl::CurlProgress;
 pub use error::{Result, RomError};
 pub use monitor::{
   Answer,
@@ -30,9 +32,11 @@ pub use monitor::{
   StreamEngine,
 };
 pub use types::{
+  Color,
   Config,
   DisplayFormat,
   EngineConfig,
+  HostSort,
   IconMode,
   InputMode,
   LegendStyle,

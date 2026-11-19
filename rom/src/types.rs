@@ -1,7 +1,7 @@
 //! Public configuration and presentation types.
 
 use cognos::Verbosity;
-use ratatui_core::style::Color;
+pub use ratatui_core::style::Color;
 
 /// How ROM interprets structured input records.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -42,6 +42,8 @@ pub enum LegendStyle {
   Table,
   /// A table with every status spelled out.
   Verbose,
+  /// Per-host counts and transfer totals, in the style of nom.
+  Nom,
 }
 
 /// Which way the tree grows from its roots.
@@ -70,6 +72,25 @@ pub enum SummaryStyle {
   Table,
   /// Totals and every finished build.
   Full,
+  /// Per-host counts and transfer totals, in the style of nom.
+  Nom,
+}
+
+/// How hosts are ordered in the per-host legend and summary.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "cli", derive(pound::ValueEnum))]
+#[cfg_attr(feature = "cli", derive(serde::Deserialize))]
+#[cfg_attr(feature = "cli", serde(rename_all = "kebab-case"))]
+pub enum HostSort {
+  /// Reverse-domain alphabetical order (or by activity when capped).
+  #[default]
+  None,
+  /// Ascending by total download size (largest at the bottom).
+  DownloadSize,
+  /// Ascending by total download count (most at the bottom).
+  DownloadCount,
+  /// Ascending by total build count (most at the bottom).
+  Builds,
 }
 
 /// Prefix used for decoded builder log lines.
@@ -117,6 +138,8 @@ pub struct Theme {
   pub download:       Color,
   /// Uploads.
   pub upload:         Color,
+  /// Byte counts for transfer progress (e.g. `15.0 MiB/60.0 MiB`).
+  pub transfer_bytes: Color,
   /// The unfilled part of progress bars.
   pub progress_track: Color,
   /// A build's cores while it runs in parallel.
@@ -163,6 +186,7 @@ impl Default for Theme {
       host:           Color::Magenta,
       download:       Color::Cyan,
       upload:         Color::Magenta,
+      transfer_bytes: Color::DarkGray,
       progress_track: Color::DarkGray,
       cpu:            Color::Gray,
       cpu_serial:     Color::Yellow,
@@ -187,33 +211,50 @@ pub struct EngineConfig {
   pub log_line_limit:   Option<usize>,
   /// Maximum size of one claimed internal-JSON record.
   pub max_record_bytes: usize,
+  /// Parse curl download progress from builder log lines.
+  pub curl_progress:    bool,
 }
 
 /// Terminal-independent rendering and serialization policy.
 #[derive(Debug, Clone)]
+#[expect(
+  clippy::struct_excessive_bools,
+  reason = "independent display toggles configured by the user"
+)]
 pub struct RenderConfig {
   /// Emit ANSI styling for decoded logs and append-only presentations.
   ///
   /// Exact non-protocol passthrough is never changed by this setting.
-  pub ansi:           bool,
+  pub ansi:             bool,
   /// Show elapsed and estimated times.
-  pub show_timers:    bool,
+  pub show_timers:      bool,
   /// Width override; defaults to the terminal width.
-  pub width:          Option<u16>,
+  pub width:            Option<u16>,
   /// Height override; defaults to the terminal height.
-  pub height:         Option<u16>,
+  pub height:           Option<u16>,
   /// Primary presentation.
-  pub format:         DisplayFormat,
+  pub format:           DisplayFormat,
   /// Which way the tree grows.
-  pub tree_direction: TreeDirection,
+  pub tree_direction:   TreeDirection,
   /// Legend detail.
-  pub legend_style:   LegendStyle,
+  pub legend_style:     LegendStyle,
   /// Final summary detail.
-  pub summary_style:  SummaryStyle,
+  pub summary_style:    SummaryStyle,
+  /// Host ordering in the nom legend and summary.
+  pub host_sort:        HostSort,
+  /// Maximum number of remote hosts shown before aggregating the rest into
+  /// `(other)`.
+  pub max_hosts:        Option<usize>,
+  /// Show progress bars on running builds and transfers.
+  pub progress_bars:    bool,
+  /// Show percentage values alongside transfer sizes.
+  pub show_percentages: bool,
+  /// Always include a decimal digit when formatting KiB and larger sizes.
+  pub decimal_bytes:    bool,
   /// Colors.
-  pub theme:          Theme,
+  pub theme:            Theme,
   /// Icon selection.
-  pub icons:          IconMode,
+  pub icons:            IconMode,
 }
 
 impl Default for EngineConfig {
@@ -225,6 +266,7 @@ impl Default for EngineConfig {
       log_prefix_style: LogPrefixStyle::Short,
       log_line_limit:   None,
       max_record_bytes: 4 * 1024 * 1024,
+      curl_progress:    false,
     }
   }
 }
@@ -232,16 +274,21 @@ impl Default for EngineConfig {
 impl Default for RenderConfig {
   fn default() -> Self {
     Self {
-      ansi:           false,
-      show_timers:    true,
-      width:          None,
-      height:         None,
-      format:         DisplayFormat::Tree,
-      tree_direction: TreeDirection::Down,
-      legend_style:   LegendStyle::Table,
-      summary_style:  SummaryStyle::Concise,
-      theme:          Theme::default(),
-      icons:          IconMode::Auto,
+      ansi:             false,
+      show_timers:      true,
+      width:            None,
+      height:           None,
+      format:           DisplayFormat::Tree,
+      tree_direction:   TreeDirection::Down,
+      legend_style:     LegendStyle::Table,
+      summary_style:    SummaryStyle::Concise,
+      host_sort:        HostSort::None,
+      max_hosts:        None,
+      progress_bars:    true,
+      show_percentages: true,
+      decimal_bytes:    false,
+      theme:            Theme::default(),
+      icons:            IconMode::Auto,
     }
   }
 }

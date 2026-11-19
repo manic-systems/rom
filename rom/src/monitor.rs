@@ -1444,7 +1444,12 @@ impl Engine {
     };
 
     let mut output = Vec::new();
-    let effects = update::apply_event_at(&mut self.state, event, now);
+    let effects = update::apply_event_at(
+      &mut self.state,
+      event,
+      now,
+      self.config.curl_progress,
+    );
 
     if show_log
       && let Some(log) = effects.log

@@ -284,6 +284,63 @@ fn descendant_progress_does_not_overwrite_its_transfer_parent() {
 }
 
 #[test]
+fn child_file_transfer_progress_populates_transfer_without_direct_progress() {
+  const PATH: &str = "/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-download";
+  let mut engine = Engine::new(EngineConfig::default());
+  for record in [
+    format!(
+      "@nix {{\"action\":\"start\",\"id\":20,\"level\":3,\"parent\":0,\
+       \"text\":\"copying\",\"type\":108,\"fields\":[\"{PATH}\",\
+       \"https://cache.nixos.org\"]}}"
+    ),
+    format!(
+      "@nix {{\"action\":\"start\",\"id\":21,\"level\":3,\"parent\":20,\
+       \"text\":\"copying\",\"type\":100,\"fields\":[\"{PATH}\",\
+       \"https://cache.nixos.org\",\"local\"]}}"
+    ),
+    r#"@nix {"action":"start","id":22,"level":3,"parent":21,"text":"downloading","type":101,"fields":[]}"#.to_owned(),
+    r#"@nix {"action":"result","id":22,"type":105,"fields":[652083,2097152,1,0]}"#.to_owned(),
+  ] {
+    engine.process_record_at(record.as_bytes(), 0.0).unwrap();
+  }
+
+  let transfer = engine
+    .state()
+    .summary()
+    .running_downloads
+    .values()
+    .next()
+    .unwrap();
+  assert_eq!(transfer.bytes_transferred, 652_083);
+  assert_eq!(transfer.total_bytes, Some(2_097_152));
+  assert_eq!(transfer.protocol.as_deref(), Some("https"));
+
+  // Once the parent reports direct progress, it takes precedence over the
+  // child FileTransfer activity.
+  engine
+    .process_record_at(
+      br#"@nix {"action":"result","id":21,"type":105,"fields":[1000000,4000000,1,0]}"#,
+      1.0,
+    )
+    .unwrap();
+  engine
+    .process_record_at(
+      br#"@nix {"action":"result","id":22,"type":105,"fields":[900000,2097152,1,0]}"#,
+      2.0,
+    )
+    .unwrap();
+  let transfer = engine
+    .state()
+    .summary()
+    .running_downloads
+    .values()
+    .next()
+    .unwrap();
+  assert_eq!(transfer.bytes_transferred, 1_000_000);
+  assert_eq!(transfer.total_bytes, Some(4_000_000));
+}
+
+#[test]
 fn silent_mode_keeps_errors_but_drops_informational_logs() {
   let mut stream = StreamEngine::new(EngineConfig {
     silent: true,

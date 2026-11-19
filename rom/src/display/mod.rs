@@ -68,12 +68,23 @@ pub fn format_secs(secs: u64) -> String {
 
 /// Formats a byte count with binary units, such as `1.5 MiB`.
 #[must_use]
+pub fn format_bytes(bytes: u64) -> String {
+  format_bytes_with_precision(bytes, false)
+}
+
+/// Formats a byte count with binary units, always keeping one decimal digit for
+/// KiB and larger values (such as `60.0 MiB`).
+#[must_use]
+pub fn format_bytes_decimal(bytes: u64) -> String {
+  format_bytes_with_precision(bytes, true)
+}
+
 #[expect(
   clippy::cast_precision_loss,
   reason = "fractional units are rounded for display"
 )]
-pub fn format_bytes(bytes: u64) -> String {
-  const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
+fn format_bytes_with_precision(bytes: u64, always_decimal: bool) -> String {
+  const UNITS: [&str; 6] = ["B", "KiB", "MiB", "GiB", "TiB", "PiB"];
   let mut value = bytes as f64;
   let mut unit = 0;
   while value >= 1024.0 && unit + 1 < UNITS.len() {
@@ -82,7 +93,7 @@ pub fn format_bytes(bytes: u64) -> String {
   }
   if unit == 0 {
     format!("{bytes} B")
-  } else if value >= 10.0 {
+  } else if !always_decimal && value >= 10.0 {
     format!("{value:.0} {}", UNITS[unit])
   } else {
     format!("{value:.1} {}", UNITS[unit])
@@ -160,6 +171,7 @@ impl<'a> Renderer<'a> {
       {
         corner.content = match corner.content.as_ref() {
           "┢━ " => "┏━ ",
+          "┢━━━ " => "┏━━━ ",
           "┕━ " | "┗━ " => "╺━ ",
           other => other,
         }
@@ -237,6 +249,10 @@ impl<'a> Renderer<'a> {
     let graph_budget = graph_limit.min(maximum.saturating_sub(tail.len()));
 
     (tail, graph_budget)
+  }
+
+  fn bytes(&self, bytes: u64) -> String {
+    format_bytes_with_precision(bytes, self.config.decimal_bytes)
   }
 
   const fn transfer_color(&self, transfer: &Transfer) -> Color {
@@ -521,6 +537,7 @@ mod tests {
       TransferInfo {
         start:             0.0,
         host:              cognos::Host::Localhost,
+        protocol:          None,
         activity_id:       1,
         parent:            None,
         bytes_transferred: 50,

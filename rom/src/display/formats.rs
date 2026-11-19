@@ -92,6 +92,15 @@ impl Renderer<'_> {
         ),
       ];
 
+      if let Some(curl) = &build.curl
+        && !matches!(curl.host, cognos::Host::Localhost)
+      {
+        spans.push(span(
+          format!("  from {}", curl.host.name()),
+          self.config.theme.host,
+        ));
+      }
+
       if let Some(phase) = &build.phase {
         spans.push(span(format!("  ({phase})"), self.config.theme.muted));
       }
@@ -109,6 +118,10 @@ impl Renderer<'_> {
       }
 
       spans.extend(build.cpu.map(|cpu| self.cpu(cpu)));
+
+      if let Some(curl) = &build.curl {
+        spans.extend(self.curl_progress_spans(curl));
+      }
 
       let host = build.host.name();
       if host != "localhost" {

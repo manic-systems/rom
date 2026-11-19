@@ -8,6 +8,7 @@ use std::{
   iter,
   path::{Path, PathBuf},
   process::{Child, Command, ExitCode, Stdio},
+  str::FromStr,
   sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
@@ -21,7 +22,8 @@ use cognos::Verbosity;
 use etcetera::{BaseStrategy, choose_base_strategy};
 use misstep::{OptionExt, ResultExt};
 use pound::{External, Parse};
-use serde::Deserialize;
+use ratatui_core::style::Color;
+use serde::{Deserialize, Deserializer};
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{
   filter::Targets,
@@ -47,12 +49,14 @@ use crate::{
     Config,
     DisplayFormat,
     EngineConfig,
+    HostSort,
     IconMode,
     InputMode,
     LegendStyle,
     LogPrefixStyle,
     RenderConfig,
     SummaryStyle,
+    Theme,
     TreeDirection,
   },
   usage::CpuUsage,
@@ -119,6 +123,32 @@ pub struct DisplayOptions {
   /// Maximum decoded builder log lines per activity.
   #[pound(long, global)]
   pub log_lines: Option<usize>,
+
+  /// Host ordering in the nom legend and summary. Defaults to none.
+  #[pound(long, global)]
+  pub host_sort: Option<HostSort>,
+
+  /// Maximum number of remote hosts shown before folding the rest into
+  /// (other).
+  #[pound(long, global)]
+  pub max_hosts: Option<usize>,
+
+  /// Parse curl download progress from builder logs. Defaults to false.
+  #[pound(long, global)]
+  pub curl_progress: Option<bool>,
+
+  /// Show progress bars on running builds and transfers. Defaults to true.
+  #[pound(long, global)]
+  pub progress_bars: Option<bool>,
+
+  /// Show percentages alongside transfer sizes. Defaults to true.
+  #[pound(long, global)]
+  pub show_percentages: Option<bool>,
+
+  /// Always include a decimal digit when formatting KiB and larger sizes.
+  /// Defaults to false.
+  #[pound(long, global)]
+  pub decimal_bytes: Option<bool>,
 }
 
 impl DisplayOptions {
@@ -132,6 +162,12 @@ impl DisplayOptions {
       icons,
       log_prefix,
       log_lines,
+      host_sort,
+      max_hosts,
+      curl_progress,
+      progress_bars,
+      show_percentages,
+      decimal_bytes,
     } = self;
     let (engine, render) = (&mut config.engine, &mut config.render);
     render.format = format.unwrap_or(render.format);
@@ -139,43 +175,190 @@ impl DisplayOptions {
     render.legend_style = legend.unwrap_or(render.legend_style);
     render.summary_style = summary.unwrap_or(render.summary_style);
     render.icons = icons.unwrap_or(render.icons);
+    render.host_sort = host_sort.unwrap_or(render.host_sort);
+    render.max_hosts = max_hosts.or(render.max_hosts);
+    render.progress_bars = progress_bars.unwrap_or(render.progress_bars);
+    render.show_percentages =
+      show_percentages.unwrap_or(render.show_percentages);
+    render.decimal_bytes = decimal_bytes.unwrap_or(render.decimal_bytes);
     engine.log_prefix_style = log_prefix.unwrap_or(engine.log_prefix_style);
     engine.log_line_limit = log_lines.or(engine.log_line_limit);
+    engine.curl_progress = curl_progress.unwrap_or(engine.curl_progress);
   }
 
   /// Fills the flags left unset from `file`.
   fn or(self, file: Self) -> Self {
     Self {
-      format:         self.format.or(file.format),
-      tree_direction: self.tree_direction.or(file.tree_direction),
-      legend:         self.legend.or(file.legend),
-      summary:        self.summary.or(file.summary),
-      icons:          self.icons.or(file.icons),
-      log_prefix:     self.log_prefix.or(file.log_prefix),
-      log_lines:      self.log_lines.or(file.log_lines),
+      format:           self.format.or(file.format),
+      tree_direction:   self.tree_direction.or(file.tree_direction),
+      legend:           self.legend.or(file.legend),
+      summary:          self.summary.or(file.summary),
+      icons:            self.icons.or(file.icons),
+      log_prefix:       self.log_prefix.or(file.log_prefix),
+      log_lines:        self.log_lines.or(file.log_lines),
+      host_sort:        self.host_sort.or(file.host_sort),
+      max_hosts:        self.max_hosts.or(file.max_hosts),
+      curl_progress:    self.curl_progress.or(file.curl_progress),
+      progress_bars:    self.progress_bars.or(file.progress_bars),
+      show_percentages: self.show_percentages.or(file.show_percentages),
+      decimal_bytes:    self.decimal_bytes.or(file.decimal_bytes),
     }
   }
 }
 
-/// Reads the display flags set in the config file, if there is one.
-fn read_config() -> misstep::Result<DisplayOptions> {
+/// Optional semantic color overrides loaded from `[theme]` in
+/// `$XDG_CONFIG_HOME/rom/config.toml`.
+///
+/// Colors accept ANSI names (such as `blue`, `white`, `dark-gray`, `reset`),
+/// 256-color indices (such as `"67"`), or hex RGB values (`"#5f87af"`).
+#[derive(Debug, Clone, Copy, Default, Deserialize)]
+#[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
+pub struct ThemeOptions {
+  /// Tree connectors and box borders.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub connector:      Option<Color>,
+  /// Ordinary text.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub text:           Option<Color>,
+  /// Secondary text, such as build phases.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub muted:          Option<Color>,
+  /// Timers and estimates.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub timer:          Option<Color>,
+  /// Planned work.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub planned:        Option<Color>,
+  /// Running work.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub running:        Option<Color>,
+  /// Completed work.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub completed:      Option<Color>,
+  /// Failed work.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub failed:         Option<Color>,
+  /// Builder log prefixes.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub log_prefix:     Option<Color>,
+  /// Host names.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub host:           Option<Color>,
+  /// Downloads.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub download:       Option<Color>,
+  /// Uploads.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub upload:         Option<Color>,
+  /// Byte counts for transfer progress.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub transfer_bytes: Option<Color>,
+  /// The unfilled part of progress bars.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub progress_track: Option<Color>,
+  /// A build's cores while it runs in parallel.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub cpu:            Option<Color>,
+  /// A build stuck under 1.5 cores.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub cpu_serial:     Option<Color>,
+  /// A build using almost no CPU.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub cpu_idle:       Option<Color>,
+  /// A build taking most of the machine while others run.
+  #[serde(deserialize_with = "deserialize_opt_color")]
+  pub cpu_heavy:      Option<Color>,
+}
+
+impl ThemeOptions {
+  /// Applies any configured color overrides onto `theme`.
+  pub fn apply(self, theme: &mut Theme) {
+    let Self {
+      connector,
+      text,
+      muted,
+      timer,
+      planned,
+      running,
+      completed,
+      failed,
+      log_prefix,
+      host,
+      download,
+      upload,
+      transfer_bytes,
+      progress_track,
+      cpu,
+      cpu_serial,
+      cpu_idle,
+      cpu_heavy,
+    } = self;
+    theme.connector = connector.unwrap_or(theme.connector);
+    theme.text = text.unwrap_or(theme.text);
+    theme.muted = muted.unwrap_or(theme.muted);
+    theme.timer = timer.unwrap_or(theme.timer);
+    theme.planned = planned.unwrap_or(theme.planned);
+    theme.running = running.unwrap_or(theme.running);
+    theme.completed = completed.unwrap_or(theme.completed);
+    theme.failed = failed.unwrap_or(theme.failed);
+    theme.log_prefix = log_prefix.unwrap_or(theme.log_prefix);
+    theme.host = host.unwrap_or(theme.host);
+    theme.download = download.unwrap_or(theme.download);
+    theme.upload = upload.unwrap_or(theme.upload);
+    theme.transfer_bytes = transfer_bytes.unwrap_or(theme.transfer_bytes);
+    theme.progress_track = progress_track.unwrap_or(theme.progress_track);
+    theme.cpu = cpu.unwrap_or(theme.cpu);
+    theme.cpu_serial = cpu_serial.unwrap_or(theme.cpu_serial);
+    theme.cpu_idle = cpu_idle.unwrap_or(theme.cpu_idle);
+    theme.cpu_heavy = cpu_heavy.unwrap_or(theme.cpu_heavy);
+  }
+}
+
+fn deserialize_opt_color<'de, D>(
+  deserializer: D,
+) -> Result<Option<Color>, D::Error>
+where
+  D: Deserializer<'de>,
+{
+  let Some(value) = Option::<String>::deserialize(deserializer)? else {
+    return Ok(None);
+  };
+  Color::from_str(&value)
+    .map(Some)
+    .map_err(|error| serde::de::Error::custom(format!("{error}: {value:?}")))
+}
+
+/// Reads the display flags and theme overrides set in the config file, if
+/// there is one.
+fn read_config() -> misstep::Result<(DisplayOptions, ThemeOptions)> {
   let Ok(strategy) = choose_base_strategy() else {
-    return Ok(DisplayOptions::default());
+    return Ok((DisplayOptions::default(), ThemeOptions::default()));
   };
   let path = strategy.config_dir().join("rom").join("config.toml");
   let text = match fs::read_to_string(&path) {
     Ok(text) => text,
     Err(error) if error.kind() == io::ErrorKind::NotFound => {
-      return Ok(DisplayOptions::default());
+      return Ok((DisplayOptions::default(), ThemeOptions::default()));
     },
     Err(error) => {
       Err(error).with_context(|| format!("reading {}", path.display()))?
     },
   };
-  Ok(
-    toml::from_str(&text)
-      .with_context(|| format!("parsing {}", path.display()))?,
-  )
+  let mut table: toml::Table = toml::from_str(&text)
+    .with_context(|| format!("parsing {}", path.display()))?;
+  let theme = table
+    .remove("theme")
+    .map(|value| {
+      value
+        .try_into::<ThemeOptions>()
+        .with_context(|| format!("parsing [theme] in {}", path.display()))
+    })
+    .transpose()?
+    .unwrap_or_default();
+  let display = toml::Value::Table(table)
+    .try_into::<DisplayOptions>()
+    .with_context(|| format!("parsing {}", path.display()))?;
+  Ok((display, theme))
 }
 
 /// Nix commands that `rom` can wrap.
@@ -247,7 +430,8 @@ pub fn run() -> misstep::Result<ExitCode> {
   }
 
   let mut cli = Cli::parse_from(arguments.iter().map(String::as_str));
-  cli.display = cli.display.or(read_config()?);
+  let (file_display, file_theme) = read_config()?;
+  cli.display = cli.display.or(file_display);
 
   let filter = match env::var("RUST_LOG") {
     Ok(directives) => {
@@ -293,6 +477,7 @@ pub fn run() -> misstep::Result<ExitCode> {
     },
   };
   cli.display.apply(&mut monitor);
+  file_theme.apply(&mut monitor.render.theme);
   let config = WrapperConfig {
     platform: cli.platform.unwrap_or_else(cognos::Platform::detect),
     verbose: cli.verbose,

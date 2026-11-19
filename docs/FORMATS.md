@@ -64,6 +64,7 @@ the screen. At this moment they only affect the **tree format**.
 1. Table Style
 2. Compact Style
 3. Verbose Style
+4. Nom Style
 
 ### Examples
 
@@ -96,9 +97,25 @@ the screen. At this moment they only affect the **tree format**.
 ┗━  ⏵ 1 building ✔ 0 completed ✗ 0 failed ⏸ 4 waiting
 ```
 
+**Nom**:
+
+```plaintext
+╭─ ⏸ nixos-system-laptop-26.11.20261113.d5cc683
+┢━━━ Builds           │ Downloads                              │ Host
+┃    ⏵ 1 │     │ ⏸ 21 │     │     │     │                      │ localhost
+┃        │     │      │ ↓ 1 │ ↓ 3 │     │ ↓ 88.9 MiB/334.9 MiB │ cache.nixos.org (https)
+┃        │     │      │ ↓ 1 │     │     │   ↓ 70.6 MiB/1.3 GiB │ download.jetbrains.com (https)
+┗━ ∑ ⏵ 1 │ ✔ 0 │ ⏸ 21 │ ↓ 2 │ ↓ 3 │ ⏸ 0 │  ↓ 159.5 MiB/1.6 GiB │ ⏱ 19s
+```
+
+Host rows in the `nom` legend (and matching `--summary nom`) can be sorted with
+`--host-sort` (`none`, `download-size`, `download-count`, `builds`) and capped
+with `--max-hosts <N>`, which combines overflow hosts into an `(other)` row.
+
 ## Icon Legend
 
-All formats use consistent icons:
+All formats use consistent icons (default colors shown; any color can be
+customized via `[theme]` in `config.toml`):
 
 | Icon | Meaning           | Color   |
 | ---- | ----------------- | ------- |

@@ -105,6 +105,7 @@ fn undersized_terminal_falls_back_without_live_control_artifacts() {
   reason = "semicolon_outside_block asks for the opposite"
 )]
 fn replay_fixture(fixture: &str, columns: u16, rows: u16) -> Vec<u8> {
+  let home = tempfile::tempdir().unwrap();
   let (master, slave) = open_pty(columns, rows).unwrap();
   // SAFETY: `open_pty` returned `slave` as a fresh descriptor nothing else
   // owns.
@@ -113,6 +114,8 @@ fn replay_fixture(fixture: &str, columns: u16, rows: u16) -> Vec<u8> {
   command
     .env("TERM", "dumb")
     .env("TERM_PROGRAM", "ghostty")
+    .env("XDG_CONFIG_HOME", home.path())
+    .env("XDG_STATE_HOME", home.path())
     .stdin(Stdio::piped())
     .stdout(Stdio::null())
     .stderr(Stdio::from(slave));

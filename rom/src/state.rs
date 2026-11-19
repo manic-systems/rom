@@ -10,6 +10,8 @@ use cognos::{Activities, Host, Id};
 use foldhash::{HashMap, HashMapExt, HashSet, HashSetExt, fast::RandomState};
 use indexmap::IndexMap;
 
+use crate::curl::{CurlLine, CurlProgress};
+
 /// Unique identifier for store paths.
 pub type StorePathId = usize;
 
@@ -83,6 +85,8 @@ pub struct TransferInfo {
   pub start:             f64,
   /// Remote end of the transfer.
   pub host:              Host,
+  /// URL scheme of the remote end, when known (such as `https` or `ssh`).
+  pub protocol:          Option<String>,
   /// Activity performing the transfer.
   pub activity_id:       ActivityId,
   /// Derivation the transfer was started for.
@@ -105,6 +109,8 @@ pub struct CompletedTransferInfo {
   pub end:         f64,
   /// Remote end of the transfer.
   pub host:        Host,
+  /// URL scheme of the remote end, when known (such as `https` or `ssh`).
+  pub protocol:    Option<String>,
   /// Derivation the transfer was started for.
   pub parent:      Option<DerivationId>,
   /// Total size.
@@ -131,12 +137,16 @@ pub struct BuildInfo {
   pub start:    f64,
   /// Machine running the build.
   pub host:     Host,
+  /// URL scheme of the build machine, when known (such as `ssh` or `ssh-ng`).
+  pub protocol: Option<String>,
   /// Expected duration in seconds, from build history.
   pub estimate: Option<u64>,
   /// Current build phase, such as `buildPhase`.
   pub phase:    Option<String>,
   /// CPU use, from the build's cgroup.
   pub cpu:      Option<BuildCpu>,
+  /// Curl download progress parsed from builder logs, when enabled.
+  pub curl:     Option<CurlProgress>,
   /// Derivation Nix builds, the resolved one for a content-addressed
   /// derivation.
   pub path:     PathBuf,
@@ -294,17 +304,19 @@ impl DerivationInfo {
 #[non_exhaustive]
 pub struct DependencySummary {
   /// Downloads that have not started yet.
-  pub planned_downloads:   BTreeSet<StorePathId>,
+  pub planned_downloads:      BTreeSet<StorePathId>,
   /// Whether one or more downloads have been announced.
-  pub downloads_announced: bool,
+  pub downloads_announced:    bool,
   /// Finished downloads.
-  pub completed_downloads: BTreeMap<StorePathId, CompletedTransferInfo>,
+  pub completed_downloads:    BTreeMap<StorePathId, CompletedTransferInfo>,
   /// Finished uploads.
-  pub completed_uploads:   BTreeMap<StorePathId, CompletedTransferInfo>,
+  pub completed_uploads:      BTreeMap<StorePathId, CompletedTransferInfo>,
   /// Downloads in progress.
-  pub running_downloads:   BTreeMap<StorePathId, TransferInfo>,
+  pub running_downloads:      BTreeMap<StorePathId, TransferInfo>,
   /// Uploads in progress.
-  pub running_uploads:     BTreeMap<StorePathId, TransferInfo>,
+  pub running_uploads:        BTreeMap<StorePathId, TransferInfo>,
+  /// Total planned download bytes announced by Nix before transfers start.
+  pub planned_download_bytes: Option<u64>,
 }
 
 /// A Nix progress report, in bytes for transfers and builds for builds.
@@ -368,6 +380,7 @@ pub struct State {
   derivation_ids:     HashMap<Derivation, DerivationId>,
   name_counts:        HashMap<String, usize>,
   activities:         HashMap<ActivityId, ActivityStatus>,
+  direct_transfers:   HashSet<StorePathId>,
   source_fetches:     BTreeMap<ActivityId, SourceFetch>,
   nix_errors:         Vec<String>,
   nix_error_count:    usize,
@@ -398,6 +411,7 @@ impl State {
       derivation_ids:     HashMap::new(),
       name_counts:        HashMap::new(),
       activities:         HashMap::new(),
+      direct_transfers:   HashSet::new(),
       source_fetches:     BTreeMap::new(),
       nix_errors:         Vec::new(),
       nix_error_count:    0,
@@ -1000,6 +1014,18 @@ impl State {
     }
   }
 
+  pub(crate) fn set_planned_download_bytes(&mut self, bytes: u64) -> bool {
+    let next = Some(
+      self
+        .full_summary
+        .planned_download_bytes
+        .map_or(bytes, |existing| existing.saturating_add(bytes)),
+    );
+    let changed = self.full_summary.planned_download_bytes != next;
+    self.full_summary.planned_download_bytes = next;
+    changed
+  }
+
   pub(crate) fn mark_unbuilt(&mut self, id: DerivationId) -> bool {
     self
       .derivation_infos
@@ -1173,6 +1199,7 @@ impl State {
   ) -> StorePathId {
     let id = self.get_or_create_store_path_id(path);
     self.full_summary.planned_downloads.remove(&id);
+    self.direct_transfers.remove(&id);
     self.full_summary.running_downloads.insert(id, transfer);
     id
   }
@@ -1184,6 +1211,7 @@ impl State {
   ) -> StorePathId {
     let id = self.get_or_create_store_path_id(path);
     self.full_summary.planned_downloads.remove(&id);
+    self.direct_transfers.remove(&id);
     self.full_summary.running_uploads.insert(id, transfer);
     id
   }
@@ -1197,6 +1225,7 @@ impl State {
     else {
       return false;
     };
+    self.direct_transfers.remove(&path);
     self
       .full_summary
       .completed_downloads
@@ -1215,6 +1244,7 @@ impl State {
     let Some(transfer) = self.full_summary.running_uploads.remove(&path) else {
       return false;
     };
+    self.direct_transfers.remove(&path);
     self
       .full_summary
       .completed_uploads
@@ -1336,6 +1366,84 @@ impl State {
     true
   }
 
+  pub(crate) fn update_activity_curl(
+    &mut self,
+    id: ActivityId,
+    event: CurlLine,
+  ) -> bool {
+    let Some(derivation) = self.enclosing_build_derivation(id) else {
+      return false;
+    };
+    let Some(info) = self.get_derivation_info_mut(derivation) else {
+      return false;
+    };
+    let build = match &mut info.build_status {
+      BuildStatus::Building(build)
+      | BuildStatus::Built { info: build, .. }
+      | BuildStatus::Failed { info: build, .. } => build,
+      BuildStatus::Unknown
+      | BuildStatus::Planned
+      | BuildStatus::Available
+      | BuildStatus::DependencyFailed => {
+        return false;
+      },
+    };
+    match event {
+      CurlLine::TargetUrl { host, protocol } => {
+        if let Some(curl) = &mut build.curl {
+          if curl.host == host && curl.protocol == protocol {
+            return false;
+          }
+          curl.host = host;
+          curl.protocol = protocol;
+        } else {
+          build.curl = Some(CurlProgress::new(host, protocol));
+        }
+      },
+      CurlLine::Progress { done, total } => {
+        let curl = build.curl.get_or_insert_with(CurlProgress::fallback);
+        if curl.bytes_transferred == done && curl.total_bytes == total {
+          return false;
+        }
+        curl.bytes_transferred = done;
+        curl.total_bytes = total;
+      },
+    }
+    true
+  }
+
+  fn enclosing_build_derivation(
+    &self,
+    activity_id: ActivityId,
+  ) -> Option<DerivationId> {
+    let mut current = activity_id;
+    for _ in 0..10 {
+      let activity = self.activities.get(&current)?;
+      if activity.activity == Activities::Build {
+        return activity.derivation;
+      }
+      let parent = activity.parent.filter(|&parent| parent != 0)?;
+      current = parent;
+    }
+    None
+  }
+
+  fn enclosing_transfer_path(
+    &self,
+    activity_id: ActivityId,
+  ) -> Option<StorePathId> {
+    let mut current = activity_id;
+    for _ in 0..10 {
+      let activity = self.activities.get(&current)?;
+      if let Some(path) = activity.store_path {
+        return Some(path);
+      }
+      let parent = activity.parent.filter(|&parent| parent != 0)?;
+      current = parent;
+    }
+    None
+  }
+
   pub(crate) fn update_activity_progress(
     &mut self,
     id: ActivityId,
@@ -1345,23 +1453,56 @@ impl State {
     let Some(status) = self.activities.get(&id) else {
       return false;
     };
-    if status.activity == Activities::Builds {
+    if matches!(status.activity, Activities::Builds | Activities::CopyPaths) {
       return false;
     }
     let Progress { done, expected, .. } = progress;
 
-    for transfer in self
+    let mut matched_direct = false;
+    for (&path, transfer) in self
       .full_summary
       .running_downloads
-      .values_mut()
-      .chain(self.full_summary.running_uploads.values_mut())
-      .filter(|transfer| transfer.activity_id == id)
+      .iter_mut()
+      .chain(self.full_summary.running_uploads.iter_mut())
+      .filter(|(_, transfer)| transfer.activity_id == id)
     {
+      matched_direct = true;
+      self.direct_transfers.insert(path);
       if transfer.bytes_transferred != done {
         transfer.last_progress = now;
       }
       transfer.bytes_transferred = done;
       transfer.total_bytes = (expected > 0).then_some(expected);
+    }
+    if matched_direct {
+      return true;
+    }
+
+    // Fall back to updating an enclosing transfer (e.g. a CopyPath/Substitute
+    // whose child FileTransfer emits byte progress) only when the parent has
+    // not reported its own progress directly.
+    if let Some(path) = self.enclosing_transfer_path(id)
+      && !self.direct_transfers.contains(&path)
+    {
+      let transfer = self
+        .full_summary
+        .running_downloads
+        .get_mut(&path)
+        .or_else(|| self.full_summary.running_uploads.get_mut(&path));
+      if let Some(transfer) = transfer {
+        if transfer.bytes_transferred != done {
+          transfer.last_progress = now;
+        }
+        transfer.bytes_transferred = done;
+        if expected > 0 {
+          transfer.total_bytes = Some(
+            transfer
+              .total_bytes
+              .map_or(expected, |prev| prev.max(expected)),
+          );
+        }
+        return true;
+      }
     }
     true
   }
@@ -1503,8 +1644,13 @@ fn complete_transfer(
     start:       transfer.start,
     end:         now,
     host:        transfer.host,
+    protocol:    transfer.protocol,
     parent:      transfer.parent,
-    total_bytes: transfer.bytes_transferred,
+    total_bytes: transfer
+      .total_bytes
+      .map_or(transfer.bytes_transferred, |total| {
+        total.max(transfer.bytes_transferred)
+      }),
   }
 }
 

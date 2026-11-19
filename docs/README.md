@@ -153,17 +153,24 @@ Use `--json` for a stream of bare internal-JSON records instead.
 
 <!--markdownlint-disable MD013-->
 
-| Option                             | Default   | What it changes                            |
-| ---------------------------------- | --------- | ------------------------------------------ |
-| `--format tree\|plain\|dashboard`  | `tree`    | dependency graph, one line each, or totals |
-| `--legend compact\|table\|verbose` | `table`   | the status counts under the graph          |
-| `--summary concise\|table\|full`   | `concise` | the summary when the build ends            |
-| `--icons auto\|nerd\|unicode`       | `auto`    | Nerd Font glyphs when detected, otherwise plain Unicode |
-| `--log-prefix short\|full\|none`   | `short`   | what precedes each builder log line        |
-| `--log-lines N`                    | no limit  | builder log lines shown per build          |
-| `--platform nix\|lix`              | detected  | which evaluator to run                     |
-| `--silent`                         |           | hide logs and the graph, keep errors       |
-| `-v`, `-vv`, ...                   |           | more diagnostics from Nix and rom          |
+| Option                                                     | Default   | What it changes                                                                |
+| ---------------------------------------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `--format tree\|plain\|dashboard`                          | `tree`    | dependency graph, one line each, or totals                                     |
+| `--tree-direction down\|up`                                | `down`    | grow the tree downward from roots or upward from the legend                    |
+| `--legend compact\|table\|verbose\|nom`                    | `table`   | the status counts (or per-host table) under the graph                          |
+| `--summary concise\|table\|full\|nom`                      | `concise` | the summary when the build ends                                                |
+| `--icons auto\|nerd\|unicode`                              | `auto`    | Nerd Font glyphs when detected, otherwise plain Unicode                        |
+| `--log-prefix short\|full\|none`                           | `short`   | what precedes each builder log line                                            |
+| `--log-lines N`                                            | no limit  | builder log lines shown per build                                              |
+| `--host-sort none\|download-size\|download-count\|builds`  | `none`    | host ordering in the `nom` legend and summary                                  |
+| `--max-hosts N`                                            | no limit  | cap remote hosts in the `nom` table, folding the rest into `(other)`           |
+| `--curl-progress true\|false`                              | `false`   | parse curl download progress from builder logs                                 |
+| `--progress-bars true\|false`                              | `true`    | show progress bars on running builds and transfers                             |
+| `--show-percentages true\|false`                           | `true`    | show percentage values alongside transfer sizes                                |
+| `--decimal-bytes true\|false`                              | `false`   | always include a decimal digit when formatting KiB and larger sizes            |
+| `--platform nix\|lix`                                      | detected  | which evaluator to run                                                         |
+| `--silent`                                                 |           | hide logs and the graph, keep errors                                           |
+| `-v`, `-vv`, ...                                           |           | more diagnostics from Nix and rom                                              |
 
 <!--markdownlint-enable MD013-->
 `auto` also honors `NERD_FONTS=1` to force Nerd Font glyphs or `NERD_FONTS=0`
@@ -174,15 +181,29 @@ to force plain Unicode.
 
 ### Configuration
 
-The display options above, from `--format` to `--log-lines`, can also live in
-`$XDG_CONFIG_HOME/rom/config.toml` (usually `~/.config/rom/config.toml`), under
-the same names:
+The display options above, from `--format` to `--decimal-bytes`, can also live
+in `$XDG_CONFIG_HOME/rom/config.toml` (usually `~/.config/rom/config.toml`),
+under the same names:
 
 ```toml
 format = "tree"
 icons = "unicode"
 log-lines = 20
+
+[theme]
+connector = "white"
+log-prefix = "blue"
 ```
+
+Any semantic color in `[theme]` can be overridden using an ANSI color name
+(`black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `gray`,
+`dark-gray`, `light-*`, `white`, `reset`), a 256-color palette index
+(`"67"`), or a hex RGB value (`"#5f87af"`). Available keys:
+
+- `connector`, `text`, `muted`, `timer`
+- `planned`, `running`, `completed`, `failed`
+- `log-prefix`, `host`, `download`, `upload`, `transfer-bytes`, `progress-track`
+- `cpu`, `cpu-serial`, `cpu-idle`, `cpu-heavy`
 
 > [!NOTE]
 > Flags on the command line win over the file.
