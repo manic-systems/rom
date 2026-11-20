@@ -683,20 +683,14 @@ impl Renderer<'_> {
     }
   }
 
-  /// Lines the tree takes beyond its rows.
-  pub(super) fn tree_header(&self) -> usize {
-    usize::from(self.config.tree_direction == TreeDirection::Down)
-  }
-
   pub(super) fn render_tree(
     &mut self,
     plan: &TreePlan,
-    maximum: usize,
+    budget: usize,
   ) -> Vec<Line<'static>> {
-    if maximum == 0 {
+    if budget == 0 {
       return Vec::new();
     }
-    let budget = maximum - self.tree_header();
 
     self.seen.clear();
     let mut truncated = plan.row_count() > budget || plan.hidden > 0;
@@ -753,13 +747,15 @@ impl Renderer<'_> {
 
     let mut lines = self.lay_out(rows);
     match self.config.tree_direction {
-      // The header starts the trunk that the legend below continues.
+      // The first root starts the trunk that the legend below continues.
       TreeDirection::Down => {
-        let header = vec![
-          span("╭─ ", self.config.theme.connector),
-          span("Builds", self.config.theme.text),
-        ];
-        lines.insert(0, fit_line(header, self.width));
+        if let Some(corner) = lines
+          .first_mut()
+          .and_then(|line| line.spans.first_mut())
+          .filter(|corner| corner.content == "├─ ")
+        {
+          corner.content = "╭─ ".into();
+        }
       },
       TreeDirection::Up => lines.reverse(),
     }

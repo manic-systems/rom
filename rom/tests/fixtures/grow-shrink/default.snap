@@ -1,24 +1,23 @@
 === small @ 1500ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;34m⏸ grow-shrink-root\e[0m
+\e[0;90m╭─ \e[0;34m⏸ grow-shrink-root\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-0\e[0m
 \e[0;90m│  │  ╰─ \e[0;34m⏸ single-c-0\e[0m
 \e[0;90m│  │     ╰─ \e[0;34m⏸ big-b-0\e[0m
-\e[0;90m│  │        ├─ \e[0;33m⏵ small-a-0\e[0m      \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 62)\e[0m
-\e[0;90m│  │        ╰─ \e[0;33m⏵ small-a-1\e[0m      \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 62)\e[0m
+\e[0;90m│  │        ├─ \e[0;33m⏵ small-a-0\e[0m      \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 61)\e[0m
+\e[0;90m│  │        ╰─ \e[0;33m⏵ small-a-1\e[0m      \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 61)\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-1\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-2\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-3\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-4\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-5\e[0m
-\e[0;90m│  ╰─ \e[0;34m⏸ big-d-6\e[0m
-\e[0;90m├─ … 62 more\e[0m
+\e[0;90m│  ├─ \e[0;34m⏸ big-d-6\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ big-d-7\e[0m
+\e[0;90m├─ … 61 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 2       \e[0;32m✔ 0         \e[0;34m⏸ 72      \e[0m∑ 74
 \e[0;90m┗━ \e[0mElapsed ⏱ 1s
 === big @ 4800ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;34m⏸ grow-shrink-root\e[0m
+\e[0;90m╭─ \e[0;34m⏸ grow-shrink-root\e[0m
 \e[0;90m│  ╰─ \e[0;34m⏸ big-d-0\e[0m
 \e[0;90m│     ╰─ \e[0;34m⏸ single-c-0\e[0m
 \e[0;90m│        ├─ \e[0;33m⏵ big-b-0\e[0m           \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 29)\e[0m
@@ -30,16 +29,16 @@
 \e[0;90m│        ├─ \e[0;33m⏵ big-b-6\e[0m           \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 29)\e[0m
 \e[0;90m│        ├─ \e[0;33m⏵ big-b-7\e[0m           \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 29)\e[0m
 \e[0;90m│        ├─ \e[0;33m⏵ big-b-8\e[0m           \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 29)\e[0m
-\e[0;90m│        ╰─ \e[0;33m⏵ big-b-9\e[0m           \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 29)\e[0m
-\e[0;90m├─ … 30 active, 29 more\e[0m
+\e[0;90m│        ├─ \e[0;33m⏵ big-b-9\e[0m           \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 29)\e[0m
+\e[0;90m│        ╰─ \e[0;33m⏵ big-b-10\e[0m          \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 29)\e[0m
+\e[0;90m├─ … 29 active, 29 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 40      \e[0;32m✔ 2         \e[0;34m⏸ 32      \e[0m∑ 74
 \e[0;90m┗━ \e[0mElapsed ⏱ 4s
 === small-again @ 8500ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;34m⏸ grow-shrink-root\e[0m
+\e[0;90m╭─ \e[0;34m⏸ grow-shrink-root\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-0\e[0m
-\e[0;90m│  │  ╰─ \e[0;33m⏵ single-c-0\e[0m           \e[0;90m──\e[0;33m╺━━━╸\e[0;90m─────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 20)\e[0m
+\e[0;90m│  │  ╰─ \e[0;33m⏵ single-c-0\e[0m           \e[0;90m──\e[0;33m╺━━━╸\e[0;90m─────────────────────\e[0;37m  ⏱ 1s\e[0;34m  (blocks 19)\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-1\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-2\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-3\e[0m
@@ -48,14 +47,14 @@
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-6\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-7\e[0m
 \e[0;90m│  ├─ \e[0;34m⏸ big-d-8\e[0m
-\e[0;90m│  ╰─ \e[0;34m⏸ big-d-9\e[0m
-\e[0;90m├─ … 20 more\e[0m
+\e[0;90m│  ├─ \e[0;34m⏸ big-d-9\e[0m
+\e[0;90m│  ╰─ \e[0;34m⏸ big-d-10\e[0m
+\e[0;90m├─ … 19 more\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 1       \e[0;32m✔ 42        \e[0;34m⏸ 31      \e[0m∑ 74
 \e[0;90m┗━ \e[0mElapsed ⏱ 8s
 === big-again @ 11300ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;34m⏸ grow-shrink-root\e[0m
+\e[0;90m╭─ \e[0;34m⏸ grow-shrink-root\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ big-d-0\e[0m                 \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ big-d-1\e[0m                 \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ big-d-2\e[0m                 \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0m
@@ -67,14 +66,14 @@
 \e[0;90m│  ├─ \e[0;33m⏵ big-d-8\e[0m                 \e[0;90m────\e[0;33m╺━━━╸\e[0;90m───────────────────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ big-d-9\e[0m                 \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0m
 \e[0;90m│  ├─ \e[0;33m⏵ big-d-10\e[0m                \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m│  ╰─ \e[0;33m⏵ big-d-11\e[0m                \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0m
-\e[0;90m├─ … 18 active\e[0m
+\e[0;90m│  ├─ \e[0;33m⏵ big-d-11\e[0m                \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m│  ╰─ \e[0;33m⏵ big-d-12\e[0m                \e[0;90m───\e[0;33m╺━━━╸\e[0;90m────────────────────\e[0;37m  ⏱ 1s\e[0m
+\e[0;90m├─ … 17 active\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 30      \e[0;32m✔ 43        \e[0;34m⏸ 1       \e[0m∑ 74
 \e[0;90m┗━ \e[0mElapsed ⏱ 11s
 === finished @ 14124ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;32m✔ grow-shrink-root\e[0;90m  1s\e[0m
+\e[0;90m╭─ \e[0;32m✔ grow-shrink-root\e[0;90m  1s\e[0m
 \e[0;90m┕━ \e[0;32mFinished after 14s\e[0m
 === log ===
 these 74 derivations will be built:\e[0m

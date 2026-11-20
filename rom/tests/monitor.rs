@@ -178,7 +178,7 @@ fn planned_records_build_a_recursive_dependency_tree() {
   );
   assert_eq!(engine.state().roots().len(), 1);
   let text = render_frame(engine.state(), &render, 3.0, 100, 30, false).text();
-  assert!(text.contains("├─ ⏸\u{a0}root"), "{text}");
+  assert!(text.contains("╭─ ⏸\u{a0}root"), "{text}");
   assert!(text.contains("│  ╰─ ⏸\u{a0}child"), "{text}");
   assert!(text.contains("│     ╰─ ⏸\u{a0}leaf"), "{text}");
   let builds = text

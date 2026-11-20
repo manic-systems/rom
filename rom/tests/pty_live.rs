@@ -95,7 +95,7 @@ fn undersized_terminal_falls_back_without_live_control_artifacts() {
     assert_eq!(count(&transcript, END_SYNC), 0);
     assert!(!transcript.windows(4).any(|window| window == b"\x1b[2K"));
     assert!(transcript.windows(8).any(|window| window == b"checking"));
-    assert!(transcript.windows(6).any(|window| window == b"Builds"));
+    assert!(transcript.windows(8).any(|window| window == b"Finished"));
     assert!(transcript.windows(7).any(|window| window == b"\x1b[1;35m"));
   }
 }

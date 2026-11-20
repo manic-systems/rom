@@ -1,30 +1,26 @@
 === early @ 2000ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m╭─ \e[0;36m↓ \e[0mfetching
 \e[0;90m│  ╰─ \e[0;36m↓ sqlite-lib-0.3\e[0m          \e[0;36m━━━━━━╸\e[0;90m────────────────\e[0;36m   33%\e[0;90m  14 MiB/41 MiB\e[0;35m  c\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
 \e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 10      \e[0;32m↓ 7         \e[0;34m⏸ 83      \e[0m∑ 100
 \e[0;90m┗━ \e[0mElapsed ⏱ 2s
 === busy @ 6000ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m╭─ \e[0;36m↓ \e[0mfetching
 \e[0;90m│  ╰─ \e[0;36m↓ coreutils-lib-1.4\e[0m       \e[0;36m━━━━━━━━━━╸\e[0;90m────────────\e[0;36m   49%\e[0;90m  20 MiB/39 MiB\e[0;35m  c\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
 \e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 10      \e[0;32m↓ 31        \e[0;34m⏸ 59      \e[0m∑ 100
 \e[0;90m┗━ \e[0mElapsed ⏱ 6s
 === late @ 12000ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m├─ \e[0;36m↓ \e[0mfetching
+\e[0;90m╭─ \e[0;36m↓ \e[0mfetching
 \e[0;90m│  ╰─ \e[0;36m↓ perl-lib-2.5\e[0m            \e[0;36m━━━━━━━━━━╸\e[0;90m────────────\e[0;36m   49%\e[0;90m  22 MiB/45 MiB\e[0;35m  c\e[0m
 \e[0;90m┢━ \e[0mStatus      \e[0;33mRunning   \e[0;32mCompleted   \e[0;34mWaiting   \e[0mTotal
 \e[0;90m┃  \e[0mBuilds      \e[0;33m⏵ 0       \e[0;32m✔ 0         \e[0;34m⏸ 0       \e[0m∑ 0
 \e[0;90m┃  \e[0mDownloads   \e[0;33m↓ 10      \e[0;32m↓ 66        \e[0;34m⏸ 24      \e[0m∑ 100
 \e[0;90m┗━ \e[0mElapsed ⏱ 12s
 === finished @ 19121ms ===
-\e[0;90m╭─ \e[0mBuilds
-\e[0;90m┕━ \e[0;32mFinished after 19s\e[0m
+\e[0;90m╺━ \e[0;32mFinished after 19s\e[0m
 === log ===
 these 100 paths will be fetched (1.2 GiB download, 4.8 GiB unpacked):\e[0m
   /nix/store/001d4a9846d7gg647f318831d28fbc77-libffi-lib-1.7\e[0m

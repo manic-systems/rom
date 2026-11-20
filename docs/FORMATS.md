@@ -29,8 +29,7 @@ rom build nixpkgs#hello
 **Tree Format**:
 
 ```plaintext
-╭─ Builds
-├─ ⏸ hello-2.12.2
+╭─ ⏸ hello-2.12.2
 │  ╰─ ⏵ dependency-1.0  ⏱ 5s
 ┢━ Status      Running   Completed   Waiting   Failed   Total
 ┃  Builds      ⏵ 1       ✔ 0         ⏸ 4       ✗ 0      ∑ 5
@@ -70,8 +69,7 @@ the screen. At this moment they only affect the **tree format**.
 **Table**:
 
 ```plaintext
-╭─ Builds
-├─ ⏵ hello-2.12.2  ⏱ 5s
+╭─ ⏵ hello-2.12.2  ⏱ 5s
 ┢━ Status      Running   Completed   Waiting   Failed   Total
 ┃  Builds      ⏵ 1       ✔ 0         ⏸ 4       ✗ 0      ∑ 5
 ┃  Downloads   ↓ 2       ↓ 3         ⏸ 1                ∑ 6
@@ -81,16 +79,14 @@ the screen. At this moment they only affect the **tree format**.
 **Compact**:
 
 ```plaintext
-╭─ Builds
-├─ ⏵ hello-2.12.2  ⏱ 5s
+╭─ ⏵ hello-2.12.2  ⏱ 5s
 ┕━  ⏵ 1 ✔ 0 ✗ 0 ⏸ 4
 ```
 
 **Verbose**:
 
 ```plaintext
-╭─ Builds
-├─ ⏵ hello-2.12.2  ⏱ 5s
+╭─ ⏵ hello-2.12.2  ⏱ 5s
 ┢━ Build Summary
 ┃  ⏵ hello-2.12.2  5s
 ┗━  ⏵ 1 building ✔ 0 completed ✗ 0 failed ⏸ 4 waiting

@@ -91,12 +91,12 @@ fn engine_with_build(status: TestBuildStatus) -> Engine {
 }
 
 #[test]
-fn tree_has_continuous_header_and_root_connector() {
+fn tree_opens_its_trunk_at_the_first_root() {
   let engine = engine_with_build(TestBuildStatus::Building);
   let frame =
     render_frame(engine.state(), &RenderConfig::default(), 2.0, 79, 23, false);
   let text = frame.text();
-  assert!(text.starts_with("╭─ Builds\n├─"), "{text}");
+  assert!(text.starts_with("╭─ "), "{text}");
   assert!(text.lines().last().unwrap().starts_with("┗━"), "{text}");
   assert!(text.contains("demo"));
 }
@@ -192,7 +192,7 @@ fn deeply_nested_live_graph_is_bounded_before_rendering() {
       .text();
   let lines = text.lines().collect::<Vec<&str>>();
   assert_eq!(lines.len(), 18, "{text}");
-  assert!(lines[14].contains("… 1987 more"), "{text}");
+  assert!(lines[14].contains("… 1986 more"), "{text}");
   assert!(lines[15].starts_with("┢━ Status"), "{text}");
   assert!(lines.last().unwrap().starts_with("┗━ Elapsed"), "{text}");
 }
@@ -218,9 +218,9 @@ fn waiting_roots_fill_rows_left_after_active_work() {
     render_frame(engine.state(), &RenderConfig::default(), 2.0, 79, 23, false)
       .text();
   let lines = text.lines().collect::<Vec<&str>>();
-  assert!(lines[1].contains("active"), "{text}");
+  assert!(lines[0].contains("active"), "{text}");
   assert!(text.contains("waiting-1"), "{text}");
-  assert!(text.contains("… 8 more"), "{text}");
+  assert!(text.contains("… 7 more"), "{text}");
 }
 
 #[test]
