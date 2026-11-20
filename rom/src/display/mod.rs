@@ -133,11 +133,8 @@ impl<'a> Renderer<'a> {
       self.legend()
     };
     let plan = self.tree_plan();
-    let (mut tail, graph_budget) = self.tree_layout(
-      tail,
-      plan.row_count() + self.tree_header(),
-      final_render,
-    );
+    let (mut tail, graph_budget) =
+      self.tree_layout(tail, plan.row_count(), final_render);
     let mut lines = self.render_tree(&plan, graph_budget);
     let short = usize::from(self.min_height.min(self.max_height))
       .saturating_sub(lines.len() + tail.len());
