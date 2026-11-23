@@ -224,6 +224,8 @@ struct WrapperConfig {
 /// Returns an error if an argument is not valid UTF-8, the Nix process cannot
 /// be run, or the build fails or ends with unfinished work.
 pub fn run() -> misstep::Result<ExitCode> {
+  caress::handle(Cli::SPEC);
+
   let mut process_args = env::args_os();
   let program = process_args
     .next()

@@ -13,6 +13,7 @@ license = "EUPL-1.2"
 [workspace.dependencies]
 cognos = { path = "./crates/cognos", version = "2.0.0" }  # cognos is versioned independently
 
+caress = "0.3.0"
 crossterm = { version = "0.29.0", default-features = false }
 csv = "1.4.0"
 etcetera = "0.11.0"

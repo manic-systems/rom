@@ -18,6 +18,7 @@ path = "src/lib.rs"
 [features]
 default = ["cli"]
 cli = [
+  "dep:caress",
   "dep:pound",
   "dep:misstep",
   "dep:signal-hook",
@@ -28,6 +29,7 @@ cli = [
 [dependencies]
 cognos.workspace = true
 
+caress = { workspace = true, optional = true }
 pound = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
