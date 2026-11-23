@@ -110,6 +110,19 @@ $ nix develop
 $ cargo build # cargo install if you so choose
 ```
 
+### Shell Completions
+
+The Nix package installs completions for Bash, Zsh, Fish and Nushell. To set
+completions up by hand, source the script rom prints.
+
+| Shell  | Setup                                                  |
+| ------ | ------------------------------------------------------ |
+| bash   | `source <(COMPLETE=bash rom)`                          |
+| zsh    | `COMPLETE=zsh rom > ~/.zfunc/_rom`, with it in `fpath` |
+| fish   | `COMPLETE=fish rom \| source`                          |
+| nu     | `COMPLETE=nu rom \| save rom.nu`, then `source` it     |
+| elvish | `eval (env COMPLETE=elvish rom \| slurp)`              |
+
 ## Usage
 
 Put `rom` in place of the Nix command you would have run anyway:
