@@ -1,6 +1,9 @@
 {
   lib,
   rustPlatform,
+  stdenv,
+  buildPackages,
+  installShellFiles,
 }: let
   cargoTOML = (lib.importTOML ../Cargo.toml).workspace.package;
 in
@@ -25,6 +28,20 @@ in
 
     cargoLock.lockFile = ../Cargo.lock;
     enableParallelBuildingByDefault = true;
+
+    nativeBuildInputs = [installShellFiles];
+
+    postInstall = lib.optionalString (stdenv.hostPlatform.emulatorAvailable buildPackages) (
+      let
+        rom = "${stdenv.hostPlatform.emulator buildPackages} $out/bin/rom";
+      in ''
+        installShellCompletion --cmd rom \
+          --bash    <(COMPLETE=bash ${rom}) \
+          --zsh     <(COMPLETE=zsh  ${rom}) \
+          --fish    <(COMPLETE=fish ${rom}) \
+          --nushell <(COMPLETE=nu   ${rom})
+      ''
+    );
 
     meta = {
       description = "Pretty build graphs for your pretty Nix builds";
