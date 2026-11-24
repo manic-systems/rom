@@ -129,7 +129,7 @@ def replay-command [replay: path, rom: path, variant: record] {
 }
 
 def record [cast: path, size: string, command: string] {
-  ^asciinema rec --quiet --headless --window-size $size --overwrite --command $command $cast
+  with-env { NERD_FONTS: "1" } { ^asciinema rec --quiet --headless --window-size $size --overwrite --command $command $cast }
 }
 
 # Whether a cast has any output events.
