@@ -13,17 +13,24 @@
         "aarch64-darwin"
       ];
       forEachSystem = nixpkgs.lib.genAttrs systems;
-      pkgsForEach = nixpkgs.legacyPackages;
+      pkgsForEach = forEachSystem (system: import nixpkgs {
+        inherit system;
+        overlays = [ self.overlays.default ];
+      });
     in
     {
+      overlays.default = import ./nix/overlay.nix;
+
       packages = forEachSystem (system: {
-        rom = pkgsForEach.${system}.callPackage ./nix/package.nix { };
-        default = self.packages.${system}.rom;
+        inherit (pkgsForEach.${system}.rom)
+          rom
+          default
+          ;
       });
 
       devShells = forEachSystem (system: {
-        default = pkgsForEach.${system}.callPackage ./nix/shell.nix { };
-        previews = pkgsForEach.${system}.callPackage ./nix/previews.nix { };
+        default = pkgsForEach.${system}.rom.dev-shell;
+        previews = pkgsForEach.${system}.rom.previews-shell;
       });
 
       hydraJobs = self.packages;
